@@ -1,0 +1,20 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.whateverneveranywhere/aiapplyd",
+  "title": "AI Applyd",
+  "description": "ATS resume scoring, job analysis, interview prep, and auto-apply that verifies each submission.",
+  "version": "1.2.0",
+  "websiteUrl": "https://aiapplyd.com/mcps",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.aiapplyd.com/mcp"
+    }
+  ],
+  "_meta": {
+    "io.modelcontextprotocol.registry/publisher-provided": {
+      "tool": "mcp-publisher",
+      "version": "1.0.0"
+    }
+  }
+}
