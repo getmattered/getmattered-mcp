@@ -11,7 +11,7 @@ write the cover letter, prepare for the interview, and send the application in o
 employer's own hiring system. All from inside the assistant you already work in.
 
 [![Glama quality score](https://glama.ai/mcp/servers/whateverneveranywhere/aiapplyd-mcp/badges/score.svg)](https://glama.ai/mcp/servers/whateverneveranywhere/aiapplyd-mcp)
-[![Smithery](https://img.shields.io/badge/Smithery-%40firstexhotic%2Faiapplyd-7c3aed)](https://smithery.ai/servers/@firstexhotic/aiapplyd)
+[![Smithery](https://img.shields.io/badge/Smithery-%40firstexhotic%2Faiapplyd-7c3aed)](https://smithery.ai/servers/firstexhotic/aiapplyd)
 [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.whateverneveranywhere%2Faiapplyd-blue)](https://registry.modelcontextprotocol.io/v0/servers?search=aiapplyd)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
