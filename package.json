@@ -40,10 +40,10 @@
   "homepage": "https://aiapplyd.com/mcps",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/whateverneveranywhere/aiapplyd-mcp.git"
+    "url": "git+https://github.com/aiapplyd/aiapplyd-mcp.git"
   },
   "bugs": {
-    "url": "https://github.com/whateverneveranywhere/aiapplyd-mcp/issues"
+    "url": "https://github.com/aiapplyd/aiapplyd-mcp/issues"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0"

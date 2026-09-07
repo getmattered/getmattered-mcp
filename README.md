@@ -87,7 +87,7 @@ This repository ships a thin bridge. It relays the protocol to the hosted server
 nothing of its own.
 
 ```bash
-npx -y github:whateverneveranywhere/aiapplyd-mcp
+npx -y github:aiapplyd/aiapplyd-mcp
 ```
 
 Or with Docker:
@@ -209,7 +209,7 @@ nothing else. The [privacy policy](https://aiapplyd.com/legal/privacy) and
 
 ## Support
 
-- Issues: [github.com/whateverneveranywhere/aiapplyd-mcp/issues](https://github.com/whateverneveranywhere/aiapplyd-mcp/issues)
+- Issues: [github.com/aiapplyd/aiapplyd-mcp/issues](https://github.com/aiapplyd/aiapplyd-mcp/issues)
 - Email: admin@aiapplyd.com
 
 ## About this repository
