@@ -34,6 +34,15 @@ many people rewrite a CV nobody ever read.
 This server puts both halves of that process in your hands: the screening, and the proof that
 the application arrived.
 
+<div align="center">
+
+<img src="assets/03-the-company-confirmed-it.png" alt="The employer's own system confirming an application arrived" width="49%" />
+<img src="assets/04-sent-means-they-got-it.png" alt="Sent means they got it: every application carries the employer's confirmation" width="49%" />
+
+<sub>Sent is not the same as arrived. These are the employer's own confirmations, kept against every application.</sub>
+
+</div>
+
 Every application goes in on the company's real careers page, under your name, with your own
 materials. It lands on all twelve major ATS platforms: **Workday, Greenhouse, Lever, Ashby,
 Workable, iCIMS, Personio, Recruitee, Teamtailor, Rippling, Breezy and SmartRecruiters.**
