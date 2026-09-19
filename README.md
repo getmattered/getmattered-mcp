@@ -10,6 +10,11 @@ Score your resume the way the screening software scores it, rewrite it for the e
 write the cover letter, prepare for the interview, and send the application in on the
 employer's own hiring system. All from inside the assistant you already work in.
 
+**And it keeps the employer's own confirmation.** Most tools count applications sent, which is
+a number the tool awards itself off its own button click. This one reports what the employer's
+system actually returned, so a real rejection is distinguishable from a form that quietly
+dropped your application.
+
 [![Glama quality score](https://glama.ai/mcp/servers/whateverneveranywhere/aiapplyd-mcp/badges/score.svg)](https://glama.ai/mcp/servers/whateverneveranywhere/aiapplyd-mcp)
 [![Smithery](https://img.shields.io/badge/Smithery-%40firstexhotic%2Faiapplyd-7c3aed)](https://smithery.ai/servers/firstexhotic/aiapplyd)
 [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.whateverneveranywhere%2Faiapplyd-blue)](https://registry.modelcontextprotocol.io/v0/servers?search=aiapplyd)
@@ -21,8 +26,13 @@ employer's own hiring system. All from inside the assistant you already work in.
 
 ---
 
-Most applicants are screened out by software before a person reads a word. This server puts
-the other side of that process in your hands.
+Most applicants are screened out by software before a person reads a word, and a good number
+are never screened at all, because the form silently dropped a required field or the upload
+never attached. From the candidate's side those look identical to rejection, which is why so
+many people rewrite a CV nobody ever read.
+
+This server puts both halves of that process in your hands: the screening, and the proof that
+the application arrived.
 
 Every application goes in on the company's real careers page, under your name, with your own
 materials. It lands on all twelve major ATS platforms: **Workday, Greenhouse, Lever, Ashby,
