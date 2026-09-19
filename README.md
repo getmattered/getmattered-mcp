@@ -15,9 +15,10 @@ a number the tool awards itself off its own button click. This one reports what 
 system actually returned, so a real rejection is distinguishable from a form that quietly
 dropped your application.
 
-[![Glama quality score](https://glama.ai/mcp/servers/whateverneveranywhere/aiapplyd-mcp/badges/score.svg)](https://glama.ai/mcp/servers/whateverneveranywhere/aiapplyd-mcp)
+[![Glama quality score](https://glama.ai/mcp/servers/aiapplyd/aiapplyd-mcp/badges/score.svg)](https://glama.ai/mcp/servers/aiapplyd/aiapplyd-mcp)
 [![Smithery](https://img.shields.io/badge/Smithery-%40firstexhotic%2Faiapplyd-7c3aed)](https://smithery.ai/servers/firstexhotic/aiapplyd)
 [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.whateverneveranywhere%2Faiapplyd-blue)](https://registry.modelcontextprotocol.io/v0/servers?search=aiapplyd)
+[![LobeHub](https://img.shields.io/badge/LobeHub-aiapplyd--mcp-1a7f64)](https://lobehub.com/mcp/aiapplyd-aiapplyd-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 **[Listing page](https://aiapplyd.com/mcps)** · **[Website](https://aiapplyd.com)** · **[Privacy](https://aiapplyd.com/legal/privacy)** · **[Terms](https://aiapplyd.com/legal/terms)**
