@@ -45,8 +45,9 @@ the application arrived.
 </div>
 
 Every application goes in on the company's real careers page, under your name, with your own
-materials. It lands on all twelve major ATS platforms: **Workday, Greenhouse, Lever, Ashby,
-Workable, iCIMS, Personio, Recruitee, Teamtailor, Rippling, Breezy and SmartRecruiters.**
+materials. It lands on all fifteen major ATS platforms: **Workday, Greenhouse, Lever, Ashby,
+Workable, iCIMS, Personio, Recruitee, Teamtailor, Rippling, Breezy, SmartRecruiters, BambooHR,
+JazzHR and softgarden.**
 
 Nothing to install. Connect once and run it from Claude, ChatGPT, Cursor or any MCP client.
 
