@@ -2,8 +2,8 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.whateverneveranywhere/aiapplyd",
   "title": "AI Applyd",
-  "description": "Applies on the employer's own hiring system and keeps the confirmation it returns, so a real rejection is distinguishable from a form that dropped the application. Plus ATS scoring, per-role resumes, cover letters and interview prep.",
-  "version": "1.3.0",
+  "description": "The auto-apply that proves the employer received it. ATS scoring, per-role resumes, interview prep.",
+  "version": "1.5.0",
   "websiteUrl": "https://aiapplyd.com/mcps",
   "repository": {
     "url": "https://github.com/aiapplyd/aiapplyd-mcp",
