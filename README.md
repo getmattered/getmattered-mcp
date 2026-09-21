@@ -233,6 +233,18 @@ nothing else. The [privacy policy](https://aiapplyd.com/legal/privacy) and
 - Issues: [github.com/aiapplyd/aiapplyd-mcp/issues](https://github.com/aiapplyd/aiapplyd-mcp/issues)
 - Email: admin@aiapplyd.com
 
+## Follow AI Applyd
+
+- Website: [aiapplyd.com](https://aiapplyd.com)
+- Pricing: [aiapplyd.com/pricing](https://aiapplyd.com/pricing)
+- Blog: [aiapplyd.com/blog](https://aiapplyd.com/blog)
+- X: [@aiapplydHQ](https://x.com/aiapplydHQ)
+- LinkedIn: [AI Applyd](https://www.linkedin.com/company/aiapplyd/)
+- YouTube: [@aiapplyd](https://www.youtube.com/@aiapplyd)
+- TikTok: [@aiapplydhq](https://www.tiktok.com/@aiapplydhq)
+- Instagram: [@aiapplyd](https://www.instagram.com/aiapplyd)
+- Discord: [join the community](https://discord.gg/ZXBsKvuvCD)
+
 ## About this repository
 
 The hosted server runs on Cloudflare Workers and its source is not public. This repository is
