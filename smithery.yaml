@@ -1,0 +1,63 @@
+name: aiapplyd
+description: >-
+  The auto-apply that proves the employer received it. Every other tool counts the applications it
+  sent; this one submits on the company's own hiring system and keeps the confirmation their system
+  returns, so a real rejection is distinguishable from a form that dropped the application. 10 tools
+  inside the assistant you already work in: ATS resume scoring, a resume rewritten for each specific
+  role, cover letters in your own voice, interview preparation, curated job matches, and the
+  application itself. Fifteen major ATS platforms land: Workday, Greenhouse, Lever, Ashby, Workable,
+  iCIMS, Personio, Recruitee, Teamtailor, Rippling, Breezy, SmartRecruiters, BambooHR, JazzHR and
+  softgarden. Every application goes in on the company's real careers page, under your name, with
+  your own materials. Free AI Applyd account (Google sign-in, no card) with a 10,000-token starter
+  grant; every tool runs on your own AI credits.
+author: Ava Bagherzadeh
+homepage: https://aiapplyd.com
+# The public mirror DOES exist now, so the repo is advertised again. The old comment here said
+# "restore this ONLY if a public mirror ever exists" - it does: github.com/aiapplyd/aiapplyd-mcp,
+# which is also what Glama and Smithery render their listings from.
+repository: https://github.com/aiapplyd/aiapplyd-mcp
+license: Proprietary
+startCommand:
+  type: http
+  url: https://mcp.aiapplyd.com/mcp
+  configSchema:
+    type: object
+    title: AI Applyd MCP Configuration
+    description: Nothing to install and nothing to configure. Sign in with Google on the first tool call and every tool runs on your own AI Applyd credits.
+    properties: {}
+    required: []
+tools:
+  - name: aiapplyd_score_resume
+    description: An overall ATS score with section scores, the keywords the resume matches and the ones it is missing, and specific rewrite suggestions
+  - name: aiapplyd_analyze_job_description
+    description: Extract what a posting screens on, so the resume mirrors its own language
+  - name: aiapplyd_optimize_resume
+    description: Rewrite a resume so it passes ATS screening and reaches a human reader
+  - name: aiapplyd_generate_interview_questions
+    description: Interview preparation for the role and company, with answer guidance and negotiation prep
+  - name: aiapplyd_translate_resume
+    description: A send-ready resume in another language, formatted for that market
+  - name: aiapplyd_search_jobs
+    description: The roles worth pursuing, scored against your profile (read-only)
+  - name: aiapplyd_update_job_preferences
+    description: Direct AI Applyd at the roles and locations you are targeting, and re-run discovery
+  - name: aiapplyd_generate_cover_letter
+    description: A cover letter in your own voice, written from the resume already on your account
+  - name: aiapplyd_auto_apply
+    description: Apply end to end on the employer's own hiring system, across all fifteen major ATS platforms, and keep the confirmation it returns
+  - name: aiapplyd_build_pdf
+    description: A finished, ATS-clean resume, editable in the builder and ready to download
+prompts:
+  - name: review_my_resume
+    description: Score a resume against a posting and return the three changes that move it past the filter
+  - name: prepare_for_interview
+    description: Prepare for the questions this company asks, with structured answers ready
+  - name: find_jobs_like_this
+    description: The strongest matches for a target role, ranked by fit
+resources:
+  - name: ats-best-practices
+    description: Canonical ATS rules, keyword strategy, and formatting pitfalls for 2026
+  - name: interview-frameworks
+    description: STAR, CARL, SOAR, PAR answer frameworks for behavioral interviews
+  - name: resume-section-order
+    description: Optimal resume section order by career stage (new grad, mid-career, executive)
