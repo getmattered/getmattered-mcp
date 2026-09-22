@@ -4,11 +4,23 @@
 
 # AI Applyd MCP Server
 
+**Auto-Apply That Ends on an Interview**
+
 **Stop applying. Start interviewing.**
 
 Score your resume the way the screening software scores it, rewrite it for the exact role,
 write the cover letter, prepare for the interview, and send the application in on the
 employer's own hiring system. All from inside the assistant you already work in.
+
+<br />
+
+<img src="assets/01-stop-applying-start-interviewing.png" alt="AI Applyd - stop applying, start interviewing" width="820" />
+
+<img src="assets/04-sent-means-they-got-it.png" alt="AI Applyd - sent means the employer received it" width="820" />
+
+<img src="assets/03-the-company-confirmed-it.png" alt="AI Applyd - the company confirmed it" width="820" />
+
+<img src="assets/08-wake-up-to-interviews.png" alt="AI Applyd - wake up to interviews" width="820" />
 
 **And it keeps the employer's own confirmation.** Most tools count applications sent, which is
 a number the tool awards itself off its own button click. This one reports what the employer's
@@ -251,3 +263,17 @@ The hosted server runs on Cloudflare Workers and its source is not public. This 
 the public home of the MCP server: the `server.json` manifest, the connection documentation,
 and the small stdio bridge above. The bridge is MIT licensed and forwards messages verbatim,
 so you can read every line of what runs on your machine.
+
+---
+
+## More from AI Applyd
+
+- [AI Applyd](https://aiapplyd.com) - auto-apply that ends on an interview
+- [How the MCP server works](https://aiapplyd.com/mcps) - setup for Claude, ChatGPT and Cursor
+- [Pricing](https://aiapplyd.com/pricing) - free to start, no card
+- [Blog](https://aiapplyd.com/blog) - how hiring systems actually screen you
+- [FAQ](https://aiapplyd.com/faq) - resume parsing, ATS behaviour, what "application received" means
+- [Compare](https://aiapplyd.com/vs) - AI Applyd against the other job-application tools
+- [Four things that cost us money while automating job applications](https://dev.to/aiapplyd/four-things-that-cost-us-money-while-automating-job-applications-1l51) - engineering write-up
+
+Built by [AI Applyd](https://aiapplyd.com). Questions: [ava@aiapplyd.com](mailto:ava@aiapplyd.com)
