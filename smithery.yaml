@@ -1,7 +1,7 @@
 name: aiapplyd
 description: >-
-  The auto-apply that proves the employer received it. Every other tool counts the applications it
-  sent; this one submits on the company's own hiring system and keeps the confirmation their system
+  Auto-apply that ends on an interview, not an application sent. Every other tool counts the
+  applications it sent; this one submits on the company's own hiring system and keeps the confirmation their system
   returns, so a real rejection is distinguishable from a form that dropped the application. 10 tools
   inside the assistant you already work in: ATS resume scoring, a resume rewritten for each specific
   role, cover letters in your own voice, interview preparation, curated job matches, and the

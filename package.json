@@ -1,7 +1,7 @@
 {
   "name": "aiapplyd-mcp",
   "version": "1.3.0",
-  "description": "AI Applyd MCP server - ATS resume scoring, per-role resume rewriting, cover letters, interview preparation, job matching, and applications submitted on the employer's own hiring system across twelve major ATS platforms.",
+  "description": "Auto-apply that ends on an interview. AI Applyd MCP server: ATS resume scoring, per-role resume rewriting, cover letters, interview preparation, job matching, and applications submitted on the employer's own hiring system across fifteen major ATS platforms.",
   "type": "module",
   "bin": {
     "aiapplyd-mcp": "dist/index.js"
