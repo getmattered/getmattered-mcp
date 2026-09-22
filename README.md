@@ -16,12 +16,6 @@ employer's own hiring system. All from inside the assistant you already work in.
 
 <img src="assets/01-stop-applying-start-interviewing.png" alt="AI Applyd - stop applying, start interviewing" width="820" />
 
-<img src="assets/04-sent-means-they-got-it.png" alt="AI Applyd - sent means the employer received it" width="820" />
-
-<img src="assets/03-the-company-confirmed-it.png" alt="AI Applyd - the company confirmed it" width="820" />
-
-<img src="assets/08-wake-up-to-interviews.png" alt="AI Applyd - wake up to interviews" width="820" />
-
 **And it keeps the employer's own confirmation.** Most tools count applications sent, which is
 a number the tool awards itself off its own button click. This one reports what the employer's
 system actually returned, so a real rejection is distinguishable from a form that quietly
@@ -49,10 +43,18 @@ the application arrived.
 
 <div align="center">
 
+<img src="assets/02-only-roles-that-actually-fit.png" alt="Only roles that actually fit, scored before you see them" width="49%" />
 <img src="assets/03-the-company-confirmed-it.png" alt="The employer's own system confirming an application arrived" width="49%" />
-<img src="assets/04-sent-means-they-got-it.png" alt="Sent means they got it: every application carries the employer's confirmation" width="49%" />
 
-<sub>Sent is not the same as arrived. These are the employer's own confirmations, kept against every application.</sub>
+<img src="assets/04-sent-means-they-got-it.png" alt="Sent means they got it: every application carries the employer's confirmation" width="49%" />
+<img src="assets/05-we-apply-where-the-jobs-live.png" alt="It applies on the hiring systems the jobs actually live on" width="49%" />
+
+<img src="assets/06-you-always-know-where-you-stand.png" alt="You always know where every application stands" width="49%" />
+<img src="assets/07-they-wrote-back-an-interview.png" alt="They wrote back: an interview, not a no" width="49%" />
+
+<img src="assets/08-wake-up-to-interviews.png" alt="Wake up to interviews" width="820" />
+
+<sub>From the first match to the interview invite. Every application carries the employer's own confirmation.</sub>
 
 </div>
 
