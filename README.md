@@ -65,7 +65,7 @@ materials. It lands on all fifteen major ATS platforms: **Workday, Greenhouse, L
 Workable, iCIMS, Personio, Recruitee, Teamtailor, Rippling, Breezy, SmartRecruiters, BambooHR,
 JazzHR and softgarden.**
 
-Nothing to install. Connect once and run it from Claude, ChatGPT, Cursor or any MCP client.
+Nothing to install. Connect once and run it from Claude, ChatGPT, Codex, Cursor, Gemini CLI, VS Code or any MCP client, and from your phone over iMessage through Poke.
 
 ## Quick start
 
@@ -117,6 +117,65 @@ natively, so there is no Action schema to import and nothing to host.
 ```bash
 code --add-mcp '{"name":"aiapplyd","type":"http","url":"https://mcp.aiapplyd.com/mcp"}'
 ```
+
+### Claude Code plugin
+
+This repository is also a Claude Code plugin marketplace:
+
+```bash
+claude plugin marketplace add aiapplyd/aiapplyd-mcp
+claude plugin install aiapplyd@aiapplyd
+```
+
+### Codex (CLI, IDE extension and the ChatGPT desktop app)
+
+```bash
+codex mcp add aiapplyd --url https://mcp.aiapplyd.com/mcp
+codex mcp login aiapplyd
+```
+
+The Codex CLI, the IDE extension and the ChatGPT desktop app share this configuration.
+
+### Gemini CLI
+
+`~/.gemini/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "aiapplyd": { "httpUrl": "https://mcp.aiapplyd.com/mcp" }
+  }
+}
+```
+
+### Zed
+
+**Settings → AI → MCP Servers → Add Remote Server**, then paste `https://mcp.aiapplyd.com/mcp`.
+
+### Windsurf
+
+`~/.codeium/windsurf/mcp_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "aiapplyd": { "command": "npx", "args": ["-y", "mcp-remote", "https://mcp.aiapplyd.com/mcp"] }
+  }
+}
+```
+
+### Perplexity, Mistral Le Chat and Raycast
+
+Each has a custom connector screen that takes a remote MCP URL. Paste
+`https://mcp.aiapplyd.com/mcp` and choose OAuth.
+
+### From your phone: iMessage, Telegram and WhatsApp
+
+- **iMessage / SMS:** add AI Applyd to [Poke](https://poke.com/docs/mcp-servers) as an MCP
+  integration (name `AI Applyd`, URL `https://mcp.aiapplyd.com/mcp`), then text Poke:
+  "find me remote product designer jobs and apply to the best two".
+- **Telegram, WhatsApp or iMessage on your own server:** [OpenClaw](https://github.com/SamurAIGPT/awesome-openclaw)
+  is a self-hosted gateway. Add the URL as an MCP server and enable the channel you use.
 
 ### Any client that only speaks stdio
 

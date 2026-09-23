@@ -1,0 +1,16 @@
+{
+  "name": "aiapplyd",
+  "description": "AI Applyd for Claude Code: Auto-Apply That Ends on an Interview.",
+  "owner": {
+    "name": "AI Applyd",
+    "email": "ava@aiapplyd.com",
+    "url": "https://aiapplyd.com"
+  },
+  "plugins": [
+    {
+      "name": "aiapplyd",
+      "source": "./plugins/aiapplyd",
+      "description": "Auto-Apply That Ends on an Interview. Search matched jobs, tailor your resume and cover letter per role, and apply on 15 hiring systems from Claude Code."
+    }
+  ]
+}
