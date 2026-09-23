@@ -69,6 +69,13 @@ Nothing to install. Connect once and run it from Claude, ChatGPT, Codex, Cursor,
 
 ## Quick start
 
+One click, if your app supports it:
+
+[![Add to Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/install-mcp?name=aiapplyd&config=eyJ1cmwiOiJodHRwczovL21jcC5haWFwcGx5ZC5jb20vbWNwIn0=)
+[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Server-0098FF?logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=aiapplyd&config=%7B%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A//mcp.aiapplyd.com/mcp%22%7D)
+[![Add to Poke (iMessage)](https://img.shields.io/badge/iMessage-Add_to_Poke-34C759?logo=imessage&logoColor=white)](https://poke.com/integrations/new?name=AI%20Applyd&url=https%3A%2F%2Fmcp.aiapplyd.com%2Fmcp)
+
+
 AI Applyd is a **hosted remote MCP server**. Point your client at one URL:
 
 ```
