@@ -171,8 +171,8 @@ Each has a custom connector screen that takes a remote MCP URL. Paste
 
 ### From your phone: iMessage, Telegram and WhatsApp
 
-- **iMessage / SMS:** add AI Applyd to [Poke](https://poke.com/docs/mcp-servers) as an MCP
-  integration (name `AI Applyd`, URL `https://mcp.aiapplyd.com/mcp`), then text Poke:
+- **iMessage / SMS:** [add AI Applyd to Poke in one tap](https://poke.com/integrations/new?name=AI%20Applyd&url=https%3A%2F%2Fmcp.aiapplyd.com%2Fmcp)
+  (or `npx poke@latest mcp add https://mcp.aiapplyd.com/mcp -n "AI Applyd"`), sign in, then text Poke:
   "find me remote product designer jobs and apply to the best two".
 - **Telegram, WhatsApp or iMessage on your own server:** [OpenClaw](https://github.com/SamurAIGPT/awesome-openclaw)
   is a self-hosted gateway. Add the URL as an MCP server and enable the channel you use.
