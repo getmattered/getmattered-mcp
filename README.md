@@ -23,8 +23,10 @@ dropped your application.
 
 [![Glama quality score](https://glama.ai/mcp/servers/aiapplyd/aiapplyd-mcp/badges/score.svg)](https://glama.ai/mcp/servers/aiapplyd/aiapplyd-mcp)
 [![Smithery](https://img.shields.io/badge/Smithery-%40firstexhotic%2Faiapplyd-7c3aed)](https://smithery.ai/servers/firstexhotic/aiapplyd)
-[![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.whateverneveranywhere%2Faiapplyd-blue)](https://registry.modelcontextprotocol.io/v0/servers?search=aiapplyd)
-[![LobeHub](https://img.shields.io/badge/LobeHub-aiapplyd--mcp-1a7f64)](https://lobehub.com/mcp/aiapplyd-aiapplyd-mcp)
+[![MCP Registry](https://img.shields.io/badge/MCP%20Registry-com.aiapplyd%2Faiapplyd-blue)](https://registry.modelcontextprotocol.io/v0/servers?search=aiapplyd)
+[![AI Applyd on LobeHub](https://lobehub.com/badge/mcp/aiapplyd-aiapplyd-mcp)](https://lobehub.com/mcp/aiapplyd-aiapplyd-mcp)
+[![Listed on mcpservers.org](https://mcpservers.org/badge.svg)](https://mcpservers.org/servers/aiapplyd/aiapplyd-mcp)
+[![Listed on cursor.directory](https://img.shields.io/badge/Listed%20on-cursor.directory-black)](https://cursor.directory/plugins/ai-applyd-1)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 **[Listing page](https://aiapplyd.com/mcps)** · **[Website](https://aiapplyd.com)** · **[Privacy](https://aiapplyd.com/legal/privacy)** · **[Terms](https://aiapplyd.com/legal/terms)**
