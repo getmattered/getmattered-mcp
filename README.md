@@ -22,7 +22,7 @@ system actually returned, so a real rejection is distinguishable from a form tha
 dropped your application.
 
 [![Glama quality score](https://glama.ai/mcp/servers/aiapplyd/aiapplyd-mcp/badges/score.svg)](https://glama.ai/mcp/servers/aiapplyd/aiapplyd-mcp)
-[![Smithery](https://img.shields.io/badge/Smithery-%40firstexhotic%2Faiapplyd-7c3aed)](https://smithery.ai/servers/firstexhotic/aiapplyd)
+[![Smithery](https://img.shields.io/badge/Smithery-aiapplyd%2Faiapplyd-7c3aed)](https://smithery.ai/servers/aiapplyd/aiapplyd)
 [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-com.aiapplyd%2Faiapplyd-blue)](https://registry.modelcontextprotocol.io/v0/servers?search=aiapplyd)
 [![AI Applyd on LobeHub](https://lobehub.com/badge/mcp/aiapplyd-aiapplyd-mcp)](https://lobehub.com/mcp/aiapplyd-aiapplyd-mcp)
 [![Listed on mcpservers.org](https://mcpservers.org/badge.svg)](https://mcpservers.org/servers/aiapplyd/aiapplyd-mcp)
