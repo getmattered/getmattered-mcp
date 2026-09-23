@@ -1,9 +1,9 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.whateverneveranywhere/aiapplyd",
+  "name": "com.aiapplyd/aiapplyd",
   "title": "AI Applyd",
   "description": "Auto-apply that ends on an interview. ATS scoring, per-role resumes, cover letters, interview prep.",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "websiteUrl": "https://aiapplyd.com/mcps",
   "repository": {
     "url": "https://github.com/aiapplyd/aiapplyd-mcp",
