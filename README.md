@@ -125,9 +125,20 @@ natively, so there is no Action schema to import and nothing to host.
 code --add-mcp '{"name":"aiapplyd","type":"http","url":"https://mcp.aiapplyd.com/mcp"}'
 ```
 
-### Claude Code plugin
+### Plugin for Codex, ChatGPT and Claude Code
 
-This repository is also a Claude Code plugin marketplace:
+This repository is a plugin marketplace. The `aiapplyd` plugin bundles the MCP server with three
+skills (find matching jobs, tailor for a job, apply to a job), in the portable `plugin.json` format
+that Codex, ChatGPT and Claude Code all read.
+
+Codex:
+
+```bash
+codex plugin marketplace add aiapplyd/aiapplyd-mcp
+codex plugin add aiapplyd@aiapplyd
+```
+
+Claude Code:
 
 ```bash
 claude plugin marketplace add aiapplyd/aiapplyd-mcp

@@ -1,0 +1,17 @@
+{
+  "name": "aiapplyd",
+  "plugins": [
+    {
+      "name": "aiapplyd",
+      "source": {
+        "source": "local",
+        "path": "./plugins/aiapplyd"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

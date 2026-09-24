@@ -1,0 +1,52 @@
+{
+  "name": "aiapplyd",
+  "version": "1.6.0",
+  "description": "Auto-Apply That Ends on an Interview. Find matched jobs, tailor your resume and cover letter per role, and apply on 15 hiring systems.",
+  "author": {
+    "name": "AI Applyd",
+    "email": "ava@aiapplyd.com",
+    "url": "https://aiapplyd.com"
+  },
+  "homepage": "https://aiapplyd.com/mcps",
+  "repository": "https://github.com/aiapplyd/aiapplyd-mcp",
+  "license": "MIT",
+  "keywords": [
+    "jobs",
+    "job search",
+    "auto apply",
+    "resume",
+    "cover letter",
+    "ats",
+    "career"
+  ],
+  "interface": {
+    "displayName": "AI Applyd",
+    "shortDescription": "Auto-Apply That Ends on an Interview",
+    "longDescription": "AI Applyd finds jobs that fit your resume, rewrites the resume and writes a cover letter for each role, and applies on the company's own hiring system across 15 ATS platforms, including Workday, Greenhouse, Lever, Ashby, iCIMS and Workable. It keeps the confirmation the employer sends back, so you know every application landed.\n\nAsk for matched jobs, score or tailor your resume against a posting, draft a cover letter, prepare for an interview, or send an application, without leaving the chat.",
+    "developerName": "AI Applyd",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write",
+      "Job matching",
+      "Resume tailoring",
+      "Cover letters",
+      "Auto-apply on 15 hiring systems",
+      "Interview prep"
+    ],
+    "websiteURL": "https://aiapplyd.com",
+    "privacyPolicyURL": "https://aiapplyd.com/legal/privacy",
+    "termsOfServiceURL": "https://aiapplyd.com/legal/terms",
+    "defaultPrompt": [
+      "Find remote jobs that match my resume.",
+      "Tailor my resume for this job description.",
+      "Apply to the best match for me."
+    ],
+    "brandColor": "#F97316",
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/logo.png"
+  },
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json"
+}
