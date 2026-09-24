@@ -1,0 +1,20 @@
+{
+  "name": "aiapplyd",
+  "displayName": "AI Applyd",
+  "version": "1.6.0",
+  "description": "Auto-Apply That Ends on an Interview. Find matching jobs, tailor your resume and cover letter, and apply on the employer's own hiring system.",
+  "author": {
+    "name": "AI Applyd",
+    "email": "ava@aiapplyd.com",
+    "url": "https://aiapplyd.com"
+  },
+  "homepage": "https://aiapplyd.com/mcps",
+  "repository": "https://github.com/aiapplyd/aiapplyd-mcp",
+  "license": "MIT",
+  "logo": "assets/logo.png",
+  "keywords": ["jobs", "job-search", "auto-apply", "resume", "cover-letter", "ats", "interview", "career", "mcp"],
+  "category": "integrations",
+  "tags": ["jobs", "resume", "auto-apply", "mcp"],
+  "mcpServers": "./mcp.json",
+  "skills": "./skills/"
+}
