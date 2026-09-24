@@ -1,6 +1,6 @@
 ---
 name: find-matching-jobs
-description: Find jobs that fit the user's resume with AI Applyd. Use when the user asks for job matches, openings, roles to apply to, or wants to change the roles or locations they are searching for.
+description: Find jobs that fit the user's resume with AI Applyd and change what it searches for. Use this skill whenever the user asks for job matches, openings, roles to apply to, remote jobs, jobs in a city, 'what jobs fit me', or wants to change their target roles or locations, even if they don't mention AI Applyd by name.
 ---
 
 # Find matching jobs

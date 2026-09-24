@@ -1,6 +1,6 @@
 ---
 name: tailor-for-a-job
-description: Tailor the user's resume and cover letter to one job posting with AI Applyd. Use when the user pastes a job description, asks how well their resume fits a role, or wants a rewritten resume, a cover letter, or interview questions for that role.
+description: Tailor the user's resume and cover letter to one job posting with AI Applyd. It gives an ATS score, missing keywords, a rewritten resume, a cover letter, a PDF and interview questions. Use this skill whenever the user pastes a job description, asks how well their resume fits a role, wants their resume rewritten or optimized for a job, needs a cover letter, or wants to prepare for an interview.
 ---
 
 # Tailor for a job
