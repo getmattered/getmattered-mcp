@@ -1,7 +1,7 @@
 {
   "name": "aiapplyd",
   "description": "Auto-Apply That Ends on an Interview. Connects Claude Code to the hosted AI Applyd MCP server.",
-  "version": "1.6.0",
+  "version": "1.8.0",
   "author": {
     "name": "AI Applyd",
     "email": "ava@aiapplyd.com",

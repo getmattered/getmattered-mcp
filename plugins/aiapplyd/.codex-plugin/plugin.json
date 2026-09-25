@@ -1,7 +1,7 @@
 {
   "name": "aiapplyd",
-  "version": "1.6.0",
-  "description": "Auto-Apply That Ends on an Interview. Find matched jobs, tailor your resume and cover letter per role, and apply on 15 hiring systems.",
+  "version": "1.8.0",
+  "description": "Auto-Apply That Ends on an Interview. Get matched jobs, apply on 15 hiring systems automatically or after your approval, review and track every application, and tailor your resume and cover letter per role.",
   "author": {
     "name": "AI Applyd",
     "email": "ava@aiapplyd.com",
@@ -22,7 +22,7 @@
   "interface": {
     "displayName": "AI Applyd",
     "shortDescription": "Auto-Apply That Ends on an Interview",
-    "longDescription": "AI Applyd finds jobs that fit your resume, rewrites the resume and writes a cover letter for each role, and applies on the company's own hiring system across 15 ATS platforms, including Workday, Greenhouse, Lever, Ashby, iCIMS and Workable. It keeps the confirmation the employer sends back, so you know every application landed.\n\nAsk for matched jobs, score or tailor your resume against a posting, draft a cover letter, prepare for an interview, or send an application, without leaving the chat.",
+    "longDescription": "AI Applyd finds jobs that fit your resume, rewrites the resume and writes a cover letter for each role, and applies on the company's own hiring system across 15 ATS platforms, including Workday, Greenhouse, Lever, Ashby, iCIMS and Workable. Send each application automatically, or hold it in a review queue for your yes. It keeps the confirmation the employer sends back, so you know every application landed.\n\nAsk for your matched jobs, apply to one, approve or reject what is waiting, track where every application stands, tailor your resume and cover letter for a posting, or prepare for an interview, without leaving the chat.",
     "developerName": "AI Applyd",
     "category": "Productivity",
     "capabilities": [
@@ -30,18 +30,20 @@
       "Read",
       "Write",
       "Job matching",
+      "Auto-apply on 15 hiring systems",
+      "Review queue",
+      "Application tracking",
       "Resume tailoring",
       "Cover letters",
-      "Auto-apply on 15 hiring systems",
       "Interview prep"
     ],
     "websiteURL": "https://aiapplyd.com",
     "privacyPolicyURL": "https://aiapplyd.com/legal/privacy",
     "termsOfServiceURL": "https://aiapplyd.com/legal/terms",
     "defaultPrompt": [
-      "Find remote jobs that match my resume.",
-      "Tailor my resume for this job description.",
-      "Apply to the best match for me."
+      "Show me my best job matches.",
+      "Apply to the best match for me and hold it for my review.",
+      "What applications are waiting for my approval?"
     ],
     "brandColor": "#F97316",
     "composerIcon": "./assets/icon.png",

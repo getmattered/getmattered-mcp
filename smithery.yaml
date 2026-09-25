@@ -1,11 +1,12 @@
 name: aiapplyd
 description: >-
   Auto-apply that ends on an interview, not an application sent. Every other tool counts the
-  applications it sent; this one submits on the company's own hiring system and keeps the confirmation their system
-  returns, so a real rejection is distinguishable from a form that dropped the application. 10 tools
-  inside the assistant you already work in: ATS resume scoring, a resume rewritten for each specific
-  role, cover letters in your own voice, interview preparation, curated job matches, and the
-  application itself. Fifteen major ATS platforms land: Workday, Greenhouse, Lever, Ashby, Workable,
+  applications it sent; this one submits on the company's own hiring system and keeps the
+  confirmation their system returns, so a real rejection is distinguishable from a form that
+  dropped the application. It runs
+  inside the assistant you already work in: your matched jobs, the application itself (sent
+  automatically or held for your yes), the review queue, receipt tracking, ATS resume scoring, a
+  resume rewritten for each specific role, cover letters in your own voice and interview preparation. Fifteen major ATS platforms land: Workday, Greenhouse, Lever, Ashby, Workable,
   iCIMS, Personio, Recruitee, Teamtailor, Rippling, Breezy, SmartRecruiters, BambooHR, JazzHR and
   softgarden. Every application goes in on the company's real careers page, under your name, with
   your own materials. Free AI Applyd account (Google sign-in, no card) with a 10,000-token starter
@@ -16,7 +17,7 @@ homepage: https://aiapplyd.com
 # "restore this ONLY if a public mirror ever exists" - it does: github.com/aiapplyd/aiapplyd-mcp,
 # which is also what Glama and Smithery render their listings from.
 repository: https://github.com/aiapplyd/aiapplyd-mcp
-license: Proprietary
+license: MIT
 startCommand:
   type: http
   url: https://mcp.aiapplyd.com/mcp
@@ -27,37 +28,53 @@ startCommand:
     properties: {}
     required: []
 tools:
+  - name: aiapplyd_get_matches
+    description: "Your matched jobs, best first, each with the job_match_id that apply takes. Also reads full postings, or any posting from a link"
+  - name: aiapplyd_apply
+    description: "Apply to one job by job_match_id or job_url on the employer's own hiring system. mode: \"auto\" sends it, mode: \"review\" holds it for your yes"
+  - name: aiapplyd_get_applications
+    description: "Every application and where it stands, the review queue, and the employer's own confirmation when it exists"
+  - name: aiapplyd_review_application
+    description: "Approve (send) or reject waiting applications, up to 25 at once. Also cancel, refine a document, re-prepare, or record the interview stage"
+  - name: aiapplyd_get_account
+    description: "Your plan, token balance, applications left, job preferences, and whether your profile is ready to apply"
+  - name: aiapplyd_set_resume
+    description: "Put your resume on your account as the base every application is tailored from: pasted text, a file link, or a saved resume"
+  - name: aiapplyd_triage_matches
+    description: "Save a match, or skip it with a reason, so a job you declined stops coming back"
   - name: aiapplyd_score_resume
-    description: An overall ATS score with section scores, the keywords the resume matches and the ones it is missing, and specific rewrite suggestions
+    description: "An ATS score with section scores, the keywords you match and the ones you are missing, and what to change"
   - name: aiapplyd_analyze_job_description
-    description: Extract what a posting screens on, so the resume mirrors its own language
+    description: "What a posting screens on, in its own language, so the resume can mirror it"
   - name: aiapplyd_optimize_resume
-    description: Rewrite a resume so it passes ATS screening and reaches a human reader
+    description: "A resume rewritten to pass ATS screening and still reach a human reader"
   - name: aiapplyd_generate_interview_questions
-    description: Interview preparation for the role and company, with answer guidance and negotiation prep
+    description: "The questions this role is asked, with answer guidance, STAR scenarios and negotiation prep"
   - name: aiapplyd_translate_resume
-    description: A send-ready resume in another language, formatted for that market
+    description: "A send-ready resume in another language, formatted for that market"
   - name: aiapplyd_search_jobs
-    description: The roles worth pursuing, scored against your profile (read-only)
+    description: "Older name for aiapplyd_get_matches with a title filter, kept for existing clients"
   - name: aiapplyd_update_job_preferences
-    description: Direct AI Applyd at the roles and locations you are targeting, and re-run discovery
+    description: "Point AI Applyd at the roles, locations, salary and seniority you want, and re-run discovery"
   - name: aiapplyd_generate_cover_letter
-    description: A cover letter in your own voice, written from the resume already on your account
+    description: "A cover letter in your own voice, written from the resume on your account"
   - name: aiapplyd_auto_apply
-    description: Apply end to end on the employer's own hiring system, across all fifteen major ATS platforms, and keep the confirmation it returns
+    description: "Older name for aiapplyd_apply with a job_url, kept for existing clients"
   - name: aiapplyd_build_pdf
-    description: A finished, ATS-clean resume, editable in the builder and ready to download
+    description: "A finished, ATS-clean resume, editable in the builder and ready to download as a PDF"
 prompts:
   - name: review_my_resume
-    description: Score a resume against a posting and return the three changes that move it past the filter
+    description: "Scores a resume against a posting and returns the three changes that move it past the filter"
   - name: prepare_for_interview
-    description: Prepare for the questions this company asks, with structured answers ready
+    description: "Prepares the questions this company asks for this role, with structured answers ready"
+  - name: apply_to_my_matches
+    description: "Shows your best matches, then applies to the ones you pick, each held for your approval"
   - name: find_jobs_like_this
-    description: The strongest matches for a target role, ranked by fit
+    description: "The strongest matches for a target role, ranked by fit"
 resources:
   - name: ats-best-practices
-    description: Canonical ATS rules, keyword strategy, and formatting pitfalls for 2026
+    description: "Canonical guide to passing Applicant Tracking Systems in 2026. Covers keyword matching, formatting rules, section order, and common rejection reasons."
   - name: interview-frameworks
-    description: STAR, CARL, SOAR, PAR answer frameworks for behavioral interviews
+    description: "Reference frameworks for structuring interview answers: STAR, CARL, SOAR, and PAR."
   - name: resume-section-order
-    description: Optimal resume section order by career stage (new grad, mid-career, executive)
+    description: "Recommended section order by career stage (new grad, mid-career, executive) for ATS and human readability."

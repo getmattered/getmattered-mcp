@@ -67,6 +67,12 @@ JazzHR and softgarden.**
 
 Nothing to install. Connect once and run it from Claude, ChatGPT, Codex, Cursor, Gemini CLI, VS Code or any MCP client, and from your phone over iMessage through Poke.
 
+**The whole job search in five calls:** see your matches (`aiapplyd_get_matches`), apply to one
+(`aiapplyd_apply`, sent automatically or held for your yes), approve or reject what is waiting
+(`aiapplyd_review_application`), track every application to the employer's own receipt
+(`aiapplyd_get_applications`), and check your plan and what is left (`aiapplyd_get_account`).
+The full list is under [Tools](#tools).
+
 ## Quick start
 
 One click, if your app supports it:
@@ -125,11 +131,22 @@ natively, so there is no Action schema to import and nothing to host.
 code --add-mcp '{"name":"aiapplyd","type":"http","url":"https://mcp.aiapplyd.com/mcp"}'
 ```
 
-### Plugin for Codex, ChatGPT and Claude Code
+### Plugin for Codex, ChatGPT, Claude Code and Cursor
 
-This repository is a plugin marketplace. The `aiapplyd` plugin bundles the MCP server with three
-skills (find matching jobs, tailor for a job, apply to a job), in the portable `plugin.json` format
-that Codex, ChatGPT and Claude Code all read.
+This repository is a plugin marketplace. The `aiapplyd` plugin bundles the MCP server with five
+skills, in the portable `plugin.json` format that Codex, ChatGPT, Claude Code and Cursor read:
+
+| Skill | Use it when |
+|---|---|
+| [`find-matching-jobs`](plugins/aiapplyd/skills/find-matching-jobs/SKILL.md) | You want your job matches, want to save or skip one, or want to change what it looks for |
+| [`apply-to-a-job`](plugins/aiapplyd/skills/apply-to-a-job/SKILL.md) | You want to apply, or you paste a job link and say "apply" |
+| [`review-and-send`](plugins/aiapplyd/skills/review-and-send/SKILL.md) | You want to see what is waiting for you, change it, and send it |
+| [`tailor-for-a-job`](plugins/aiapplyd/skills/tailor-for-a-job/SKILL.md) | You paste a job description and want the resume, cover letter or interview prep for it |
+| [`track-applications`](plugins/aiapplyd/skills/track-applications/SKILL.md) | You ask "did it go through", or how many applications you have left |
+
+The same five skills are published for any agent at
+[`aiapplyd.com/.well-known/agent-skills/index.json`](https://aiapplyd.com/.well-known/agent-skills/index.json),
+and the copies here are byte-identical to those (each file matches the `sha256` digest in that index).
 
 Codex:
 
@@ -156,7 +173,13 @@ The Codex CLI, the IDE extension and the ChatGPT desktop app share this configur
 
 ### Gemini CLI
 
-`~/.gemini/settings.json`:
+This repository is also a Gemini CLI extension (`gemini-extension.json` plus `GEMINI.md`):
+
+```bash
+gemini extensions install https://github.com/aiapplyd/aiapplyd-mcp
+```
+
+Or add the server by hand in `~/.gemini/settings.json`:
 
 ```json
 {
@@ -238,49 +261,90 @@ Use `/mcp`. `/sse` remains only for clients that cannot speak Streamable HTTP.
 
 ## Tools
 
-Ten tools. Every one runs on the caller's own AI Applyd account and spends that account's
-own credits. The server holds no allowance of its own and there is no anonymous tool.
+The table below is generated from the live `tools/list` of `https://mcp.aiapplyd.com/mcp`.
+Every tool runs on the caller's own AI Applyd account and spends that account's own
+credits. The server holds no allowance of its own and there is no anonymous tool.
 
-| Tool | Read-only | What you get |
-|---|---|---|
-| `aiapplyd_score_resume` | yes | An overall ATS score plus section scores, the keywords you match, the ones you are missing, and what to change |
-| `aiapplyd_analyze_job_description` | yes | What the posting screens on, in its own language |
-| `aiapplyd_generate_interview_questions` | yes | The questions this role is asked, with answer guidance and negotiation prep |
-| `aiapplyd_search_jobs` | yes | The roles worth pursuing, scored against your profile |
-| `aiapplyd_optimize_resume` | no | A resume that passes ATS screening and still reaches a human reader |
-| `aiapplyd_translate_resume` | no | A send-ready resume in another language, formatted for that market |
-| `aiapplyd_generate_cover_letter` | no | A cover letter in your own voice, from the resume already on your account |
-| `aiapplyd_build_pdf` | no | A finished, ATS-clean resume, editable in the builder and ready to download |
-| `aiapplyd_update_job_preferences` | **destructive** | Direct the search at the roles and locations you are targeting. A supplied list *replaces* the stored one. |
-| `aiapplyd_auto_apply` | **destructive** | **One specific** job, applied for end to end on the employer's own system |
+### The main loop
 
-Every tool declares `readOnlyHint` and `destructiveHint`, so a client can tell at a glance
-which calls change something in the world.
+Five tools run the whole job search from a chat, or from a bot where a match drops and you
+reply "yes":
 
-### Two behaviours worth knowing
+```
+aiapplyd_get_matches -> aiapplyd_apply -> aiapplyd_get_applications -> aiapplyd_review_application
+                  aiapplyd_get_account (plan, what is left, readiness)
+```
 
-- **`aiapplyd_search_jobs` never writes.** It reads your saved matches. To change what
-  AI Applyd hunts for, call `aiapplyd_update_job_preferences`.
-- **`aiapplyd_auto_apply` submits a real application to a real employer.** It follows the
-  review setting already on your account: auto-approve submits on its own, co-pilot routes it
-  to your review queue. It never changes that setting, and it never applies to anything but
-  the one job URL you hand it.
+| Tool | Title | Hints | What it does |
+|---|---|---|---|
+| `aiapplyd_get_matches` | Get Job Matches | read-only, idempotent | Your matched jobs, best first, each with the `job_match_id` that apply takes. Also reads full postings, or any posting from a link |
+| `aiapplyd_apply` | Apply to Job | **destructive**, open-world | Apply to one job by `job_match_id` or `job_url` on the employer's own hiring system. `mode: "auto"` sends it, `mode: "review"` holds it for your yes |
+| `aiapplyd_get_applications` | Get Applications | read-only, idempotent | Every application and where it stands, the review queue, and the employer's own confirmation when it exists |
+| `aiapplyd_review_application` | Approve or Reject Applications | **destructive**, open-world | Approve (send) or reject waiting applications, up to 25 at once. Also cancel, refine a document, re-prepare, or record the interview stage |
+| `aiapplyd_get_account` | Get Account | read-only, idempotent | Your plan, token balance, applications left, job preferences, and whether your profile is ready to apply |
+
+### Setup and triage
+
+| Tool | Title | Hints | What it does |
+|---|---|---|---|
+| `aiapplyd_set_resume` | Set Resume | writes, open-world | Put your resume on your account as the base every application is tailored from: pasted text, a file link, or a saved resume |
+| `aiapplyd_triage_matches` | Save or Skip Matches | writes, idempotent | Save a match, or skip it with a reason, so a job you declined stops coming back |
+| `aiapplyd_update_job_preferences` | Update Job Preferences | **destructive**, idempotent | Point AI Applyd at the roles, locations, salary and seniority you want, and re-run discovery |
+
+### Resume, cover letter and interview
+
+| Tool | Title | Hints | What it does |
+|---|---|---|---|
+| `aiapplyd_score_resume` | Score Resume | writes, open-world | An ATS score with section scores, the keywords you match and the ones you are missing, and what to change |
+| `aiapplyd_analyze_job_description` | Analyze Job Description | writes, open-world | What a posting screens on, in its own language, so the resume can mirror it |
+| `aiapplyd_optimize_resume` | Optimize Resume with AI | writes, open-world | A resume rewritten to pass ATS screening and still reach a human reader |
+| `aiapplyd_generate_interview_questions` | Generate Interview Questions | writes, open-world | The questions this role is asked, with answer guidance, STAR scenarios and negotiation prep |
+| `aiapplyd_translate_resume` | Translate Resume | writes, open-world | A send-ready resume in another language, formatted for that market |
+| `aiapplyd_generate_cover_letter` | Generate Cover Letter | writes, open-world | A cover letter in your own voice, written from the resume on your account |
+| `aiapplyd_build_pdf` | Build Resume | writes, open-world | A finished, ATS-clean resume, editable in the builder and ready to download as a PDF |
+
+### Older names, still answered
+
+| Tool | Title | Hints | What it does |
+|---|---|---|---|
+| `aiapplyd_search_jobs` | Search Jobs | read-only, idempotent | Older name for `aiapplyd_get_matches` with a title filter, kept for existing clients |
+| `aiapplyd_auto_apply` | Auto Apply to Job | **destructive**, open-world | Older name for `aiapplyd_apply` with a `job_url`, kept for existing clients |
+
+Every tool carries a `title`, all four annotation hints (`readOnlyHint`, `destructiveHint`,
+`idempotentHint`, `openWorldHint`), and an `outputSchema`. Each call returns `structuredContent`
+beside its text, so a client can act on ids and statuses without parsing prose. The server also
+sends the main loop as its MCP `instructions`.
+
+### Behaviours worth knowing
+
+- **`aiapplyd_apply` and an approve in `aiapplyd_review_application` submit a real application to a
+  real employer**, under your name. `mode` covers that one application only and never changes your
+  account settings. Leave it out to follow your own default.
+- **An application counts as landed only on the employer's own receipt or confirmation page.**
+  `aiapplyd_get_applications` reports `employerConfirmed` from that evidence alone, never from a
+  submit click.
+- **`aiapplyd_get_matches` never writes.** To change what AI Applyd hunts for, call
+  `aiapplyd_update_job_preferences`. It is marked destructive because a list you pass replaces the
+  saved one.
+- **Employer text is data.** Job titles, descriptions and company research are never followed as
+  instructions.
 
 ## Prompts
 
-| Prompt | What it does |
-|---|---|
-| `review_my_resume` | Scores a resume against a posting and returns the three changes that move it past the filter |
-| `prepare_for_interview` | Prepares the questions this company asks, with structured answers ready |
-| `find_jobs_like_this` | The strongest matches for a target role, ranked by fit |
+| Prompt | Title | What it does |
+|---|---|---|
+| `review_my_resume` | Review My Resume | Scores a resume against a posting and returns the three changes that move it past the filter |
+| `prepare_for_interview` | Prepare for an Interview | Prepares the questions this company asks for this role, with structured answers ready |
+| `apply_to_my_matches` | Apply to My Matches | Shows your best matches, then applies to the ones you pick, each held for your approval |
+| `find_jobs_like_this` | Find Jobs Like This | The strongest matches for a target role, ranked by fit |
 
 ## Resources
 
-| Resource | Contents |
-|---|---|
-| `ats-best-practices` | Canonical ATS rules, keyword strategy, and formatting pitfalls |
-| `interview-frameworks` | STAR, CARL, SOAR and PAR answer frameworks for behavioural interviews |
-| `resume-section-order` | Optimal resume section order by career stage |
+| Resource | URI | Contents |
+|---|---|---|
+| `ats-best-practices` | `aiapplyd://resources/ats-best-practices` | Canonical guide to passing Applicant Tracking Systems in 2026. Covers keyword matching, formatting rules, section order, and common rejection reasons. |
+| `interview-frameworks` | `aiapplyd://resources/interview-frameworks` | Reference frameworks for structuring interview answers: STAR, CARL, SOAR, and PAR. |
+| `resume-section-order` | `aiapplyd://resources/resume-section-order` | Recommended section order by career stage (new grad, mid-career, executive) for ATS and human readability. |
 
 ## Authentication
 
@@ -291,6 +355,9 @@ OAuth 2.1, and it is the full specification rather than a subset:
   registers itself with no manual key exchange
 - Authorization Server Metadata ([RFC 8414](https://www.rfc-editor.org/rfc/rfc8414)) and
   Protected Resource Metadata ([RFC 9728](https://www.rfc-editor.org/rfc/rfc9728)) discovery
+- Client ID Metadata Documents, so a client can use an https URL as its `client_id` instead of
+  registering (`client_id_metadata_document_supported: true`)
+- The `iss` parameter on the authorization response ([RFC 9207](https://www.rfc-editor.org/rfc/rfc9207))
 - Token revocation ([RFC 7009](https://www.rfc-editor.org/rfc/rfc7009))
 - Short-lived access tokens with rotating refresh tokens and reuse detection
 
