@@ -1,0 +1,11 @@
+{
+  "name": "aiapplyd",
+  "version": "1.6.0",
+  "description": "AI Applyd for Gemini CLI: find jobs that fit your resume, tailor your resume and cover letter per posting, and apply on the employer's own hiring system. Auto-Apply That Ends on an Interview.",
+  "mcpServers": {
+    "aiapplyd": {
+      "httpUrl": "https://mcp.aiapplyd.com/mcp"
+    }
+  },
+  "contextFileName": "GEMINI.md"
+}
