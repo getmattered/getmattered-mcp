@@ -49,7 +49,7 @@ async function connectClient() {
     log('not signed in. Run: aiapplyd-mcp login');
     process.exit(2);
   }
-  const client = new Client({ name: 'aiapplyd-mcp-cli', version: '1.8.1' });
+  const client = new Client({ name: 'aiapplyd-mcp-cli', version: '1.8.2' });
   await client.connect(new StreamableHTTPClientTransport(new URL(endpoint), { requestInit: { headers } }));
   return client;
 }
@@ -157,7 +157,7 @@ async function main() {
       return callTool(rest[0], rest[1]);
     case '--version':
     case '-v':
-      process.stdout.write('1.8.1\n');
+      process.stdout.write('1.8.2\n');
       return;
     case '--help':
     case '-h':

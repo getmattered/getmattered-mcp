@@ -1,6 +1,6 @@
 {
   "name": "aiapplyd-mcp",
-  "version": "1.8.1",
+  "version": "1.8.2",
   "description": "Auto-Apply That Ends on an Interview. AI Applyd MCP server: your matched jobs, applications submitted on the employer's own hiring system across fifteen major ATS platforms (sent automatically or held for your approval), a review queue, employer-receipt tracking, a resume rewritten for each role, cover letters and interview preparation.",
   "type": "module",
   "bin": {
@@ -53,5 +53,6 @@
   "devDependencies": {
     "@types/node": "^22.10.2",
     "typescript": "^5.7.2"
-  }
+  },
+  "mcpName": "com.aiapplyd/aiapplyd"
 }

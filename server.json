@@ -3,7 +3,7 @@
   "name": "com.aiapplyd/aiapplyd",
   "title": "AI Applyd",
   "description": "Auto-apply that ends on an interview. Job matches, per-role resumes, apply, approve, track receipts.",
-  "version": "1.8.0",
+  "version": "1.8.2",
   "websiteUrl": "https://aiapplyd.com/mcps",
   "repository": {
     "url": "https://github.com/aiapplyd/aiapplyd-mcp",
@@ -20,5 +20,23 @@
       "tool": "mcp-publisher",
       "version": "1.0.0"
     }
-  }
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "aiapplyd-mcp",
+      "version": "1.8.2",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "AIAPPLYD_TOKEN",
+          "description": "Optional bearer token. Leave unset and run `npx aiapplyd-mcp login` once instead.",
+          "isRequired": false,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
 }
