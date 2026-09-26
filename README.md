@@ -250,6 +250,29 @@ docker run --rm -i aiapplyd-mcp
 | `AIAPPLYD_MCP_URL` | `https://mcp.aiapplyd.com/mcp` | Endpoint to relay to. Point it at `https://mcp-preview.aiapplyd.com/mcp` to test against preview. |
 | `AIAPPLYD_TOKEN` | unset | Optional bearer token. Without it the server still answers introspection; tool **calls** return 401 until an account is connected. |
 
+## Command line and bots
+
+The same package is a small CLI, so a script, a cron job or a chat bot (Telegram, WhatsApp,
+iMessage) can run the whole job search without an MCP client.
+
+```bash
+npx aiapplyd-mcp login                                    # sign in once in the browser
+npx aiapplyd-mcp tools                                    # list the tools
+npx aiapplyd-mcp call aiapplyd_get_matches '{"limit": 5}' # matched jobs as JSON
+npx aiapplyd-mcp call aiapplyd_apply '{"job_match_id": 123, "mode": "review"}'
+npx aiapplyd-mcp call aiapplyd_get_applications '{"status": "waiting_for_review"}'
+npx aiapplyd-mcp call aiapplyd_review_application '{"decision": "approve", "application_ids": [456]}'
+```
+
+`login` runs the same OAuth sign-in a desktop client runs and stores the token in
+`~/.config/aiapplyd/credentials.json` (mode 600). It refreshes on its own, so an unattended bot
+keeps working. `call` prints the tool's structured result as JSON. Exit code 0 means success,
+1 means the tool reported an error, 2 means you are not signed in.
+
+Run with no arguments and it is a stdio MCP server that relays to `https://mcp.aiapplyd.com/mcp`,
+signed in with the stored login. `AIAPPLYD_TOKEN` overrides the stored login and
+`AIAPPLYD_MCP_URL` overrides the endpoint.
+
 ## Endpoints
 
 | Environment | Streamable HTTP (modern) | SSE (legacy bridges) |
