@@ -73,6 +73,13 @@ Nothing to install. Connect once and run it from Claude, ChatGPT, Codex, Cursor,
 (`aiapplyd_get_applications`), and check your plan and what is left (`aiapplyd_get_account`).
 The full list is under [Tools](#tools).
 
+## Watch the demo
+
+[![AI Applyd demo: AI auto-apply to jobs that ends on an interview](https://img.youtube.com/vi/xt1pbpVzf4I/maxresdefault.jpg)](https://www.youtube.com/watch?v=xt1pbpVzf4I)
+
+90 seconds: resume upload, job matching, a real application sent on the employer's own form, the
+employer's confirmation email, interview prep, and applying from ChatGPT, Claude and Cursor.
+
 ## Quick start
 
 One click, if your app supports it:
