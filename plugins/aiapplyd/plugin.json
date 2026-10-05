@@ -2,7 +2,7 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "aiapplyd",
   "version": "1.8.2",
-  "description": "Auto-Apply That Ends on an Interview. Get matched jobs, apply on 15 hiring systems automatically or after your approval, review and track every application, and tailor your resume and cover letter per role.",
+  "description": "Auto-Apply That Ends on an Interview. Get matched jobs, apply on 34 hiring systems automatically or after your approval, review and track every application, and tailor your resume and cover letter per role.",
   "author": {
     "name": "AI Applyd",
     "email": "ava@aiapplyd.com",
@@ -25,7 +25,7 @@
       "interface": {
         "displayName": "AI Applyd",
         "shortDescription": "Auto-Apply That Ends on an Interview",
-        "longDescription": "AI Applyd finds jobs that fit your resume, rewrites the resume and writes a cover letter for each role, and applies on the company's own hiring system across 15 ATS platforms, including Workday, Greenhouse, Lever, Ashby, iCIMS and Workable. Send each application automatically, or hold it in a review queue for your yes. It keeps the confirmation the employer sends back, so you know every application landed.\n\nAsk for your matched jobs, apply to one, approve or reject what is waiting, track where every application stands, tailor your resume and cover letter for a posting, or prepare for an interview, without leaving the chat.",
+        "longDescription": "AI Applyd finds jobs that fit your resume, rewrites the resume and writes a cover letter for each role, and applies on the company's own hiring system across 34 hiring systems, including Workday, Greenhouse, Lever, Ashby, iCIMS, Workable, SAP SuccessFactors, Oracle, ADP and Dayforce. Send each application automatically, or hold it in a review queue for your yes. It keeps the confirmation the employer sends back, so you know every application landed.\n\nAsk for your matched jobs, apply to one, approve or reject what is waiting, track where every application stands, tailor your resume and cover letter for a posting, or prepare for an interview, without leaving the chat.",
         "developerName": "AI Applyd",
         "category": "Productivity",
         "capabilities": [
@@ -33,7 +33,7 @@
           "Read",
           "Write",
           "Job matching",
-          "Auto-apply on 15 hiring systems",
+          "Auto-apply on 34 hiring systems",
           "Review queue",
           "Application tracking",
           "Resume tailoring",
@@ -113,7 +113,7 @@
       "interface": {
         "displayName": "AI Applyd",
         "shortDescription": "Auto-Apply That Ends on an Interview",
-        "longDescription": "AI Applyd finds jobs that fit your resume, rewrites the resume and writes a cover letter for each role, and applies on the company's own hiring system across 15 ATS platforms, including Workday, Greenhouse, Lever, Ashby, iCIMS and Workable. Send each application automatically, or hold it in a review queue for your yes. It keeps the confirmation the employer sends back, so you know every application landed.\n\nAsk for your matched jobs, apply to one, approve or reject what is waiting, track where every application stands, tailor your resume and cover letter for a posting, or prepare for an interview, without leaving the chat.",
+        "longDescription": "AI Applyd finds jobs that fit your resume, rewrites the resume and writes a cover letter for each role, and applies on the company's own hiring system across 34 hiring systems, including Workday, Greenhouse, Lever, Ashby, iCIMS, Workable, SAP SuccessFactors, Oracle, ADP and Dayforce. Send each application automatically, or hold it in a review queue for your yes. It keeps the confirmation the employer sends back, so you know every application landed.\n\nAsk for your matched jobs, apply to one, approve or reject what is waiting, track where every application stands, tailor your resume and cover letter for a posting, or prepare for an interview, without leaving the chat.",
         "developerName": "AI Applyd",
         "category": "Productivity",
         "capabilities": [
@@ -121,7 +121,7 @@
           "Read",
           "Write",
           "Job matching",
-          "Auto-apply on 15 hiring systems",
+          "Auto-apply on 34 hiring systems",
           "Review queue",
           "Application tracking",
           "Resume tailoring",
