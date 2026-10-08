@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "aiapplyd",
-  "version": "1.8.3",
-  "description": "Auto-Apply That Ends on an Interview. Get matched jobs, apply on 34 hiring systems automatically or after your approval, review and track every application, and tailor your resume and cover letter per role.",
+  "version": "1.8.4",
+  "description": "Find jobs and apply to them. Get your matched jobs, apply automatically or after your approval, track every application, and tailor your resume and cover letter to each role.",
   "author": {
     "name": "AI Applyd",
     "email": "ava@aiapplyd.com",
@@ -31,14 +31,7 @@
         "capabilities": [
           "Interactive",
           "Read",
-          "Write",
-          "Job matching",
-          "Auto-apply on 34 hiring systems",
-          "Review queue",
-          "Application tracking",
-          "Resume tailoring",
-          "Cover letters",
-          "Interview prep"
+          "Write"
         ],
         "websiteURL": "https://aiapplyd.com",
         "privacyPolicyURL": "https://aiapplyd.com/legal/privacy",
@@ -106,7 +99,7 @@
         "commerce_description": "The plugin does not sell products or take payments. Paid AI Applyd plans are bought on aiapplyd.com."
       },
       "publication": {
-        "release_notes": "1.8.2: adds tools to list job matches, apply or hold for review, approve or skip held applications, track application status, read the account and plan, save a resume, and save or skip matches. Faster connection setup."
+        "release_notes": "1.8.4: plainer description, review test cases that match the reviewer account and never change its state, tool replies no longer show the AI model name or a sales footer."
       }
     },
     "com.anthropic": {

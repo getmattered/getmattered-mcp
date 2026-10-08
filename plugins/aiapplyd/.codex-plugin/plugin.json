@@ -1,7 +1,7 @@
 {
   "name": "aiapplyd",
-  "version": "1.8.3",
-  "description": "Auto-Apply That Ends on an Interview. Get matched jobs, apply on 34 hiring systems automatically or after your approval, review and track every application, and tailor your resume and cover letter per role.",
+  "version": "1.8.4",
+  "description": "Find jobs and apply to them. AI Applyd helps you look for a job from ChatGPT. It shows the jobs matched to your resume and job preferences, scores your resume against a job description, tailors your resume and cover letter to a specific role, and prepares you for interviews.",
   "author": {
     "name": "AI Applyd",
     "email": "ava@aiapplyd.com",
@@ -21,29 +21,22 @@
   ],
   "interface": {
     "displayName": "AI Applyd",
-    "shortDescription": "Auto-Apply That Ends on an Interview",
-    "longDescription": "AI Applyd finds jobs that fit your resume, rewrites the resume and writes a cover letter for each role, and applies on the company's own hiring system across 34 hiring systems, including Workday, Greenhouse, Lever, Ashby, iCIMS, Workable, SAP SuccessFactors, Oracle, ADP and Dayforce. Send each application automatically, or hold it in a review queue for your yes. It keeps the confirmation the employer sends back, so you know every application landed.\n\nAsk for your matched jobs, apply to one, approve or reject what is waiting, track where every application stands, tailor your resume and cover letter for a posting, or prepare for an interview, without leaving the chat.",
+    "shortDescription": "Find jobs and apply to them",
+    "longDescription": "AI Applyd helps you look for a job from ChatGPT. It shows the jobs matched to your resume and job preferences, scores your resume against a job description, tailors your resume and cover letter to a specific role, and prepares you for interviews.\n\nWhen you choose to apply, AI Applyd fills in and submits the application on the employer's own hiring site. You can hold each application for your approval before it is sent, and you can check the status of the applications you already sent.\n\nYou need an AI Applyd account. ChatGPT asks you to sign in the first time you use it.",
     "developerName": "AI Applyd",
     "category": "Productivity",
     "capabilities": [
       "Interactive",
       "Read",
-      "Write",
-      "Job matching",
-      "Auto-apply on 34 hiring systems",
-      "Review queue",
-      "Application tracking",
-      "Resume tailoring",
-      "Cover letters",
-      "Interview prep"
+      "Write"
     ],
     "websiteURL": "https://aiapplyd.com",
     "privacyPolicyURL": "https://aiapplyd.com/legal/privacy",
     "termsOfServiceURL": "https://aiapplyd.com/legal/terms",
     "defaultPrompt": [
       "Show me my best job matches.",
-      "Apply to the best match for me and hold it for my review.",
-      "What applications are waiting for my approval?"
+      "Find remote UX designer jobs in my matches.",
+      "Help me prepare for an interview at Stripe."
     ],
     "brandColor": "#F97316",
     "composerIcon": "./assets/icon.png",
@@ -53,38 +46,68 @@
   "mcpServers": "./.mcp.json",
   "extensions": {
     "com.openai": {
+      "interface": {
+        "displayName": "AI Applyd",
+        "shortDescription": "Find jobs and apply to them",
+        "longDescription": "AI Applyd helps you look for a job from ChatGPT. It shows the jobs matched to your resume and job preferences, scores your resume against a job description, tailors your resume and cover letter to a specific role, and prepares you for interviews.\n\nWhen you choose to apply, AI Applyd fills in and submits the application on the employer's own hiring site. You can hold each application for your approval before it is sent, and you can check the status of the applications you already sent.\n\nYou need an AI Applyd account. ChatGPT asks you to sign in the first time you use it.",
+        "developerName": "AI Applyd",
+        "category": "Productivity",
+        "capabilities": [
+          "Interactive",
+          "Read",
+          "Write",
+          "Job matching",
+          "Auto-apply on 34 hiring systems",
+          "Review queue",
+          "Application tracking",
+          "Resume tailoring",
+          "Cover letters",
+          "Interview prep"
+        ],
+        "websiteURL": "https://aiapplyd.com",
+        "privacyPolicyURL": "https://aiapplyd.com/legal/privacy",
+        "termsOfServiceURL": "https://aiapplyd.com/legal/terms",
+        "defaultPrompt": [
+          "Show me my best job matches.",
+          "Find remote UX designer jobs in my matches.",
+          "Help me prepare for an interview at Stripe."
+        ],
+        "brandColor": "#F97316",
+        "composerIcon": "./assets/icon.png",
+        "logo": "./assets/logo.png"
+      },
       "review": {
         "test_cases": {
           "positive": [
             {
-              "description": "Find matched remote jobs by title.",
-              "prompt": "Find remote product manager jobs that match my resume.",
-              "tools_triggered": "aiapplyd_search_jobs",
-              "expected_behavior": "Returns the user's curated job matches for product manager roles that allow remote work, each with company, location, match score and application URL, or says clearly that none match."
+              "description": "List the jobs matched to the signed-in user.",
+              "prompt": "Show me my best job matches.",
+              "tools_triggered": "aiapplyd_get_matches",
+              "expected_behavior": "Returns the user's matched jobs as a list. Each job shows the title, company, location, match score and a link to the posting."
             },
             {
-              "description": "Score a resume against a pasted posting.",
+              "description": "Search the matched jobs by title and remote preference.",
+              "prompt": "Find remote UX designer jobs in my matches.",
+              "tools_triggered": "aiapplyd_search_jobs",
+              "expected_behavior": "Returns matched jobs that fit UX designer and allow remote work. Each job shows the title, company, location, match score and a link to the posting."
+            },
+            {
+              "description": "Score a resume against a pasted job description.",
               "prompt": "Score my resume against this job: Senior Data Analyst, SQL, Python, Tableau, 5+ years. My resume: Data analyst with 6 years of SQL and Python, built Tableau dashboards for finance teams.",
               "tools_triggered": "aiapplyd_score_resume",
-              "expected_behavior": "Returns an ATS score with section scores, the matched and missing keywords, and specific rewrite suggestions."
+              "expected_behavior": "Returns an overall ATS score out of 100, section scores, the matched and missing keywords, and suggestions to improve the resume."
             },
             {
-              "description": "Pull the screening requirements out of a job description.",
-              "prompt": "What does this posting really screen for? Backend Engineer: Go, Kubernetes, PostgreSQL, 4+ years, on-call rotation, fintech experience preferred.",
+              "description": "List the keywords a job description screens for.",
+              "prompt": "What does this posting screen for? Backend Engineer: Go, Kubernetes, PostgreSQL, 4+ years, on-call rotation, fintech experience preferred.",
               "tools_triggered": "aiapplyd_analyze_job_description",
-              "expected_behavior": "Lists the ATS keywords, must-have versus nice-to-have requirements, seniority signals and any red flags in the posting."
+              "expected_behavior": "Lists the keywords the posting screens for, split into must-have and nice-to-have, with a category and an importance score for each keyword."
             },
             {
               "description": "Prepare for an interview at a named company.",
               "prompt": "Help me prepare for a Customer Success Manager interview at Stripe.",
               "tools_triggered": "aiapplyd_generate_interview_questions",
-              "expected_behavior": "Returns company insights, likely interview questions with how to answer them, STAR scenarios, questions to ask, and salary negotiation notes."
-            },
-            {
-              "description": "Change the roles and locations AI Applyd searches for.",
-              "prompt": "Change my job search to UX designer roles in Berlin or remote in Europe.",
-              "tools_triggered": "aiapplyd_update_job_preferences",
-              "expected_behavior": "After the user confirms, saves UX designer as the target role with Berlin and remote Europe as locations, and confirms the new search."
+              "expected_behavior": "Returns interview prep for the role: company insights, likely interview questions, STAR stories, questions to ask the interviewer and negotiation prep."
             }
           ],
           "negative": [
@@ -107,7 +130,7 @@
         "commerce_description": "The plugin does not sell products or take payments. Paid AI Applyd plans are bought on aiapplyd.com."
       },
       "publication": {
-        "release_notes": "1.8.2: adds tools to list job matches, apply or hold for review, approve or skip held applications, track application status, read the account and plan, save a resume, and save or skip matches. Faster connection setup."
+        "release_notes": "1.8.4: plainer description, review test cases that match the reviewer account and never change its state, tool replies no longer show the AI model name or a sales footer."
       }
     }
   }
