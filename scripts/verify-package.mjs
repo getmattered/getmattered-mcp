@@ -11,6 +11,7 @@ const manifestPaths = ['server.json', 'gemini-extension.json', `${root}/plugin.j
 for (const path of manifestPaths) assert.equal(read(path).version, pkg.version, `${path} version drift`);
 const ui = portable.extensions['com.openai'].interface;
 assert.deepEqual(ui, codex.interface, 'OpenAI and Codex presentation must match');
+assert.deepEqual(portable.extensions['com.openai'], codex.extensions['com.openai'], 'OpenAI compatibility metadata must match');
 for (const [key, limit] of [['displayName', 30], ['shortDescription', 30], ['longDescription', 4000]]) {
   assert.ok(ui[key]?.length > 0 && ui[key].length <= limit, `${key} exceeds the OpenAI limit`);
 }
@@ -25,6 +26,9 @@ const files = new Set(pack.files.map(file => file.path));
 const skills = readdirSync(`${root}/skills`, { withFileTypes: true }).filter(entry => entry.isDirectory());
 assert.equal(skills.length, 10, 'Expected the ten job-search workflows');
 for (const skill of skills) assert.ok(files.has(`${root}/skills/${skill.name}/SKILL.md`), `Missing packaged skill: ${skill.name}`);
+const onboardingSkill = portable.extensions['com.openai'].onboardingSkill;
+assert.equal(onboardingSkill, './skills/setup-job-search/SKILL.md');
+assert.ok(files.has(`${root}/${onboardingSkill.slice(2)}`), 'Missing packaged onboarding skill');
 for (const path of ['plugin.json', '.codex-plugin/plugin.json', '.claude-plugin/plugin.json', '.cursor-plugin/plugin.json', 'mcp.json', '.mcp.json', ui.logo, ui.composerIcon]) {
   assert.ok(files.has(`${root}/${path.replace(/^\.\//, '')}`), `Missing packaged plugin file: ${path}`);
 }

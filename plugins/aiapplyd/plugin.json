@@ -61,34 +61,34 @@
         "test_cases": {
           "positive": [
             {
-              "description": "Find matched remote jobs by title.",
-              "prompt": "Find remote product manager jobs that match my resume.",
+              "description": "List the jobs matched to the signed-in user.",
+              "prompt": "Show me my best job matches.",
               "tools_triggered": "aiapplyd_get_matches",
-              "expected_behavior": "Returns the user's curated job matches for product manager roles that allow remote work, each with company, location, match score and application URL, or says clearly that none match."
+              "expected_behavior": "Returns the user's matched jobs as a list. Each job shows the title, company, location, match score and a link to the posting."
             },
             {
-              "description": "Score a resume against a pasted posting.",
+              "description": "Search the matched jobs by title and remote preference.",
+              "prompt": "Find remote UX designer jobs in my matches.",
+              "tools_triggered": "aiapplyd_search_jobs",
+              "expected_behavior": "Returns matched jobs that fit UX designer and allow remote work. Each job shows the title, company, location, match score and a link to the posting."
+            },
+            {
+              "description": "Score a resume against a pasted job description.",
               "prompt": "Score my resume against this job: Senior Data Analyst, SQL, Python, Tableau, 5+ years. My resume: Data analyst with 6 years of SQL and Python, built Tableau dashboards for finance teams.",
               "tools_triggered": "aiapplyd_score_resume",
-              "expected_behavior": "Returns an ATS score with section scores, the matched and missing keywords, and specific rewrite suggestions."
+              "expected_behavior": "Returns an overall ATS score out of 100, section scores, the matched and missing keywords, and suggestions to improve the resume."
             },
             {
-              "description": "Pull the screening requirements out of a job description.",
-              "prompt": "What does this posting really screen for? Backend Engineer: Go, Kubernetes, PostgreSQL, 4+ years, on-call rotation, fintech experience preferred.",
+              "description": "List the keywords a job description screens for.",
+              "prompt": "What does this posting screen for? Backend Engineer: Go, Kubernetes, PostgreSQL, 4+ years, on-call rotation, fintech experience preferred.",
               "tools_triggered": "aiapplyd_analyze_job_description",
-              "expected_behavior": "Returns the posting keywords with their categories, importance and must-have flags so the user can compare them with their resume."
+              "expected_behavior": "Lists the keywords the posting screens for, split into must-have and nice-to-have, with a category and an importance score for each keyword."
             },
             {
               "description": "Prepare for an interview at a named company.",
               "prompt": "Help me prepare for a Customer Success Manager interview at Stripe.",
               "tools_triggered": "aiapplyd_generate_interview_questions",
-              "expected_behavior": "Returns company insights, likely interview questions with how to answer them, STAR scenarios, questions to ask, and salary negotiation notes."
-            },
-            {
-              "description": "Change the roles and locations AI Applyd searches for.",
-              "prompt": "Change my job search to UX designer roles in Berlin or remote in Europe.",
-              "tools_triggered": "aiapplyd_update_job_preferences",
-              "expected_behavior": "After the user confirms, saves UX designer as the target role with Berlin and remote Europe as locations, and confirms the new search."
+              "expected_behavior": "Returns interview prep for the role: company insights, likely interview questions, STAR stories, questions to ask the interviewer and negotiation prep."
             }
           ],
           "negative": [
@@ -111,8 +111,9 @@
         "commerce_description": "The plugin does not sell products or take payments. Paid AI Applyd plans are bought on aiapplyd.com."
       },
       "publication": {
-        "release_notes": "1.8.4: ten portable skills. Adds account setup, cover letters, interview practice, translation of saved builder resumes and editable summary drafts. Runs only the resume analysis, score or rewrite requested. Gemini CLI discovers the same canonical skill files. Credit-consuming actions need approval, and applications count as landed only with employer evidence."
-      }
+        "release_notes": "1.8.4: ten portable skills. Adds account setup, cover letters, interview practice, translation of saved builder resumes and editable summary drafts. Runs only the resume analysis, score or rewrite requested. Gemini CLI discovers the same canonical skill files. Credit-consuming actions need approval, and applications count as landed only with employer evidence. Review examples include both match tools and avoid submitting applications or changing reviewer preferences. Tool replies omit internal model names and sales footers."
+      },
+      "onboardingSkill": "./skills/setup-job-search/SKILL.md"
     },
     "com.anthropic": {
       "interface": {

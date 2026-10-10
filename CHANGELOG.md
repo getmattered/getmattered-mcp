@@ -10,6 +10,7 @@ The assistant bundle has ten job-search skills. Five new workflows cover account
 - A prepublish check refuses missing skills, icons or manifests, mismatched versions and invalid OpenAI metadata.
 - npm now includes the plugin manifests, icons and all ten skill files alongside the CLI bridge.
 - Gemini CLI discovers the same canonical skill files as the Claude, Cursor and Codex plugin packages through the root `skills/` link.
+- OpenAI's setup action opens the packaged job-search setup skill after installation.
 - Skills check account limits and request approval before credit-consuming actions or application sends. An application counts as landed only with employer evidence.
 - Resume translation uses the default saved builder document, or the first saved build. It saves a separate translation.
 - The resume-builder tool creates an editable summary draft of up to 2,000 characters. A full resume needs structured sections or an imported file in the builder before PDF export.
