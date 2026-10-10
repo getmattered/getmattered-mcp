@@ -1,6 +1,6 @@
 {
   "name": "aiapplyd",
-  "version": "1.8.3",
+  "version": "1.8.4",
   "description": "Auto-Apply That Ends on an Interview. Get matched jobs, apply on 34 hiring systems automatically or after your approval, review and track every application, and tailor your resume and cover letter per role.",
   "author": {
     "name": "AI Applyd",
@@ -21,33 +21,38 @@
   ],
   "interface": {
     "displayName": "AI Applyd",
-    "shortDescription": "Auto-Apply That Ends on an Interview",
-    "longDescription": "AI Applyd finds jobs that fit your resume, rewrites the resume and writes a cover letter for each role, and applies on the company's own hiring system across 34 hiring systems, including Workday, Greenhouse, Lever, Ashby, iCIMS, Workable, SAP SuccessFactors, Oracle, ADP and Dayforce. Send each application automatically, or hold it in a review queue for your yes. It keeps the confirmation the employer sends back, so you know every application landed.\n\nAsk for your matched jobs, apply to one, approve or reject what is waiting, track where every application stands, tailor your resume and cover letter for a posting, or prepare for an interview, without leaving the chat.",
+    "shortDescription": "Find jobs and auto-apply",
+    "longDescription": "Find jobs matched to your resume, tailor each application and apply on the employer's own hiring site from your AI assistant. AI Applyd connects your job search, application review and interview preparation in one conversation.\n\nGet matched jobs ranked by fit. Read a full posting, save a role for later or skip a match with a reason. Set your target roles, locations, salary and work preferences so your search follows what you want.\n\nApply with a resume and cover letter tailored to the role. AI Applyd fills in and submits the employer's application form. Send applications automatically, or hold each one in your review queue. Review the documents, request changes and approve the applications you want to send. Track their status and see which applications have an employer receipt or confirmation page.\n\nPrepare before you apply: compare your resume with a job description, see your ATS score and missing keywords, and rewrite the resume for that role. Write a cover letter from your own experience. Practise interview questions with role and company context, answer guidance and STAR examples. Translate a saved resume-builder document or create a private editable resume draft to finish and export in the builder.\n\nConnect your AI Applyd account to use your saved resume, job preferences and application history. Check your account readiness and remaining allowance in the conversation. Applying sends your information to the employer; choosing review mode holds it until you approve.",
     "developerName": "AI Applyd",
     "category": "Productivity",
     "capabilities": [
-      "Interactive",
-      "Read",
-      "Write",
       "Job matching",
-      "Auto-apply on 34 hiring systems",
-      "Review queue",
-      "Application tracking",
+      "Automatic job applications",
+      "Application review and approval",
+      "Employer confirmation tracking",
+      "ATS resume scoring",
+      "Job description analysis",
       "Resume tailoring",
-      "Cover letters",
-      "Interview prep"
+      "Cover letter writing",
+      "Interview preparation",
+      "Job search preferences",
+      "Resume setup",
+      "Save or skip job matches",
+      "Resume translation",
+      "Editable resume drafts"
     ],
     "websiteURL": "https://aiapplyd.com",
     "privacyPolicyURL": "https://aiapplyd.com/legal/privacy",
     "termsOfServiceURL": "https://aiapplyd.com/legal/terms",
     "defaultPrompt": [
-      "Show me my best job matches.",
-      "Apply to the best match for me and hold it for my review.",
-      "What applications are waiting for my approval?"
+      "Find jobs that match my resume and explain the strongest matches.",
+      "Tailor my resume to this job and prepare the application for my review.",
+      "Show applications waiting for approval and which employers confirmed receipt."
     ],
     "brandColor": "#F97316",
     "composerIcon": "./assets/icon.png",
-    "logo": "./assets/logo.png"
+    "logo": "./assets/logo.png",
+    "supportURL": "https://aiapplyd.com/support"
   },
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
@@ -59,7 +64,7 @@
             {
               "description": "Find matched remote jobs by title.",
               "prompt": "Find remote product manager jobs that match my resume.",
-              "tools_triggered": "aiapplyd_search_jobs",
+              "tools_triggered": "aiapplyd_get_matches",
               "expected_behavior": "Returns the user's curated job matches for product manager roles that allow remote work, each with company, location, match score and application URL, or says clearly that none match."
             },
             {
@@ -72,7 +77,7 @@
               "description": "Pull the screening requirements out of a job description.",
               "prompt": "What does this posting really screen for? Backend Engineer: Go, Kubernetes, PostgreSQL, 4+ years, on-call rotation, fintech experience preferred.",
               "tools_triggered": "aiapplyd_analyze_job_description",
-              "expected_behavior": "Lists the ATS keywords, must-have versus nice-to-have requirements, seniority signals and any red flags in the posting."
+              "expected_behavior": "Returns the posting keywords with their categories, importance and must-have flags so the user can compare them with their resume."
             },
             {
               "description": "Prepare for an interview at a named company.",
@@ -107,7 +112,7 @@
         "commerce_description": "The plugin does not sell products or take payments. Paid AI Applyd plans are bought on aiapplyd.com."
       },
       "publication": {
-        "release_notes": "1.8.2: adds tools to list job matches, apply or hold for review, approve or skip held applications, track application status, read the account and plan, save a resume, and save or skip matches. Faster connection setup."
+        "release_notes": "1.8.4: ten portable skills. Adds account setup, cover letters, interview practice, translation of saved builder resumes and editable summary drafts. Runs only the resume analysis, score or rewrite requested. Gemini CLI discovers the same canonical skill files. Credit-consuming actions need approval, and applications count as landed only with employer evidence."
       }
     }
   }

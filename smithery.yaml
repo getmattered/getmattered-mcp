@@ -48,9 +48,9 @@ tools:
   - name: aiapplyd_optimize_resume
     description: "A resume rewritten to pass ATS screening and still reach a human reader"
   - name: aiapplyd_generate_interview_questions
-    description: "The questions this role is asked, with answer guidance, STAR scenarios and negotiation prep"
+    description: "Likely interview questions for this role, with answer guidance, STAR scenarios and negotiation prep"
   - name: aiapplyd_translate_resume
-    description: "A send-ready resume in another language, formatted for that market"
+    description: "Translates the default saved resume-builder document, or first saved build, into a separate document"
   - name: aiapplyd_search_jobs
     description: "Older name for aiapplyd_get_matches with a title filter, kept for existing clients"
   - name: aiapplyd_update_job_preferences
@@ -60,7 +60,7 @@ tools:
   - name: aiapplyd_auto_apply
     description: "Older name for aiapplyd_apply with a job_url, kept for existing clients"
   - name: aiapplyd_build_pdf
-    description: "A finished, ATS-clean resume, editable in the builder and ready to download as a PDF"
+    description: "Creates an editable summary draft of up to 2,000 characters. Open the builder to fill structured sections and review before PDF export"
 prompts:
   - name: review_my_resume
     description: "Scores a resume against a posting and returns the three changes that move it past the filter"

@@ -4,6 +4,8 @@
 
 # AI Applyd MCP Server
 
+Version 1.8.4 includes ten portable job-search skills. See the [changelog](CHANGELOG.md).
+
 **Auto-Apply That Ends on an Interview**
 
 **Stop applying. Start interviewing.**
@@ -138,20 +140,30 @@ code --add-mcp '{"name":"aiapplyd","type":"http","url":"https://mcp.aiapplyd.com
 
 ### Plugin for Codex, ChatGPT, Claude Code and Cursor
 
-This repository is a plugin marketplace. The `aiapplyd` plugin bundles the MCP server with five
+This repository is a plugin marketplace. The `aiapplyd` plugin bundles the MCP server with ten
 skills, in the portable `plugin.json` format that Codex, ChatGPT, Claude Code and Cursor read:
 
 | Skill | Use it when |
 |---|---|
+| [`setup-job-search`](plugins/aiapplyd/skills/setup-job-search/SKILL.md) | You want to set your base resume, finish your profile or check readiness |
 | [`find-matching-jobs`](plugins/aiapplyd/skills/find-matching-jobs/SKILL.md) | You want your job matches, want to save or skip one, or want to change what it looks for |
 | [`apply-to-a-job`](plugins/aiapplyd/skills/apply-to-a-job/SKILL.md) | You want to apply, or you paste a job link and say "apply" |
 | [`review-and-send`](plugins/aiapplyd/skills/review-and-send/SKILL.md) | You want to see what is waiting for you, change it, and send it |
-| [`tailor-for-a-job`](plugins/aiapplyd/skills/tailor-for-a-job/SKILL.md) | You paste a job description and want the resume, cover letter or interview prep for it |
+| [`tailor-for-a-job`](plugins/aiapplyd/skills/tailor-for-a-job/SKILL.md) | You want a posting analysis, an ATS score or a resume rewrite for one role |
 | [`track-applications`](plugins/aiapplyd/skills/track-applications/SKILL.md) | You ask "did it go through", or how many applications you have left |
+| [`write-cover-letter`](plugins/aiapplyd/skills/write-cover-letter/SKILL.md) | You want a letter for one job or changes to an existing letter |
+| [`prepare-for-interview`](plugins/aiapplyd/skills/prepare-for-interview/SKILL.md) | You want role-specific questions and to practise answers from your own experience |
+| [`translate-resume`](plugins/aiapplyd/skills/translate-resume/SKILL.md) | You want a saved resume-builder document in another language |
+| [`build-resume-document`](plugins/aiapplyd/skills/build-resume-document/SKILL.md) | You want a private editable summary draft, with a builder page to review before export |
 
-The same five skills are published for any agent at
-[`aiapplyd.com/.well-known/agent-skills/index.json`](https://aiapplyd.com/.well-known/agent-skills/index.json),
-and the copies here are byte-identical to those (each file matches the `sha256` digest in that index).
+The hosted skill index is at
+[`aiapplyd.com/.well-known/agent-skills/index.json`](https://aiapplyd.com/.well-known/agent-skills/index.json).
+The plugin files are in `plugins/aiapplyd/skills/`. The root `skills/` link points to that same
+directory so Gemini CLI discovers the workflows without a second set of skill files.
+
+Skills check account limits before metered work and get approval before credit-consuming actions
+or sending an application. Installing a plugin does not buy an AI Applyd plan. Public directory
+approval is separate from installing this repository directly.
 
 Codex:
 
@@ -178,7 +190,8 @@ The Codex CLI, the IDE extension and the ChatGPT desktop app share this configur
 
 ### Gemini CLI
 
-This repository is also a Gemini CLI extension (`gemini-extension.json` plus `GEMINI.md`):
+This repository is also a Gemini CLI extension (`gemini-extension.json`, `GEMINI.md` and the same
+ten skills):
 
 ```bash
 gemini extensions install https://github.com/aiapplyd/aiapplyd-mcp
@@ -290,8 +303,9 @@ Use `/mcp`. `/sse` remains only for clients that cannot speak Streamable HTTP.
 ## Tools
 
 The table below is generated from the live `tools/list` of `https://mcp.aiapplyd.com/mcp`.
-Every tool runs on the caller's own AI Applyd account and spends that account's own
-credits. The server holds no allowance of its own and there is no anonymous tool.
+Every tool runs on the caller's own AI Applyd account. Reading matches, applications
+and account limits does not run AI generation. AI work and applications use the
+account's allowance. Tool calls require sign-in; introspection is public.
 
 ### The main loop
 
@@ -327,9 +341,9 @@ aiapplyd_get_matches -> aiapplyd_apply -> aiapplyd_get_applications -> aiapplyd_
 | `aiapplyd_analyze_job_description` | Analyze Job Description | writes, open-world | What a posting screens on, in its own language, so the resume can mirror it |
 | `aiapplyd_optimize_resume` | Optimize Resume with AI | writes, open-world | A resume rewritten to pass ATS screening and still reach a human reader |
 | `aiapplyd_generate_interview_questions` | Generate Interview Questions | writes, open-world | The questions this role is asked, with answer guidance, STAR scenarios and negotiation prep |
-| `aiapplyd_translate_resume` | Translate Resume | writes, open-world | A send-ready resume in another language, formatted for that market |
-| `aiapplyd_generate_cover_letter` | Generate Cover Letter | writes, open-world | A cover letter in your own voice, written from the resume on your account |
-| `aiapplyd_build_pdf` | Build Resume | writes, open-world | A finished, ATS-clean resume, editable in the builder and ready to download as a PDF |
+| `aiapplyd_translate_resume` | Translate Resume | writes, open-world | Translates the default saved resume-builder document, or first saved build, into a separate document |
+| `aiapplyd_generate_cover_letter` | Generate Cover Letter | writes, destructive | A cover letter in your own voice, written from the resume on your account |
+| `aiapplyd_build_pdf` | Create Resume Draft | writes, open-world | Creates an editable summary draft of up to 2,000 characters. Open the builder to fill structured sections and review before PDF export |
 
 ### Older names, still answered
 

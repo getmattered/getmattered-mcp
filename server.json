@@ -3,7 +3,7 @@
   "name": "com.aiapplyd/aiapplyd",
   "title": "AI Applyd",
   "description": "Auto-Apply That Ends on an Interview. Job matches, per-role resumes, apply, approve, track receipts.",
-  "version": "1.8.3",
+  "version": "1.8.4",
   "websiteUrl": "https://aiapplyd.com/mcps",
   "repository": {
     "url": "https://github.com/aiapplyd/aiapplyd-mcp",
@@ -25,7 +25,7 @@
     {
       "registryType": "npm",
       "identifier": "aiapplyd-mcp",
-      "version": "1.8.3",
+      "version": "1.8.4",
       "transport": {
         "type": "stdio"
       },
