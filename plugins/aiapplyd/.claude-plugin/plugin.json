@@ -8,6 +8,7 @@
     "url": "https://aiapplyd.com"
   },
   "homepage": "https://aiapplyd.com/mcps",
+  "privacyPolicyUrl": "https://aiapplyd.com/legal/privacy",
   "repository": "https://github.com/aiapplyd/aiapplyd-mcp",
   "license": "MIT",
   "mcpServers": {
