@@ -28,6 +28,10 @@ Skills:
 
 The package, registry/npm manifest, client manifests, root lockfile metadata and CLI version output use 1.9.0. The prepublish check expects fourteen skills. Dependency versions are unchanged.
 
+## 1.8.5
+
+Publishes the ten-skill bundle from 1.8.4 to npm and the MCP Registry. npm still held an older 1.8.4 build staged on October 8, so this release uses the next version number. The code and skills match 1.8.4.
+
 ## 1.8.4
 
 The assistant bundle has ten job-search skills. Five new workflows cover account setup, cover letters, interview practice, resume translation and editable resume-builder drafts.
