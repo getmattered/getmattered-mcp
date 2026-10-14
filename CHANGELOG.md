@@ -1,5 +1,33 @@
 # Changelog
 
+## 1.9.0
+
+The assistant bundle has fourteen job-search skills. Four new skills cover the tool map, recruiter replies, follow-ups and saved searches.
+
+New tools on the hosted server:
+
+- `aiapplyd_get_inbox` reads the emails employers sent to the user's AI Applyd address, with drafted replies for a conversation. Sign-up codes and other account mail are marked and never count as an employer reply.
+- `aiapplyd_reply_to_email` sends the user's reply to an employer. Skills show the exact text first and send only after the user says yes to it.
+- `aiapplyd_update_auto_apply` turns Auto Apply on or off and sets review or auto mode, the daily limit and the lowest match. Turning it on or choosing auto mode needs the user's yes.
+- `aiapplyd_update_application_profile` reads and saves the answers employer forms need, and lists the details recent applications had to guess.
+- `aiapplyd_manage_follow_ups` lists due follow-ups, drafts one, sends it from a connected Gmail or Outlook after the user's yes, or records one the user sent.
+- `aiapplyd_manage_saved_searches` saves the current job preferences as a named search and turns email alerts for new matches on or off.
+
+Changed behavior:
+
+- `aiapplyd_score_resume`, `aiapplyd_optimize_resume` and `aiapplyd_translate_resume` take `resume_text` for a resume pasted in the chat, or `resume_file` for a file attached in ChatGPT. `aiapplyd_generate_cover_letter` takes `resume_text`. Without them, the tools use the resume on file.
+- Translation and cover letters no longer need a resume-builder document.
+- `aiapplyd_set_resume` also takes `resume_file`.
+- `aiapplyd_build_pdf` with no `resume_text` returns the PDF link of the resume on file and creates nothing.
+
+Skills:
+
+- `using-ai-applyd` maps each request to its tools and order, lists the actions that need the user's yes, and ends each result with one next step offered to the user, with no prices or billing links.
+- `handle-recruiter-replies`, `follow-up-on-applications` and `manage-saved-searches` are new.
+- The apply, setup, tailoring, cover letter, translation, resume document, matching, tracking and interview skills describe the new resume sources and point to the new workflows. `apply-to-a-job` covers Auto Apply settings.
+
+The package, registry/npm manifest, client manifests, root lockfile metadata and CLI version output use 1.9.0. The prepublish check expects fourteen skills. Dependency versions are unchanged.
+
 ## 1.8.4
 
 The assistant bundle has ten job-search skills. Five new workflows cover account setup, cover letters, interview practice, resume translation and editable resume-builder drafts.

@@ -1,6 +1,6 @@
 {
   "name": "aiapplyd",
-  "version": "1.8.4",
+  "version": "1.9.0",
   "description": "Auto-Apply That Ends on an Interview. Get matched jobs, apply on 34 hiring systems automatically or after your approval, review and track every application, and tailor your resume and cover letter per role.",
   "author": {
     "name": "AI Applyd",
@@ -147,7 +147,7 @@
         "commerce_description": "The plugin does not sell products or take payments. Paid AI Applyd plans are bought on aiapplyd.com."
       },
       "publication": {
-        "release_notes": "1.8.4: ten portable skills. Adds account setup, cover letters, interview practice, translation of saved builder resumes and editable summary drafts. Runs only the resume analysis, score or rewrite requested. Gemini CLI discovers the same canonical skill files. Credit-consuming actions need approval, and applications count as landed only with employer evidence. Review examples include both match tools and avoid submitting applications or changing reviewer preferences. Tool replies omit internal model names and sales footers."
+        "release_notes": "1.9.0: fourteen portable skills. Adds a tool map skill, recruiter replies, follow-ups and saved searches. The assistant reads employer emails and sends a reply only after the user approves the exact text. Sign-in codes are never shown as employer replies. Auto Apply can be turned on or off and set to review or auto mode in the conversation. Scoring, rewriting, translation and cover letters use a resume pasted or attached in the chat, or the resume on file; no builder document is required. Sends, approvals and Auto Apply changes need the user's yes."
       },
       "onboardingSkill": "./skills/setup-job-search/SKILL.md"
     }

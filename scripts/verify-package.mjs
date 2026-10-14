@@ -24,7 +24,7 @@ assert.equal(new Set(ui.defaultPrompt).size, ui.defaultPrompt.length);
 const [pack] = JSON.parse(execFileSync('npm', ['pack', '--dry-run', '--ignore-scripts', '--json'], { encoding: 'utf8' }));
 const files = new Set(pack.files.map(file => file.path));
 const skills = readdirSync(`${root}/skills`, { withFileTypes: true }).filter(entry => entry.isDirectory());
-assert.equal(skills.length, 10, 'Expected the ten job-search workflows');
+assert.equal(skills.length, 14, 'Expected the fourteen job-search workflows');
 for (const skill of skills) assert.ok(files.has(`${root}/skills/${skill.name}/SKILL.md`), `Missing packaged skill: ${skill.name}`);
 const onboardingSkill = portable.extensions['com.openai'].onboardingSkill;
 assert.equal(onboardingSkill, './skills/setup-job-search/SKILL.md');

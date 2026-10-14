@@ -5,7 +5,7 @@ description: Find jobs that fit the user with AI Applyd, save or skip them, and 
 
 # Find matching jobs
 
-Start here. Call `aiapplyd_get_account` first. If its readiness shows no resume on file, call `aiapplyd_set_resume` before anything else, with exactly one of `resume_text` (the full text), `resume_url` (an https link to a PDF, DOCX or text file) or `document_id` (a saved resume from the account, which is free). If the tool says no account is connected, share the sign-up link it gives and stop. If `aiapplyd_set_resume` says the resume is still being read, call `aiapplyd_get_account` again in a minute, and apply only once it shows the resume on file. A new import can use AI credits. Get approval for that import before calling it. Do not buy credits or upgrade the account.
+Start here. Call `aiapplyd_get_account` first. If its readiness shows no resume on file, call `aiapplyd_set_resume` before anything else, with exactly one of `resume_text` (the full text), `resume_url` (an https link to a PDF, DOCX or text file), `document_id` (a saved resume from the account, which is free) or, in ChatGPT, `resume_file` (a file the user attached). If the tool says no account is connected, share the sign-up link it gives and stop. If `aiapplyd_set_resume` says the resume is still being read, call `aiapplyd_get_account` again in a minute, and apply only once it shows the resume on file. A new import can use AI credits. Get approval for that import before calling it. Do not buy credits or upgrade the account.
 
 1. Call `aiapplyd_get_matches` to list the user's matched jobs, best first. Use `limit` (1 to 50) and `page` to see more, and `saved_only: true` for the jobs they saved.
 2. To narrow the list, call `aiapplyd_get_matches` with `query` (text in the job title), `location` (a city or country) or `remote_only: true`.
@@ -16,6 +16,7 @@ Start here. Call `aiapplyd_get_account` first. If its readiness shows no resume 
 7. If nothing fits, say so plainly. Offer a broader query, or a change to what AI Applyd looks for. On a new account the first matches may not be there yet, because AI Applyd starts searching once the resume is set. If `aiapplyd_get_account` shows no target roles, ask the user which roles they want and use step 8.
 8. To change what it looks for, read the current settings with `aiapplyd_get_account` first. Then call `aiapplyd_update_job_preferences` with the fields the user named, such as `target_roles`, `locations`, `include_remote`, `salary_min`, `experience_levels` or `work_styles`. Lists replace the saved ones, so pass the full list, five at most for roles and locations. Use `description` for what the user said in plain words (it uses AI credits). Only do this when the user asks.
 9. When the user picks a job to apply to, use the apply-to-a-job skill.
+10. To keep a search and be emailed about its new matches, use the manage-saved-searches skill.
 
 Matches come from the user's own curated feed, not the whole web. Say so when a list is short or empty. `aiapplyd_search_jobs` also searches by `job_title`, but it is an older name for `aiapplyd_get_matches` with `query`. Prefer `aiapplyd_get_matches`.
 

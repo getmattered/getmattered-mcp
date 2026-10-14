@@ -5,7 +5,7 @@ description: Prepare for a specific job interview with AI Applyd and practice an
 
 # Prepare for an interview
 
-1. Identify the role. For an existing application, call `aiapplyd_get_applications` to find the correct application and read it with `application_id`. Keep that id. Otherwise get the job title and company name from the user. Keep the real posting text when available.
+1. Identify the role. For an existing application, call `aiapplyd_get_applications` to find the correct application and read it with `application_id`. Keep that id. Otherwise get the job title and company name from the user. Keep the real posting text when available. If the invite came by email, read it with `aiapplyd_get_inbox` and the `application_id` for the details the employer gave.
 2. Call `aiapplyd_get_account` to check access and balance. Interview preparation can use AI credits. Get approval for the generation before calling it. Do not upgrade a plan or buy credits.
 3. Call `aiapplyd_generate_interview_questions` with `application_id` for an existing application. For another role, pass `job_title`, `company_name` and the available `job_description`. The second route may save a job on the account and is subject to its saved-job limit. Do not create another application to prepare for an interview.
 4. If the result is pending, report that state and share the returned dashboard link. Avoid repeated generation calls. A pending response does not mean the preparation is complete.

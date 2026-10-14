@@ -18,8 +18,9 @@ description: Check where the user's job applications stand with AI Applyd, which
 5. If some are waiting for review, offer the review-and-send skill.
 6. When the user reports an interview, an offer or a rejection, record it with `aiapplyd_review_application`, `decision: "set_stage"`, the `application_ids` and `stage`.
 7. Call `aiapplyd_get_account` for the plan, the token balance, the applications left in the current 30-day window, when they reset, and readiness. Readiness says whether a resume is on file and which profile fields employer forms need that are still empty.
-8. If profile fields are empty, ask the user for them. Save only what they stated with `aiapplyd_update_job_preferences` and `application_answers`. Its keys are phone, city, state, zip_code, country, linkedin_url, work_authorization, willing_to_relocate, available_start_date and notice_period. Never guess a value.
+8. If profile fields are empty, ask the user for them. Save only what they stated with `aiapplyd_update_job_preferences` and `application_answers`. Its keys are phone, city, state, zip_code, country, linkedin_url, work_authorization, willing_to_relocate, available_start_date and notice_period. Never guess a value. When `aiapplyd_update_application_profile` is in the tool list, prefer it, because it covers more form fields.
 9. Share each application's tracking link so the user can open it in their dashboard.
+10. For emails an employer sent, use the handle-recruiter-replies skill. For applications with no answer, use the follow-up-on-applications skill.
 
 Never invent a status or a receipt. Report only what the tool returned.
 

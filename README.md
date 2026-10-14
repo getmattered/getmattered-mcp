@@ -4,7 +4,7 @@
 
 # AI Applyd MCP Server
 
-Version 1.8.4 includes ten portable job-search skills. See the [changelog](CHANGELOG.md).
+Version 1.9.0 includes fourteen portable job-search skills. See the [changelog](CHANGELOG.md).
 
 **Auto-Apply That Ends on an Interview**
 
@@ -140,11 +140,12 @@ code --add-mcp '{"name":"aiapplyd","type":"http","url":"https://mcp.aiapplyd.com
 
 ### Plugin for Codex, ChatGPT, Claude Code and Cursor
 
-This repository is a plugin marketplace. The `aiapplyd` plugin bundles the MCP server with ten
+This repository is a plugin marketplace. The `aiapplyd` plugin bundles the MCP server with fourteen
 skills, in the portable `plugin.json` format that Codex, ChatGPT, Claude Code and Cursor read:
 
 | Skill | Use it when |
 |---|---|
+| [`using-ai-applyd`](plugins/aiapplyd/skills/using-ai-applyd/SKILL.md) | You want the assistant to pick the right tool and order for your request |
 | [`setup-job-search`](plugins/aiapplyd/skills/setup-job-search/SKILL.md) | You want to set your base resume, finish your profile or check readiness |
 | [`find-matching-jobs`](plugins/aiapplyd/skills/find-matching-jobs/SKILL.md) | You want your job matches, want to save or skip one, or want to change what it looks for |
 | [`apply-to-a-job`](plugins/aiapplyd/skills/apply-to-a-job/SKILL.md) | You want to apply, or you paste a job link and say "apply" |
@@ -153,7 +154,10 @@ skills, in the portable `plugin.json` format that Codex, ChatGPT, Claude Code an
 | [`track-applications`](plugins/aiapplyd/skills/track-applications/SKILL.md) | You ask "did it go through", or how many applications you have left |
 | [`write-cover-letter`](plugins/aiapplyd/skills/write-cover-letter/SKILL.md) | You want a letter for one job or changes to an existing letter |
 | [`prepare-for-interview`](plugins/aiapplyd/skills/prepare-for-interview/SKILL.md) | You want role-specific questions and to practise answers from your own experience |
-| [`translate-resume`](plugins/aiapplyd/skills/translate-resume/SKILL.md) | You want a saved resume-builder document in another language |
+| [`handle-recruiter-replies`](plugins/aiapplyd/skills/handle-recruiter-replies/SKILL.md) | An employer wrote back and you want to read it and send a reply you approved |
+| [`follow-up-on-applications`](plugins/aiapplyd/skills/follow-up-on-applications/SKILL.md) | An application has gone quiet and you want to follow up |
+| [`manage-saved-searches`](plugins/aiapplyd/skills/manage-saved-searches/SKILL.md) | You want to save a search and get emailed about its new jobs |
+| [`translate-resume`](plugins/aiapplyd/skills/translate-resume/SKILL.md) | You want your resume in another language |
 | [`build-resume-document`](plugins/aiapplyd/skills/build-resume-document/SKILL.md) | You want a private editable summary draft, with a builder page to review before export |
 
 The hosted skill index is at
@@ -191,7 +195,7 @@ The Codex CLI, the IDE extension and the ChatGPT desktop app share this configur
 ### Gemini CLI
 
 This repository is also a Gemini CLI extension (`gemini-extension.json`, `GEMINI.md` and the same
-ten skills):
+fourteen skills):
 
 ```bash
 gemini extensions install https://github.com/aiapplyd/aiapplyd-mcp
@@ -324,6 +328,9 @@ aiapplyd_get_matches -> aiapplyd_apply -> aiapplyd_get_applications -> aiapplyd_
 | `aiapplyd_get_applications` | Get Applications | read-only, idempotent | Every application and where it stands, the review queue, and the employer's own confirmation when it exists |
 | `aiapplyd_review_application` | Approve or Reject Applications | **destructive**, open-world | Approve (send) or reject waiting applications, up to 25 at once. Also cancel, refine a document, re-prepare, or record the interview stage |
 | `aiapplyd_get_account` | Get Account | read-only, idempotent | Your plan, token balance, applications left, job preferences, and whether your profile is ready to apply |
+| `aiapplyd_get_inbox` | Get Recruiter Inbox | read-only, idempotent | The emails employers send about your applications, with the full conversation and suggested replies |
+| `aiapplyd_reply_to_email` | Reply to an Employer Email | **destructive**, open-world | Sends your reply to an employer from your AI Applyd address, only after you approve the exact text |
+| `aiapplyd_manage_follow_ups` | Follow Up on Applications | **destructive**, open-world | Lists applications that went quiet, drafts a follow-up, and sends it once you approve it |
 
 ### Setup and triage
 
@@ -332,6 +339,9 @@ aiapplyd_get_matches -> aiapplyd_apply -> aiapplyd_get_applications -> aiapplyd_
 | `aiapplyd_set_resume` | Set Resume | writes, open-world | Put your resume on your account as the base every application is tailored from: pasted text, a file link, or a saved resume |
 | `aiapplyd_triage_matches` | Save or Skip Matches | writes, idempotent | Save a match, or skip it with a reason, so a job you declined stops coming back |
 | `aiapplyd_update_job_preferences` | Update Job Preferences | **destructive**, idempotent | Point AI Applyd at the roles, locations, salary and seniority you want, and re-run discovery |
+| `aiapplyd_update_application_profile` | Update Application Profile | writes, idempotent | Reads or saves the answers employer forms ask for. EEO answers are optional and accept prefer not to say |
+| `aiapplyd_update_auto_apply` | Update Auto Apply | **destructive**, idempotent | Turns Auto Apply on or off and sets whether applications go out on their own or wait for your review |
+| `aiapplyd_manage_saved_searches` | Manage Saved Searches | writes | Saves your job preferences as named searches, with email alerts for new matches |
 
 ### Resume, cover letter and interview
 
@@ -341,9 +351,9 @@ aiapplyd_get_matches -> aiapplyd_apply -> aiapplyd_get_applications -> aiapplyd_
 | `aiapplyd_analyze_job_description` | Analyze Job Description | writes, open-world | What a posting screens on, in its own language, so the resume can mirror it |
 | `aiapplyd_optimize_resume` | Optimize Resume with AI | writes, open-world | A resume rewritten to pass ATS screening and still reach a human reader |
 | `aiapplyd_generate_interview_questions` | Generate Interview Questions | writes, open-world | The questions this role is asked, with answer guidance, STAR scenarios and negotiation prep |
-| `aiapplyd_translate_resume` | Translate Resume | writes, open-world | Translates the default saved resume-builder document, or first saved build, into a separate document |
-| `aiapplyd_generate_cover_letter` | Generate Cover Letter | writes, destructive | A cover letter in your own voice, written from the resume on your account |
-| `aiapplyd_build_pdf` | Create Resume Draft | writes, open-world | Creates an editable summary draft of up to 2,000 characters. Open the builder to fill structured sections and review before PDF export |
+| `aiapplyd_translate_resume` | Translate Resume | writes, open-world | Translates your resume into another language as a separate document. Works from the resume on file, or a resume pasted or attached in chat |
+| `aiapplyd_generate_cover_letter` | Generate Cover Letter | writes, destructive | A cover letter in your own voice, written from the resume on your account or one pasted in chat |
+| `aiapplyd_build_pdf` | Resume PDF or Draft | writes, open-world | Links the PDF of the resume on file, or creates an editable draft from pasted text |
 
 ### Older names, still answered
 
