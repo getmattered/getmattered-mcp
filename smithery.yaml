@@ -41,6 +41,10 @@ tools:
     description: "Put your resume on your account as the base every application is tailored from: pasted text, a file link, or a saved resume"
   - name: aiapplyd_triage_matches
     description: "Save a match, or skip it with a reason, so a job you declined stops coming back"
+  - name: aiapplyd_get_inbox
+    description: "The emails employers send about your applications, with the full conversation and suggested replies"
+  - name: aiapplyd_reply_to_email
+    description: "Sends your reply to an employer from your AI Applyd address, only after you approve the exact text"
   - name: aiapplyd_score_resume
     description: "An ATS score with section scores, the keywords you match and the ones you are missing, and what to change"
   - name: aiapplyd_analyze_job_description
@@ -61,6 +65,14 @@ tools:
     description: "Older name for aiapplyd_apply with a job_url, kept for existing clients"
   - name: aiapplyd_build_pdf
     description: "Creates an editable summary draft of up to 2,000 characters. Open the builder to fill structured sections and review before PDF export"
+  - name: aiapplyd_update_auto_apply
+    description: "Turns Auto Apply on or off and sets whether applications go out on their own or wait for your review"
+  - name: aiapplyd_update_application_profile
+    description: "Reads or saves the answers employer forms ask for. EEO answers are optional and accept prefer not to say"
+  - name: aiapplyd_manage_follow_ups
+    description: "Lists applications that went quiet, drafts a follow-up, and sends it once you approve it"
+  - name: aiapplyd_manage_saved_searches
+    description: "Saves your job preferences as named searches, with email alerts for new matches"
 prompts:
   - name: review_my_resume
     description: "Scores a resume against a posting and returns the three changes that move it past the filter"
