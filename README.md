@@ -4,7 +4,7 @@
 
 # AI Applyd MCP Server
 
-Version 1.9.0 includes fourteen portable job-search skills. See the [changelog](CHANGELOG.md).
+Version 1.9.1 includes fourteen portable job-search skills. See the [changelog](CHANGELOG.md).
 
 **Auto-Apply That Ends on an Interview**
 

@@ -1,6 +1,6 @@
 {
   "name": "aiapplyd",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "description": "Auto-Apply That Ends on an Interview. Get matched jobs, apply on 30+ hiring systems automatically or after your approval, review and track every application, and tailor your resume and cover letter per role.",
   "author": {
     "name": "AI Applyd",
@@ -147,7 +147,7 @@
         "commerce_description": "The plugin does not sell products or take payments. Paid AI Applyd plans are bought on aiapplyd.com."
       },
       "publication": {
-        "release_notes": "1.9.0: fourteen portable skills. Adds a tool map skill, recruiter replies, follow-ups and saved searches. The assistant reads employer emails and sends a reply only after the user approves the exact text. Sign-in codes are never shown as employer replies. Auto Apply can be turned on or off and set to review or auto mode in the conversation. Scoring, rewriting, translation and cover letters use a resume pasted or attached in the chat, or the resume on file; no builder document is required. Sends, approvals and Auto Apply changes need the user's yes."
+        "release_notes": "1.9.1: corrects package and plugin descriptions to 30+ hiring systems. Updates the gallery image to match current application coverage. Includes fourteen portable job-search skills."
       },
       "onboardingSkill": "./skills/setup-job-search/SKILL.md"
     }

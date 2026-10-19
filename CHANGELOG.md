@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.1
+
+Corrects application coverage in package and plugin descriptions to 30+ hiring systems. Updates the gallery image to match current application coverage. Includes fourteen portable job-search skills.
+
 ## 1.9.0
 
 The assistant bundle has fourteen job-search skills. Four new skills cover the tool map, recruiter replies, follow-ups and saved searches.
