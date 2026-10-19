@@ -51,7 +51,7 @@ the application arrived.
 <img src="assets/03-the-company-confirmed-it.png" alt="The employer's own system confirming an application arrived" width="49%" />
 
 <img src="assets/04-sent-means-they-got-it.png" alt="Sent means they got it: every application carries the employer's confirmation" width="49%" />
-<img src="assets/05-we-apply-where-the-jobs-live.png" alt="It applies on 34 hiring systems, where the jobs actually live" width="49%" />
+<img src="assets/05-we-apply-where-the-jobs-live.webp" alt="It applies on 30+ hiring systems, where the jobs actually live" width="49%" />
 
 <img src="assets/06-you-always-know-where-you-stand.png" alt="You always know where every application stands" width="49%" />
 <img src="assets/07-they-wrote-back-an-interview.png" alt="They wrote back: an interview, not a no" width="49%" />
@@ -63,7 +63,7 @@ the application arrived.
 </div>
 
 Every application goes in on the company's real careers page, under your name, with your own
-materials. It lands on 34 hiring systems, including **Workday, Greenhouse, Lever, Ashby, iCIMS, Workable, SAP SuccessFactors, Oracle, ADP and Dayforce**.
+materials. It lands on 30+ hiring systems, including **Greenhouse, Lever, Ashby, Workday, Personio, Teamtailor, SmartRecruiters, Recruitee, Breezy, Workable, Rippling, BambooHR, JazzHR, softgarden, Jobvite, Gem, Zoho Recruit, Dayforce, Hireology, Dover, Oracle Recruiting Cloud, Paylocity, Oracle Taleo, UKG Pro Recruiting, ADP, Avature, CareerPlug, Pinpoint, Manatal, and Eightfold**.
 
 Nothing to install. Connect once and run it from Claude, ChatGPT, Codex, Cursor, Gemini CLI, VS Code or any MCP client, and from your phone over iMessage through Poke.
 
