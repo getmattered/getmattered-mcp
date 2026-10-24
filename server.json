@@ -5,6 +5,15 @@
   "description": "Auto-Apply That Ends on an Interview. Job matches, per-role resumes, apply, approve, track receipts.",
   "version": "1.10.0",
   "websiteUrl": "https://getmattered.com/mcps",
+  "icons": [
+    {
+      "src": "https://getmattered.com/static/images/logos/icon-logo-dark-square.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "512x512"
+      ]
+    }
+  ],
   "repository": {
     "url": "https://github.com/getmattered/getmattered-mcp",
     "source": "github"
