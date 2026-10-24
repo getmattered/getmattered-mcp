@@ -1,18 +1,18 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "com.aiapplyd/aiapplyd",
-  "title": "AI Applyd",
+  "name": "com.getmattered/getmattered",
+  "title": "GetMattered",
   "description": "Auto-Apply That Ends on an Interview. Job matches, per-role resumes, apply, approve, track receipts.",
-  "version": "1.9.1",
-  "websiteUrl": "https://aiapplyd.com/mcps",
+  "version": "1.10.0",
+  "websiteUrl": "https://getmattered.com/mcps",
   "repository": {
-    "url": "https://github.com/aiapplyd/aiapplyd-mcp",
+    "url": "https://github.com/getmattered/getmattered-mcp",
     "source": "github"
   },
   "remotes": [
     {
       "type": "streamable-http",
-      "url": "https://mcp.aiapplyd.com/mcp"
+      "url": "https://mcp.getmattered.com/mcp"
     }
   ],
   "_meta": {
@@ -24,15 +24,15 @@
   "packages": [
     {
       "registryType": "npm",
-      "identifier": "aiapplyd-mcp",
-      "version": "1.9.1",
+      "identifier": "getmattered-mcp",
+      "version": "1.10.0",
       "transport": {
         "type": "stdio"
       },
       "environmentVariables": [
         {
-          "name": "AIAPPLYD_TOKEN",
-          "description": "Optional bearer token. Leave unset and run `npx aiapplyd-mcp login` once instead.",
+          "name": "GETMATTERED_TOKEN",
+          "description": "Optional bearer token. Leave unset and run `npx getmattered-mcp login` once instead. The old name AIAPPLYD_TOKEN is still read when this one is unset.",
           "isRequired": false,
           "isSecret": true
         }

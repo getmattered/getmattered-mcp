@@ -1,0 +1,21 @@
+{
+  "name": "getmattered",
+  "description": "Auto-Apply That Ends on an Interview. Connects Claude Code to the hosted GetMattered MCP server.",
+  "version": "1.10.0",
+  "author": {
+    "name": "GetMattered",
+    "email": "ava@getmattered.com",
+    "url": "https://getmattered.com"
+  },
+  "homepage": "https://getmattered.com/mcps",
+  "privacyPolicyUrl": "https://getmattered.com/legal/privacy",
+  "repository": "https://github.com/getmattered/getmattered-mcp",
+  "license": "MIT",
+  "mcpServers": {
+    "getmattered": {
+      "type": "http",
+      "url": "https://mcp.getmattered.com/mcp"
+    }
+  },
+  "skills": "./skills/"
+}

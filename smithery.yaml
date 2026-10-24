@@ -1,4 +1,4 @@
-name: aiapplyd
+name: getmattered
 description: >-
   Auto-apply that ends on an interview, not an application sent. Every other tool counts the
   applications it sent; this one submits on the company's own hiring system and keeps the
@@ -8,70 +8,70 @@ description: >-
   automatically or held for your yes), the review queue, receipt tracking, ATS resume scoring, a
   resume rewritten for each specific role, cover letters in your own voice and interview preparation. It applies on 30+ hiring systems, including
   Greenhouse, Lever, Ashby, Workday, Personio, Teamtailor, SmartRecruiters, Recruitee, Breezy, Workable, Rippling, BambooHR, JazzHR, softgarden, Jobvite, Gem, Zoho Recruit, Dayforce, Hireology, Dover, Oracle Recruiting Cloud, Paylocity, Oracle Taleo, UKG Pro Recruiting, ADP, Avature, CareerPlug, Pinpoint, Manatal, and Eightfold. Every application goes in on the company's real careers page, under your name, with
-  your own materials. Free AI Applyd account (Google sign-in, no card) with a 10,000-token starter
+  your own materials. Free GetMattered account (Google sign-in, no card) with a 10,000-token starter
   grant; every tool runs on your own AI credits.
 author: Ava Bagherzadeh
-homepage: https://aiapplyd.com
+homepage: https://getmattered.com
 # The public mirror DOES exist now, so the repo is advertised again. The old comment here said
-# "restore this ONLY if a public mirror ever exists" - it does: github.com/aiapplyd/aiapplyd-mcp,
+# "restore this ONLY if a public mirror ever exists" - it does: github.com/getmattered/getmattered-mcp,
 # which is also what Glama and Smithery render their listings from.
-repository: https://github.com/aiapplyd/aiapplyd-mcp
+repository: https://github.com/getmattered/getmattered-mcp
 license: MIT
 startCommand:
   type: http
-  url: https://mcp.aiapplyd.com/mcp
+  url: https://mcp.getmattered.com/mcp
   configSchema:
     type: object
-    title: AI Applyd MCP Configuration
-    description: Nothing to install and nothing to configure. Sign in with Google on the first tool call and every tool runs on your own AI Applyd credits.
+    title: GetMattered MCP Configuration
+    description: Nothing to install and nothing to configure. Sign in with Google on the first tool call and every tool runs on your own GetMattered credits.
     properties: {}
     required: []
 tools:
-  - name: aiapplyd_get_matches
+  - name: getmattered_get_matches
     description: "Your matched jobs, best first, each with the job_match_id that apply takes. Also reads full postings, or any posting from a link"
-  - name: aiapplyd_apply
+  - name: getmattered_apply
     description: "Apply to one job by job_match_id or job_url on the employer's own hiring system. mode: \"auto\" sends it, mode: \"review\" holds it for your yes"
-  - name: aiapplyd_get_applications
+  - name: getmattered_get_applications
     description: "Every application and where it stands, the review queue, and the employer's own confirmation when it exists"
-  - name: aiapplyd_review_application
+  - name: getmattered_review_application
     description: "Approve (send) or reject waiting applications, up to 25 at once. Also cancel, refine a document, re-prepare, or record the interview stage"
-  - name: aiapplyd_get_account
+  - name: getmattered_get_account
     description: "Your plan, token balance, applications left, job preferences, and whether your profile is ready to apply"
-  - name: aiapplyd_set_resume
+  - name: getmattered_set_resume
     description: "Put your resume on your account as the base every application is tailored from: pasted text, a file link, or a saved resume"
-  - name: aiapplyd_triage_matches
+  - name: getmattered_triage_matches
     description: "Save a match, or skip it with a reason, so a job you declined stops coming back"
-  - name: aiapplyd_get_inbox
+  - name: getmattered_get_inbox
     description: "The emails employers send about your applications, with the full conversation and suggested replies"
-  - name: aiapplyd_reply_to_email
-    description: "Sends your reply to an employer from your AI Applyd address, only after you approve the exact text"
-  - name: aiapplyd_score_resume
+  - name: getmattered_reply_to_email
+    description: "Sends your reply to an employer from your GetMattered address, only after you approve the exact text"
+  - name: getmattered_score_resume
     description: "An ATS score with section scores, the keywords you match and the ones you are missing, and what to change"
-  - name: aiapplyd_analyze_job_description
+  - name: getmattered_analyze_job_description
     description: "What a posting screens on, in its own language, so the resume can mirror it"
-  - name: aiapplyd_optimize_resume
+  - name: getmattered_optimize_resume
     description: "A resume rewritten to pass ATS screening and still reach a human reader"
-  - name: aiapplyd_generate_interview_questions
+  - name: getmattered_generate_interview_questions
     description: "Likely interview questions for this role, with answer guidance, STAR scenarios and negotiation prep"
-  - name: aiapplyd_translate_resume
+  - name: getmattered_translate_resume
     description: "Translates the default saved resume-builder document, or first saved build, into a separate document"
-  - name: aiapplyd_search_jobs
-    description: "Older name for aiapplyd_get_matches with a title filter, kept for existing clients"
-  - name: aiapplyd_update_job_preferences
-    description: "Point AI Applyd at the roles, locations, salary and seniority you want, and re-run discovery"
-  - name: aiapplyd_generate_cover_letter
+  - name: getmattered_search_jobs
+    description: "Older name for getmattered_get_matches with a title filter, kept for existing clients"
+  - name: getmattered_update_job_preferences
+    description: "Point GetMattered at the roles, locations, salary and seniority you want, and re-run discovery"
+  - name: getmattered_generate_cover_letter
     description: "A cover letter in your own voice, written from the resume on your account"
-  - name: aiapplyd_auto_apply
-    description: "Older name for aiapplyd_apply with a job_url, kept for existing clients"
-  - name: aiapplyd_build_pdf
+  - name: getmattered_auto_apply
+    description: "Older name for getmattered_apply with a job_url, kept for existing clients"
+  - name: getmattered_build_pdf
     description: "Creates an editable summary draft of up to 2,000 characters. Open the builder to fill structured sections and review before PDF export"
-  - name: aiapplyd_update_auto_apply
+  - name: getmattered_update_auto_apply
     description: "Turns Auto Apply on or off and sets whether applications go out on their own or wait for your review"
-  - name: aiapplyd_update_application_profile
+  - name: getmattered_update_application_profile
     description: "Reads or saves the answers employer forms ask for. EEO answers are optional and accept prefer not to say"
-  - name: aiapplyd_manage_follow_ups
+  - name: getmattered_manage_follow_ups
     description: "Lists applications that went quiet, drafts a follow-up, and sends it once you approve it"
-  - name: aiapplyd_manage_saved_searches
+  - name: getmattered_manage_saved_searches
     description: "Saves your job preferences as named searches, with email alerts for new matches"
 prompts:
   - name: review_my_resume

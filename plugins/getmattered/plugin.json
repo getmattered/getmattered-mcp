@@ -1,0 +1,154 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "getmattered",
+  "version": "1.10.0",
+  "description": "Auto-Apply That Ends on an Interview. Get matched jobs, apply on 30+ hiring systems automatically or after your approval, review and track every application, and tailor your resume and cover letter per role.",
+  "author": {
+    "name": "GetMattered",
+    "email": "ava@getmattered.com",
+    "url": "https://getmattered.com"
+  },
+  "homepage": "https://getmattered.com/mcps",
+  "repository": "https://github.com/getmattered/getmattered-mcp",
+  "license": "MIT",
+  "keywords": [
+    "jobs",
+    "job search",
+    "auto apply",
+    "resume",
+    "cover letter",
+    "ats",
+    "career"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "GetMattered",
+        "shortDescription": "Find jobs and auto-apply",
+        "longDescription": "Find jobs matched to your resume, tailor each application and apply on the employer's own hiring site from your AI assistant. GetMattered connects your job search, application review and interview preparation in one conversation.\n\nGet matched jobs ranked by fit. Read a full posting, save a role for later or skip a match with a reason. Set your target roles, locations, salary and work preferences so your search follows what you want.\n\nApply with a resume and cover letter tailored to the role. GetMattered fills in and submits the employer's application form. Send applications automatically, or hold each one in your review queue. Review the documents, request changes and approve the applications you want to send. Track their status and see which applications have an employer receipt or confirmation page.\n\nPrepare before you apply: compare your resume with a job description, see your ATS score and missing keywords, and rewrite the resume for that role. Write a cover letter from your own experience. Practise interview questions with role and company context, answer guidance and STAR examples. Translate a saved resume-builder document or create a private editable resume draft to finish and export in the builder.\n\nConnect your GetMattered account to use your saved resume, job preferences and application history. Check your account readiness and remaining allowance in the conversation. Applying sends your information to the employer; choosing review mode holds it until you approve.",
+        "developerName": "GetMattered",
+        "category": "Productivity",
+        "capabilities": [
+          "Job matching",
+          "Automatic job applications",
+          "Application review and approval",
+          "Employer confirmation tracking",
+          "ATS resume scoring",
+          "Job description analysis",
+          "Resume tailoring",
+          "Cover letter writing",
+          "Interview preparation",
+          "Job search preferences",
+          "Resume setup",
+          "Save or skip job matches",
+          "Resume translation",
+          "Editable resume drafts"
+        ],
+        "websiteURL": "https://getmattered.com",
+        "privacyPolicyURL": "https://getmattered.com/legal/privacy",
+        "termsOfServiceURL": "https://getmattered.com/legal/terms",
+        "defaultPrompt": [
+          "Find jobs that match my resume and explain the strongest matches.",
+          "Tailor my resume to this job and prepare the application for my review.",
+          "Show applications waiting for approval and which employers confirmed receipt."
+        ],
+        "brandColor": "#F97316",
+        "composerIcon": "./assets/icon.png",
+        "logo": "./assets/logo.png",
+        "supportURL": "https://getmattered.com/support"
+      },
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "List the jobs matched to the signed-in user.",
+              "prompt": "Show me my best job matches.",
+              "tools_triggered": "getmattered_get_matches",
+              "expected_behavior": "Returns the user's matched jobs as a list. Each job shows the title, company, location, match score and a link to the posting."
+            },
+            {
+              "description": "Search the matched jobs by title and remote preference.",
+              "prompt": "Find remote UX designer jobs in my matches.",
+              "tools_triggered": "getmattered_search_jobs",
+              "expected_behavior": "Returns matched jobs that fit UX designer and allow remote work. Each job shows the title, company, location, match score and a link to the posting."
+            },
+            {
+              "description": "Score a resume against a pasted job description.",
+              "prompt": "Score my resume against this job: Senior Data Analyst, SQL, Python, Tableau, 5+ years. My resume: Data analyst with 6 years of SQL and Python, built Tableau dashboards for finance teams.",
+              "tools_triggered": "getmattered_score_resume",
+              "expected_behavior": "Returns an overall ATS score out of 100, section scores, the matched and missing keywords, and suggestions to improve the resume."
+            },
+            {
+              "description": "List the keywords a job description screens for.",
+              "prompt": "What does this posting screen for? Backend Engineer: Go, Kubernetes, PostgreSQL, 4+ years, on-call rotation, fintech experience preferred.",
+              "tools_triggered": "getmattered_analyze_job_description",
+              "expected_behavior": "Lists the keywords the posting screens for, split into must-have and nice-to-have, with a category and an importance score for each keyword."
+            },
+            {
+              "description": "Prepare for an interview at a named company.",
+              "prompt": "Help me prepare for a Customer Success Manager interview at Stripe.",
+              "tools_triggered": "getmattered_generate_interview_questions",
+              "expected_behavior": "Returns interview prep for the role: company insights, likely interview questions, STAR stories, questions to ask the interviewer and negotiation prep."
+            }
+          ],
+          "negative": [
+            {
+              "description": "Do not trigger for unrelated weather questions.",
+              "prompt": "What's the weather in Paris tomorrow?"
+            },
+            {
+              "description": "Do not trigger for general coding help.",
+              "prompt": "Write a Python function that reverses a linked list."
+            },
+            {
+              "description": "Do not trigger for recipes.",
+              "prompt": "Give me a quick recipe for vegetable soup."
+            }
+          ]
+        },
+        "demo_recording_url": "https://pub-e2e9a4d58b8742e187cc426023f47ad1.r2.dev/demo/aiapplyd-chatgpt-plugin-demo.mp4",
+        "commerce": false,
+        "commerce_description": "The plugin does not sell products or take payments. Paid GetMattered plans are bought on getmattered.com."
+      },
+      "publication": {
+        "release_notes": "1.10.0: AI Applyd is now GetMattered. The plugin, package and server use the GetMattered name and mcp.getmattered.com. Old aiapplyd_ tool ids keep working as aliases."
+      },
+      "onboardingSkill": "./skills/setup-job-search/SKILL.md"
+    },
+    "com.anthropic": {
+      "interface": {
+        "displayName": "GetMattered",
+        "shortDescription": "Auto-Apply That Ends on an Interview",
+        "longDescription": "Find jobs matched to your resume, tailor each application and apply on the employer's own hiring site from your AI assistant. GetMattered connects your job search, application review and interview preparation in one conversation.\n\nGet matched jobs ranked by fit. Read a full posting, save a role for later or skip a match with a reason. Set your target roles, locations, salary and work preferences so your search follows what you want.\n\nApply with a resume and cover letter tailored to the role. GetMattered fills in and submits the employer's application form. Send applications automatically, or hold each one in your review queue. Review the documents, request changes and approve the applications you want to send. Track their status and see which applications have an employer receipt or confirmation page.\n\nPrepare before you apply: compare your resume with a job description, see your ATS score and missing keywords, and rewrite the resume for that role. Write a cover letter from your own experience. Practise interview questions with role and company context, answer guidance and STAR examples. Translate a saved resume-builder document or create a private editable resume draft to finish and export in the builder.\n\nConnect your GetMattered account to use your saved resume, job preferences and application history. Check your account readiness and remaining allowance in the conversation. Applying sends your information to the employer; choosing review mode holds it until you approve.",
+        "developerName": "GetMattered",
+        "category": "Productivity",
+        "capabilities": [
+          "Job matching",
+          "Automatic job applications",
+          "Application review and approval",
+          "Employer confirmation tracking",
+          "ATS resume scoring",
+          "Job description analysis",
+          "Resume tailoring",
+          "Cover letter writing",
+          "Interview preparation",
+          "Job search preferences",
+          "Resume setup",
+          "Save or skip job matches",
+          "Resume translation",
+          "Editable resume drafts"
+        ],
+        "websiteURL": "https://getmattered.com",
+        "privacyPolicyURL": "https://getmattered.com/legal/privacy",
+        "termsOfServiceURL": "https://getmattered.com/legal/terms",
+        "defaultPrompt": [
+          "Show me my best job matches.",
+          "Apply to the best match for me and hold it for my review.",
+          "What applications are waiting for my approval?"
+        ],
+        "logo": "./assets/logo.png",
+        "supportURL": "https://getmattered.com/support"
+      }
+    }
+  }
+}

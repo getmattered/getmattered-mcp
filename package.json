@@ -1,9 +1,10 @@
 {
-  "name": "aiapplyd-mcp",
-  "version": "1.9.1",
-  "description": "Auto-Apply That Ends on an Interview. AI Applyd MCP server: your matched jobs, applications submitted on the employer's own hiring system across 30+ hiring systems (sent automatically or held for your approval), a review queue, employer-receipt tracking, a resume rewritten for each role, cover letters and interview preparation.",
+  "name": "getmattered-mcp",
+  "version": "1.10.0",
+  "description": "Auto-Apply That Ends on an Interview. GetMattered MCP server: your matched jobs, applications submitted on the employer's own hiring system across 30+ hiring systems (sent automatically or held for your approval), a review queue, employer-receipt tracking, a resume rewritten for each role, cover letters and interview preparation.",
   "type": "module",
   "bin": {
+    "getmattered-mcp": "dist/index.js",
     "aiapplyd-mcp": "dist/index.js"
   },
   "main": "dist/index.js",
@@ -32,6 +33,7 @@
     "claude",
     "cli",
     "cursor",
+    "getmattered",
     "interview-prep",
     "job-application",
     "job-search",
@@ -40,15 +42,16 @@
     "model-context-protocol",
     "resume"
   ],
-  "author": "AI Applyd",
+  "author": "GetMattered <ava@getmattered.com>",
   "license": "MIT",
-  "homepage": "https://aiapplyd.com/mcps",
+  "homepage": "https://getmattered.com/mcps",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aiapplyd/aiapplyd-mcp.git"
+    "url": "git+https://github.com/getmattered/getmattered-mcp.git"
   },
   "bugs": {
-    "url": "https://github.com/aiapplyd/aiapplyd-mcp/issues"
+    "url": "https://github.com/getmattered/getmattered-mcp/issues",
+    "email": "support@getmattered.com"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0"
@@ -57,5 +60,5 @@
     "@types/node": "^22.10.2",
     "typescript": "^5.7.2"
   },
-  "mcpName": "com.aiapplyd/aiapplyd"
+  "mcpName": "com.getmattered/getmattered"
 }

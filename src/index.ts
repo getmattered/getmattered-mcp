@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * AI Applyd MCP bridge.
+ * GetMattered MCP bridge.
  *
- * AI Applyd runs as a hosted remote MCP server over Streamable HTTP at
- * https://mcp.aiapplyd.com/mcp. Modern clients should connect to that URL
+ * GetMattered runs as a hosted remote MCP server over Streamable HTTP at
+ * https://mcp.getmattered.com/mcp. Modern clients should connect to that URL
  * directly. This bridge exists for clients that can only speak stdio, and for
  * sandboxes that introspect a server by starting it as a local process.
  *
@@ -14,11 +14,14 @@
  * It is also a small CLI, so a script or a chat bot can drive the whole job
  * search without an MCP client:
  *
- *   aiapplyd-mcp login                          sign in once in the browser
- *   aiapplyd-mcp tools                          list the tools
- *   aiapplyd-mcp call <tool> '<json args>'      run one tool, print its result
- *   aiapplyd-mcp logout                         forget the stored sign-in
- *   aiapplyd-mcp                                run as a stdio MCP server
+ *   getmattered-mcp login                       sign in once in the browser
+ *   getmattered-mcp tools                       list the tools
+ *   getmattered-mcp call <tool> '<json args>'   run one tool, print its result
+ *   getmattered-mcp logout                      forget the stored sign-in
+ *   getmattered-mcp                             run as a stdio MCP server
+ *
+ * The package was called aiapplyd-mcp before the rename to GetMattered. It still
+ * installs the old command name as an alias of the same file.
  */
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
@@ -26,14 +29,20 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import type { JSONRPCMessage } from '@modelcontextprotocol/sdk/types.js';
 
 import { getAccessToken, login, logout } from './auth.js';
+import { resolveToolName } from './tool-names.js';
 
-const DEFAULT_ENDPOINT = 'https://mcp.aiapplyd.com/mcp';
+const DEFAULT_ENDPOINT = 'https://mcp.getmattered.com/mcp';
+const VERSION = '1.10.0';
 
-const endpoint = process.env.AIAPPLYD_MCP_URL?.trim() || DEFAULT_ENDPOINT;
+// AIAPPLYD_MCP_URL is the name from before the rename, still read so an existing
+// setup keeps its endpoint. Set either one to https://mcp.aiapplyd.com/mcp to
+// reach the old host during the overlap.
+const endpoint =
+  process.env.GETMATTERED_MCP_URL?.trim() || process.env.AIAPPLYD_MCP_URL?.trim() || DEFAULT_ENDPOINT;
 
 function log(message: string) {
   // stdout carries the protocol. Diagnostics go to stderr only.
-  process.stderr.write(`[aiapplyd-mcp] ${message}\n`);
+  process.stderr.write(`[getmattered-mcp] ${message}\n`);
 }
 
 async function authHeaders(userAgent: string) {
@@ -44,12 +53,12 @@ async function authHeaders(userAgent: string) {
 }
 
 async function connectClient() {
-  const { headers, signedIn } = await authHeaders('aiapplyd-mcp-cli');
+  const { headers, signedIn } = await authHeaders('getmattered-mcp-cli');
   if (!signedIn) {
-    log('not signed in. Run: aiapplyd-mcp login');
+    log('not signed in. Run: getmattered-mcp login');
     process.exit(2);
   }
-  const client = new Client({ name: 'aiapplyd-mcp-cli', version: '1.9.1' });
+  const client = new Client({ name: 'getmattered-mcp-cli', version: VERSION });
   await client.connect(new StreamableHTTPClientTransport(new URL(endpoint), { requestInit: { headers } }));
   return client;
 }
@@ -66,7 +75,7 @@ async function listTools() {
 
 async function callTool(name: string | undefined, rawArgs: string | undefined) {
   if (!name) {
-    log("usage: aiapplyd-mcp call <tool> '<json args>'");
+    log("usage: getmattered-mcp call <tool> '<json args>'");
     process.exit(64);
   }
   let args: Record<string, unknown> = {};
@@ -79,7 +88,9 @@ async function callTool(name: string | undefined, rawArgs: string | undefined) {
     }
   }
   const client = await connectClient();
-  const result = await client.callTool({ name, arguments: args });
+  const { tools } = await client.listTools();
+  const toolName = resolveToolName(name, tools.map(tool => tool.name));
+  const result = await client.callTool({ name: toolName, arguments: args });
   // Structured output when the tool has it (machine-readable for bots),
   // otherwise the tool's text.
   if (result.structuredContent) {
@@ -95,7 +106,7 @@ async function callTool(name: string | undefined, rawArgs: string | undefined) {
 }
 
 async function bridge() {
-  const { headers, signedIn } = await authHeaders('aiapplyd-mcp-bridge');
+  const { headers, signedIn } = await authHeaders('getmattered-mcp-bridge');
   const remote = new StreamableHTTPClientTransport(new URL(endpoint), {
     requestInit: { headers },
   });
@@ -137,7 +148,7 @@ async function bridge() {
   await remote.start();
   await local.start();
 
-  log(`bridging stdio to ${endpoint}${signedIn ? ' signed in' : ' unauthenticated (run: aiapplyd-mcp login)'}`);
+  log(`bridging stdio to ${endpoint}${signedIn ? ' signed in' : ' unauthenticated (run: getmattered-mcp login)'}`);
 }
 
 async function main() {
@@ -157,21 +168,24 @@ async function main() {
       return callTool(rest[0], rest[1]);
     case '--version':
     case '-v':
-      process.stdout.write('1.9.1\n');
+      process.stdout.write(`${VERSION}\n`);
       return;
     case '--help':
     case '-h':
     case 'help':
       process.stdout.write([
-        'aiapplyd-mcp: AI Applyd from your terminal or any MCP client.',
+        'getmattered-mcp: GetMattered from your terminal or any MCP client.',
         '',
-        '  aiapplyd-mcp login                       sign in once in the browser',
-        '  aiapplyd-mcp tools                       list the tools',
-        "  aiapplyd-mcp call <tool> '<json args>'   run one tool, print its result",
-        '  aiapplyd-mcp logout                      forget the stored sign-in',
-        '  aiapplyd-mcp                             run as a stdio MCP server',
+        '  getmattered-mcp login                       sign in once in the browser',
+        '  getmattered-mcp tools                       list the tools',
+        "  getmattered-mcp call <tool> '<json args>'   run one tool, print its result",
+        '  getmattered-mcp logout                      forget the stored sign-in',
+        '  getmattered-mcp                             run as a stdio MCP server',
         '',
-        "Example: aiapplyd-mcp call aiapplyd_get_matches '{\"limit\": 5}'",
+        "Example: getmattered-mcp call getmattered_get_matches '{\"limit\": 5}'",
+        '',
+        'Renamed from aiapplyd-mcp. The old command, the old aiapplyd_<name> tool ids and',
+        'the old AIAPPLYD_TOKEN and AIAPPLYD_MCP_URL variables still work.',
         '',
       ].join('\n'));
       return;
@@ -179,7 +193,7 @@ async function main() {
     case 'serve':
       return bridge();
     default:
-      log(`unknown command "${command}". Run: aiapplyd-mcp --help`);
+      log(`unknown command "${command}". Run: getmattered-mcp --help`);
       process.exit(64);
   }
 }

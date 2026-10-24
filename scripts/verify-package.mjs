@@ -4,7 +4,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 
 const read = path => JSON.parse(readFileSync(path, 'utf8'));
 const pkg = read('package.json');
-const root = 'plugins/aiapplyd';
+const root = 'plugins/getmattered';
 const portable = read(`${root}/plugin.json`);
 const codex = read(`${root}/.codex-plugin/plugin.json`);
 const manifestPaths = ['server.json', 'gemini-extension.json', `${root}/plugin.json`, `${root}/.claude-plugin/plugin.json`, `${root}/.codex-plugin/plugin.json`, `${root}/.cursor-plugin/plugin.json`];

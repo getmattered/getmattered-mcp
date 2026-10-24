@@ -1,8 +1,8 @@
-# Installing the AI Applyd MCP server
+# Installing the GetMattered MCP server
 
-AI Applyd (Auto-Apply That Ends on an Interview) is a hosted remote MCP server. There is nothing to build or run locally.
+GetMattered (Auto-Apply That Ends on an Interview) is a hosted remote MCP server. There is nothing to build or run locally.
 
-- URL: `https://mcp.aiapplyd.com/mcp`
+- URL: `https://mcp.getmattered.com/mcp`
 - Transport: Streamable HTTP
 - Auth: OAuth 2.1 with dynamic client registration. The first tool call opens a browser sign-in (Google). No API key.
 
@@ -13,9 +13,9 @@ Add this to `cline_mcp_settings.json`:
 ```json
 {
   "mcpServers": {
-    "aiapplyd": {
+    "getmattered": {
       "type": "streamableHttp",
-      "url": "https://mcp.aiapplyd.com/mcp"
+      "url": "https://mcp.getmattered.com/mcp"
     }
   }
 }
@@ -26,9 +26,9 @@ If your Cline version only runs stdio servers, use the bridge in this repository
 ```json
 {
   "mcpServers": {
-    "aiapplyd": {
+    "getmattered": {
       "command": "npx",
-      "args": ["-y", "github:aiapplyd/aiapplyd-mcp"]
+      "args": ["-y", "github:getmattered/getmattered-mcp"]
     }
   }
 }
@@ -36,13 +36,13 @@ If your Cline version only runs stdio servers, use the bridge in this repository
 
 ## Check that it works
 
-Ask Cline: "Use AI Applyd to show my job matches." The first call asks you to sign in. After
+Ask Cline: "Use GetMattered to show my job matches." The first call asks you to sign in. After
 that, the tools are available in every session.
 
 ## What the tools do
 
-The main loop is five tools: `aiapplyd_get_matches` (your matched jobs), `aiapplyd_apply` (apply
-to one, sent automatically or held for your approval), `aiapplyd_get_applications` (where each
-application stands), `aiapplyd_review_application` (approve or reject what is waiting) and
-`aiapplyd_get_account` (plan, balance and readiness). If no resume is on file, call
-`aiapplyd_set_resume` first. The full list of tools is in the README.
+The main loop is five tools: `getmattered_get_matches` (your matched jobs), `getmattered_apply` (apply
+to one, sent automatically or held for your approval), `getmattered_get_applications` (where each
+application stands), `getmattered_review_application` (approve or reject what is waiting) and
+`getmattered_get_account` (plan, balance and readiness). If no resume is on file, call
+`getmattered_set_resume` first. The full list of tools is in the README.

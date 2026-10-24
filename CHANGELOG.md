@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.10.0
+
+AI Applyd is now GetMattered. This release renames the package and changes no tool behavior.
+
+- The npm package is `getmattered-mcp`. The old `aiapplyd-mcp` package stays on npm and points here.
+- The package installs two commands, `getmattered-mcp` and the old `aiapplyd-mcp`. Both run the same file.
+- The default endpoint is `https://mcp.getmattered.com/mcp`. To reach the old host during the
+  overlap, set `GETMATTERED_MCP_URL=https://mcp.aiapplyd.com/mcp`.
+- `GETMATTERED_TOKEN` and `GETMATTERED_MCP_URL` replace `AIAPPLYD_TOKEN` and `AIAPPLYD_MCP_URL`.
+  The old names are still read when the new ones are unset.
+- Tool ids are `getmattered_<name>`. `call` also accepts the old `aiapplyd_<name>` ids and runs
+  whichever name the server lists.
+- The stored sign-in moves to `~/.config/getmattered/credentials.json`. A sign-in in the old
+  `~/.config/aiapplyd/credentials.json` is still read, and `logout` removes both.
+- The plugin is `getmattered` in `plugins/getmattered`, and the tool map skill is `using-getmattered`.
+- The MCP Registry name is `com.getmattered/getmattered`. Homepage, repository, support and
+  maintainer addresses use getmattered.com and github.com/getmattered/getmattered-mcp.
+- Logos and images are unchanged.
+
 ## 1.9.1
 
 Corrects application coverage in package and plugin descriptions to 30+ hiring systems. Updates the gallery image to match current application coverage. Includes fourteen portable job-search skills.

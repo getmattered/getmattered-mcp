@@ -1,6 +1,6 @@
-# AI Applyd MCP server, packaged as a stdio bridge to the hosted remote server.
+# GetMattered MCP server, packaged as a stdio bridge to the hosted remote server.
 #
-# The product runs on Cloudflare Workers at https://mcp.aiapplyd.com/mcp. This
+# The product runs on Cloudflare Workers at https://mcp.getmattered.com/mcp. This
 # image starts a local stdio process that relays the MCP protocol to it, so any
 # client or sandbox that can only launch a command still reaches every tool.
 
@@ -21,7 +21,7 @@ COPY --from=build /app/dist ./dist
 
 # Optional. Without it the server still starts and answers introspection
 # (initialize, tools/list, prompts/list, resources/list); tool CALLS return 401
-# until the user connects an AI Applyd account.
-ENV AIAPPLYD_TOKEN=""
+# until the user connects a GetMattered account.
+ENV GETMATTERED_TOKEN=""
 
 ENTRYPOINT ["node", "dist/index.js"]

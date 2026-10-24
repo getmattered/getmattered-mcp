@@ -1,8 +1,0 @@
-{
-    "mcpServers": {
-        "aiapplyd": {
-            "type": "http",
-            "url": "https://mcp.aiapplyd.com/mcp"
-        }
-    }
-}

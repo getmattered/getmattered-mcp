@@ -1,11 +1,11 @@
 {
-  "name": "aiapplyd",
+  "name": "getmattered",
   "plugins": [
     {
-      "name": "aiapplyd",
+      "name": "getmattered",
       "source": {
         "source": "local",
-        "path": "./plugins/aiapplyd"
+        "path": "./plugins/getmattered"
       },
       "policy": {
         "installation": "AVAILABLE",

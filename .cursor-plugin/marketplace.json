@@ -1,16 +1,16 @@
 {
-  "name": "aiapplyd",
+  "name": "getmattered",
   "owner": {
-    "name": "AI Applyd",
-    "email": "ava@aiapplyd.com"
+    "name": "GetMattered",
+    "email": "ava@getmattered.com"
   },
   "metadata": {
-    "description": "AI Applyd for Cursor: find jobs, tailor your resume and apply from the agent."
+    "description": "GetMattered for Cursor: find jobs, tailor your resume and apply from the agent."
   },
   "plugins": [
     {
-      "name": "aiapplyd",
-      "source": "plugins/aiapplyd",
+      "name": "getmattered",
+      "source": "plugins/getmattered",
       "description": "Auto-Apply That Ends on an Interview. Find matching jobs, tailor your resume and cover letter, and apply on the employer's own hiring system."
     }
   ]

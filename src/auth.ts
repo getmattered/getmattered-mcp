@@ -1,14 +1,19 @@
 /**
  * Sign-in for the CLI and the stdio bridge.
  *
- * `aiapplyd-mcp login` runs the same OAuth 2.1 flow a desktop MCP client runs:
+ * `getmattered-mcp login` runs the same OAuth 2.1 flow a desktop MCP client runs:
  * dynamic client registration, PKCE (S256), the browser consent page, and a
  * loopback callback on 127.0.0.1. The token and its refresh token are stored in
- * ~/.config/aiapplyd/credentials.json (mode 600). Every later command reads that
+ * ~/.config/getmattered/credentials.json (mode 600). Every later command reads that
  * file and refreshes the access token when it is close to expiry, so a bot or a
  * cron job keeps working without a person in the loop.
  *
- * AIAPPLYD_TOKEN, when set, wins over the stored file.
+ * Before the rename to GetMattered the file was ~/.config/aiapplyd/credentials.json.
+ * That file is still read when the new one does not exist, and the next login or
+ * refresh writes the new one.
+ *
+ * GETMATTERED_TOKEN, when set, wins over the stored file. AIAPPLYD_TOKEN is the
+ * name from before the rename and is read when GETMATTERED_TOKEN is unset.
  */
 import { createHash, randomBytes } from 'node:crypto';
 import { spawn } from 'node:child_process';
@@ -30,14 +35,23 @@ type Credentials = {
   issuer: string;
 };
 
-export function credentialsPath() {
+function configPath(directory: string) {
   const base = process.env.XDG_CONFIG_HOME?.trim() || join(homedir(), '.config');
-  return join(base, 'aiapplyd', 'credentials.json');
+  return join(base, directory, 'credentials.json');
+}
+
+export function credentialsPath() {
+  return configPath('getmattered');
+}
+
+/** Where the sign-in was stored before the rename to GetMattered. */
+function legacyCredentialsPath() {
+  return configPath('aiapplyd');
 }
 
 function readCredentials(): Credentials | null {
-  const path = credentialsPath();
-  if (!existsSync(path)) return null;
+  const path = [credentialsPath(), legacyCredentialsPath()].find(candidate => existsSync(candidate));
+  if (!path) return null;
   try {
     return JSON.parse(readFileSync(path, 'utf8')) as Credentials;
   } catch {
@@ -54,11 +68,13 @@ function writeCredentials(credentials: Credentials) {
 
 export function logout() {
   const path = credentialsPath();
-  if (existsSync(path)) rmSync(path);
+  for (const candidate of [path, legacyCredentialsPath()]) {
+    if (existsSync(candidate)) rmSync(candidate);
+  }
   return path;
 }
 
-/** The OAuth issuer is the MCP endpoint's origin (https://mcp.aiapplyd.com). */
+/** The OAuth issuer is the MCP endpoint's origin (https://mcp.getmattered.com). */
 export function issuerFor(endpoint: string) {
   return new URL(endpoint).origin;
 }
@@ -96,7 +112,7 @@ export async function login(endpoint: string, log: (line: string) => void) {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
-      client_name: 'AI Applyd CLI',
+      client_name: 'GetMattered CLI',
       redirect_uris: [REDIRECT_URI],
       grant_types: ['authorization_code', 'refresh_token'],
       response_types: ['code'],
@@ -131,7 +147,7 @@ export async function login(endpoint: string, log: (line: string) => void) {
       const returnedCode = url.searchParams.get('code');
       const ok = url.searchParams.get('state') === state && Boolean(returnedCode);
       response.writeHead(ok ? 200 : 400, { 'content-type': 'text/plain; charset=utf-8' });
-      response.end(ok ? 'AI Applyd is connected. You can close this tab.' : 'Sign-in failed. Run aiapplyd-mcp login again.');
+      response.end(ok ? 'GetMattered is connected. You can close this tab.' : 'Sign-in failed. Run getmattered-mcp login again.');
       server.close();
       if (ok && returnedCode) resolve(returnedCode);
       else reject(new Error(url.searchParams.get('error_description') ?? 'sign-in was not completed'));
@@ -172,7 +188,7 @@ export async function login(endpoint: string, log: (line: string) => void) {
  * caller unauthenticated, and the server then answers with its sign-in message.
  */
 export async function getAccessToken(endpoint: string, log: (line: string) => void) {
-  const fromEnv = process.env.AIAPPLYD_TOKEN?.trim();
+  const fromEnv = process.env.GETMATTERED_TOKEN?.trim() || process.env.AIAPPLYD_TOKEN?.trim();
   if (fromEnv) return fromEnv;
 
   const stored = readCredentials();
@@ -195,7 +211,7 @@ export async function getAccessToken(endpoint: string, log: (line: string) => vo
     });
     return token.access_token;
   } catch (error) {
-    log(`could not refresh the stored sign-in (${String(error)}). Run: aiapplyd-mcp login`);
+    log(`could not refresh the stored sign-in (${String(error)}). Run: getmattered-mcp login`);
     return undefined;
   }
 }

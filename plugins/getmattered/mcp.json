@@ -1,0 +1,8 @@
+{
+    "mcpServers": {
+        "getmattered": {
+            "type": "http",
+            "url": "https://mcp.getmattered.com/mcp"
+        }
+    }
+}

@@ -1,10 +1,11 @@
 <div align="center">
 
-<img src="assets/logo.png" alt="AI Applyd" width="96" height="96" />
+<img src="assets/logo.png" alt="GetMattered" width="96" height="96" />
 
-# AI Applyd MCP Server
+# GetMattered MCP Server
 
-Version 1.9.1 includes fourteen portable job-search skills. See the [changelog](CHANGELOG.md).
+Version 1.10.0 renames the package from `aiapplyd-mcp` to `getmattered-mcp`. AI Applyd is now
+GetMattered. It includes fourteen portable job-search skills. See the [changelog](CHANGELOG.md).
 
 **Auto-Apply That Ends on an Interview**
 
@@ -16,7 +17,7 @@ employer's own hiring system. All from inside the assistant you already work in.
 
 <br />
 
-<img src="assets/01-stop-applying-start-interviewing.png" alt="AI Applyd - stop applying, start interviewing" width="820" />
+<img src="assets/01-stop-applying-start-interviewing.png" alt="GetMattered - stop applying, start interviewing" width="820" />
 
 **And it keeps the employer's own confirmation.** Most tools count applications sent, which is
 a number the tool awards itself off its own button click. This one reports what the employer's
@@ -25,13 +26,13 @@ dropped your application.
 
 [![Glama quality score](https://glama.ai/mcp/servers/aiapplyd/aiapplyd-mcp/badges/score.svg)](https://glama.ai/mcp/servers/aiapplyd/aiapplyd-mcp)
 [![Smithery](https://img.shields.io/badge/Smithery-aiapplyd%2Faiapplyd-7c3aed)](https://smithery.ai/servers/aiapplyd/aiapplyd)
-[![MCP Registry](https://img.shields.io/badge/MCP%20Registry-com.aiapplyd%2Faiapplyd-blue)](https://registry.modelcontextprotocol.io/v0/servers?search=aiapplyd)
-[![AI Applyd on LobeHub](https://lobehub.com/badge/mcp/aiapplyd-aiapplyd-mcp)](https://lobehub.com/mcp/aiapplyd-aiapplyd-mcp)
+[![MCP Registry](https://img.shields.io/badge/MCP%20Registry-com.getmattered%2Fgetmattered-blue)](https://registry.modelcontextprotocol.io/v0/servers?search=getmattered)
+[![GetMattered on LobeHub](https://lobehub.com/badge/mcp/aiapplyd-aiapplyd-mcp)](https://lobehub.com/mcp/aiapplyd-aiapplyd-mcp)
 [![Listed on mcpservers.org](https://mcpservers.org/badge.svg)](https://mcpservers.org/servers/aiapplyd/aiapplyd-mcp)
 [![Listed on cursor.directory](https://img.shields.io/badge/Listed%20on-cursor.directory-black)](https://cursor.directory/plugins/ai-applyd-1)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**[Listing page](https://aiapplyd.com/mcps)** · **[Website](https://aiapplyd.com)** · **[Privacy](https://aiapplyd.com/legal/privacy)** · **[Terms](https://aiapplyd.com/legal/terms)**
+**[Listing page](https://getmattered.com/mcps)** · **[Website](https://getmattered.com)** · **[Privacy](https://getmattered.com/legal/privacy)** · **[Terms](https://getmattered.com/legal/terms)**
 
 </div>
 
@@ -67,15 +68,15 @@ materials. It lands on 30+ hiring systems, including **Greenhouse, Lever, Ashby,
 
 Nothing to install. Connect once and run it from Claude, ChatGPT, Codex, Cursor, Gemini CLI, VS Code or any MCP client, and from your phone over iMessage through Poke.
 
-**The whole job search in five calls:** see your matches (`aiapplyd_get_matches`), apply to one
-(`aiapplyd_apply`, sent automatically or held for your yes), approve or reject what is waiting
-(`aiapplyd_review_application`), track every application to the employer's own receipt
-(`aiapplyd_get_applications`), and check your plan and what is left (`aiapplyd_get_account`).
+**The whole job search in five calls:** see your matches (`getmattered_get_matches`), apply to one
+(`getmattered_apply`, sent automatically or held for your yes), approve or reject what is waiting
+(`getmattered_review_application`), track every application to the employer's own receipt
+(`getmattered_get_applications`), and check your plan and what is left (`getmattered_get_account`).
 The full list is under [Tools](#tools).
 
 ## Watch the demo
 
-[![AI Applyd demo: AI auto-apply to jobs that ends on an interview](https://img.youtube.com/vi/xt1pbpVzf4I/maxresdefault.jpg)](https://www.youtube.com/watch?v=xt1pbpVzf4I)
+[![GetMattered demo: AI auto-apply to jobs that ends on an interview](https://img.youtube.com/vi/xt1pbpVzf4I/maxresdefault.jpg)](https://www.youtube.com/watch?v=xt1pbpVzf4I)
 
 90 seconds: resume upload, job matching, a real application sent on the employer's own form, the
 employer's confirmation email, interview prep, and applying from ChatGPT, Claude and Cursor.
@@ -84,15 +85,15 @@ employer's confirmation email, interview prep, and applying from ChatGPT, Claude
 
 One click, if your app supports it:
 
-[![Add to Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/install-mcp?name=aiapplyd&config=eyJ1cmwiOiJodHRwczovL21jcC5haWFwcGx5ZC5jb20vbWNwIn0=)
-[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Server-0098FF?logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=aiapplyd&config=%7B%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A//mcp.aiapplyd.com/mcp%22%7D)
-[![Add to Poke (iMessage)](https://img.shields.io/badge/iMessage-Add_to_Poke-34C759?logo=imessage&logoColor=white)](https://poke.com/integrations/new?name=AI%20Applyd&url=https%3A%2F%2Fmcp.aiapplyd.com%2Fmcp)
+[![Add to Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/install-mcp?name=getmattered&config=eyJ1cmwiOiJodHRwczovL21jcC5nZXRtYXR0ZXJlZC5jb20vbWNwIn0=)
+[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Server-0098FF?logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=getmattered&config=%7B%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A//mcp.getmattered.com/mcp%22%7D)
+[![Add to Poke (iMessage)](https://img.shields.io/badge/iMessage-Add_to_Poke-34C759?logo=imessage&logoColor=white)](https://poke.com/integrations/new?name=GetMattered&url=https%3A%2F%2Fmcp.getmattered.com%2Fmcp)
 
 
-AI Applyd is a **hosted remote MCP server**. Point your client at one URL:
+GetMattered is a **hosted remote MCP server**. Point your client at one URL:
 
 ```
-https://mcp.aiapplyd.com/mcp
+https://mcp.getmattered.com/mcp
 ```
 
 The first tool call opens an OAuth sign-in. Sign in with Google, and you are connected.
@@ -104,13 +105,13 @@ A free account needs no card and arrives with a one-time 10,000-token starter gr
 
 | Field | Value |
 |---|---|
-| Name | `AI Applyd` |
-| Remote MCP server URL | `https://mcp.aiapplyd.com/mcp` |
+| Name | `GetMattered` |
+| Remote MCP server URL | `https://mcp.getmattered.com/mcp` |
 
 In Claude Code, one line does it:
 
 ```bash
-claude mcp add --transport http aiapplyd https://mcp.aiapplyd.com/mcp
+claude mcp add --transport http getmattered https://mcp.getmattered.com/mcp
 ```
 
 ### Cursor
@@ -120,8 +121,8 @@ claude mcp add --transport http aiapplyd https://mcp.aiapplyd.com/mcp
 ```json
 {
   "mcpServers": {
-    "aiapplyd": {
-      "url": "https://mcp.aiapplyd.com/mcp"
+    "getmattered": {
+      "url": "https://mcp.getmattered.com/mcp"
     }
   }
 }
@@ -129,65 +130,65 @@ claude mcp add --transport http aiapplyd https://mcp.aiapplyd.com/mcp
 
 ### ChatGPT
 
-**Settings → Connectors → Create** and paste `https://mcp.aiapplyd.com/mcp`. ChatGPT speaks MCP
+**Settings → Connectors → Create** and paste `https://mcp.getmattered.com/mcp`. ChatGPT speaks MCP
 natively, so there is no Action schema to import and nothing to host.
 
 ### VS Code
 
 ```bash
-code --add-mcp '{"name":"aiapplyd","type":"http","url":"https://mcp.aiapplyd.com/mcp"}'
+code --add-mcp '{"name":"getmattered","type":"http","url":"https://mcp.getmattered.com/mcp"}'
 ```
 
 ### Plugin for Codex, ChatGPT, Claude Code and Cursor
 
-This repository is a plugin marketplace. The `aiapplyd` plugin bundles the MCP server with fourteen
+This repository is a plugin marketplace. The `getmattered` plugin bundles the MCP server with fourteen
 skills, in the portable `plugin.json` format that Codex, ChatGPT, Claude Code and Cursor read:
 
 | Skill | Use it when |
 |---|---|
-| [`using-ai-applyd`](plugins/aiapplyd/skills/using-ai-applyd/SKILL.md) | You want the assistant to pick the right tool and order for your request |
-| [`setup-job-search`](plugins/aiapplyd/skills/setup-job-search/SKILL.md) | You want to set your base resume, finish your profile or check readiness |
-| [`find-matching-jobs`](plugins/aiapplyd/skills/find-matching-jobs/SKILL.md) | You want your job matches, want to save or skip one, or want to change what it looks for |
-| [`apply-to-a-job`](plugins/aiapplyd/skills/apply-to-a-job/SKILL.md) | You want to apply, or you paste a job link and say "apply" |
-| [`review-and-send`](plugins/aiapplyd/skills/review-and-send/SKILL.md) | You want to see what is waiting for you, change it, and send it |
-| [`tailor-for-a-job`](plugins/aiapplyd/skills/tailor-for-a-job/SKILL.md) | You want a posting analysis, an ATS score or a resume rewrite for one role |
-| [`track-applications`](plugins/aiapplyd/skills/track-applications/SKILL.md) | You ask "did it go through", or how many applications you have left |
-| [`write-cover-letter`](plugins/aiapplyd/skills/write-cover-letter/SKILL.md) | You want a letter for one job or changes to an existing letter |
-| [`prepare-for-interview`](plugins/aiapplyd/skills/prepare-for-interview/SKILL.md) | You want role-specific questions and to practise answers from your own experience |
-| [`handle-recruiter-replies`](plugins/aiapplyd/skills/handle-recruiter-replies/SKILL.md) | An employer wrote back and you want to read it and send a reply you approved |
-| [`follow-up-on-applications`](plugins/aiapplyd/skills/follow-up-on-applications/SKILL.md) | An application has gone quiet and you want to follow up |
-| [`manage-saved-searches`](plugins/aiapplyd/skills/manage-saved-searches/SKILL.md) | You want to save a search and get emailed about its new jobs |
-| [`translate-resume`](plugins/aiapplyd/skills/translate-resume/SKILL.md) | You want your resume in another language |
-| [`build-resume-document`](plugins/aiapplyd/skills/build-resume-document/SKILL.md) | You want a private editable summary draft, with a builder page to review before export |
+| [`using-getmattered`](plugins/getmattered/skills/using-getmattered/SKILL.md) | You want the assistant to pick the right tool and order for your request |
+| [`setup-job-search`](plugins/getmattered/skills/setup-job-search/SKILL.md) | You want to set your base resume, finish your profile or check readiness |
+| [`find-matching-jobs`](plugins/getmattered/skills/find-matching-jobs/SKILL.md) | You want your job matches, want to save or skip one, or want to change what it looks for |
+| [`apply-to-a-job`](plugins/getmattered/skills/apply-to-a-job/SKILL.md) | You want to apply, or you paste a job link and say "apply" |
+| [`review-and-send`](plugins/getmattered/skills/review-and-send/SKILL.md) | You want to see what is waiting for you, change it, and send it |
+| [`tailor-for-a-job`](plugins/getmattered/skills/tailor-for-a-job/SKILL.md) | You want a posting analysis, an ATS score or a resume rewrite for one role |
+| [`track-applications`](plugins/getmattered/skills/track-applications/SKILL.md) | You ask "did it go through", or how many applications you have left |
+| [`write-cover-letter`](plugins/getmattered/skills/write-cover-letter/SKILL.md) | You want a letter for one job or changes to an existing letter |
+| [`prepare-for-interview`](plugins/getmattered/skills/prepare-for-interview/SKILL.md) | You want role-specific questions and to practise answers from your own experience |
+| [`handle-recruiter-replies`](plugins/getmattered/skills/handle-recruiter-replies/SKILL.md) | An employer wrote back and you want to read it and send a reply you approved |
+| [`follow-up-on-applications`](plugins/getmattered/skills/follow-up-on-applications/SKILL.md) | An application has gone quiet and you want to follow up |
+| [`manage-saved-searches`](plugins/getmattered/skills/manage-saved-searches/SKILL.md) | You want to save a search and get emailed about its new jobs |
+| [`translate-resume`](plugins/getmattered/skills/translate-resume/SKILL.md) | You want your resume in another language |
+| [`build-resume-document`](plugins/getmattered/skills/build-resume-document/SKILL.md) | You want a private editable summary draft, with a builder page to review before export |
 
 The hosted skill index is at
-[`aiapplyd.com/.well-known/agent-skills/index.json`](https://aiapplyd.com/.well-known/agent-skills/index.json).
-The plugin files are in `plugins/aiapplyd/skills/`. The root `skills/` link points to that same
+[`getmattered.com/.well-known/agent-skills/index.json`](https://getmattered.com/.well-known/agent-skills/index.json).
+The plugin files are in `plugins/getmattered/skills/`. The root `skills/` link points to that same
 directory so Gemini CLI discovers the workflows without a second set of skill files.
 
 Skills check account limits before metered work and get approval before credit-consuming actions
-or sending an application. Installing a plugin does not buy an AI Applyd plan. Public directory
+or sending an application. Installing a plugin does not buy a GetMattered plan. Public directory
 approval is separate from installing this repository directly.
 
 Codex:
 
 ```bash
-codex plugin marketplace add aiapplyd/aiapplyd-mcp
-codex plugin add aiapplyd@aiapplyd
+codex plugin marketplace add getmattered/getmattered-mcp
+codex plugin add getmattered@getmattered
 ```
 
 Claude Code:
 
 ```bash
-claude plugin marketplace add aiapplyd/aiapplyd-mcp
-claude plugin install aiapplyd@aiapplyd
+claude plugin marketplace add getmattered/getmattered-mcp
+claude plugin install getmattered@getmattered
 ```
 
 ### Codex (CLI, IDE extension and the ChatGPT desktop app)
 
 ```bash
-codex mcp add aiapplyd --url https://mcp.aiapplyd.com/mcp
-codex mcp login aiapplyd
+codex mcp add getmattered --url https://mcp.getmattered.com/mcp
+codex mcp login getmattered
 ```
 
 The Codex CLI, the IDE extension and the ChatGPT desktop app share this configuration.
@@ -198,7 +199,7 @@ This repository is also a Gemini CLI extension (`gemini-extension.json`, `GEMINI
 fourteen skills):
 
 ```bash
-gemini extensions install https://github.com/aiapplyd/aiapplyd-mcp
+gemini extensions install https://github.com/getmattered/getmattered-mcp
 ```
 
 Or add the server by hand in `~/.gemini/settings.json`:
@@ -206,14 +207,14 @@ Or add the server by hand in `~/.gemini/settings.json`:
 ```json
 {
   "mcpServers": {
-    "aiapplyd": { "httpUrl": "https://mcp.aiapplyd.com/mcp" }
+    "getmattered": { "httpUrl": "https://mcp.getmattered.com/mcp" }
   }
 }
 ```
 
 ### Zed
 
-**Settings → AI → MCP Servers → Add Remote Server**, then paste `https://mcp.aiapplyd.com/mcp`.
+**Settings → AI → MCP Servers → Add Remote Server**, then paste `https://mcp.getmattered.com/mcp`.
 
 ### Windsurf
 
@@ -222,7 +223,7 @@ Or add the server by hand in `~/.gemini/settings.json`:
 ```json
 {
   "mcpServers": {
-    "aiapplyd": { "command": "npx", "args": ["-y", "mcp-remote", "https://mcp.aiapplyd.com/mcp"] }
+    "getmattered": { "command": "npx", "args": ["-y", "mcp-remote", "https://mcp.getmattered.com/mcp"] }
   }
 }
 ```
@@ -230,12 +231,12 @@ Or add the server by hand in `~/.gemini/settings.json`:
 ### Perplexity, Mistral Le Chat and Raycast
 
 Each has a custom connector screen that takes a remote MCP URL. Paste
-`https://mcp.aiapplyd.com/mcp` and choose OAuth.
+`https://mcp.getmattered.com/mcp` and choose OAuth.
 
 ### From your phone: iMessage, Telegram and WhatsApp
 
-- **iMessage / SMS:** [add AI Applyd to Poke in one tap](https://poke.com/integrations/new?name=AI%20Applyd&url=https%3A%2F%2Fmcp.aiapplyd.com%2Fmcp)
-  (or `npx poke@latest mcp add https://mcp.aiapplyd.com/mcp -n "AI Applyd"`), sign in, then text Poke:
+- **iMessage / SMS:** [add GetMattered to Poke in one tap](https://poke.com/integrations/new?name=GetMattered&url=https%3A%2F%2Fmcp.getmattered.com%2Fmcp)
+  (or `npx poke@latest mcp add https://mcp.getmattered.com/mcp -n "GetMattered"`), sign in, then text Poke:
   "find me remote product designer jobs and apply to the best two".
 - **Telegram, WhatsApp or iMessage on your own server:** [OpenClaw](https://github.com/SamurAIGPT/awesome-openclaw)
   is a self-hosted gateway. Add the URL as an MCP server and enable the channel you use.
@@ -246,22 +247,22 @@ This repository ships a thin bridge. It relays the protocol to the hosted server
 nothing of its own.
 
 ```bash
-npx -y github:aiapplyd/aiapplyd-mcp
+npx -y github:getmattered/getmattered-mcp
 ```
 
 Or with Docker:
 
 ```bash
-docker build -t aiapplyd-mcp .
-docker run --rm -i aiapplyd-mcp
+docker build -t getmattered-mcp .
+docker run --rm -i getmattered-mcp
 ```
 
 ```json
 {
   "mcpServers": {
-    "aiapplyd": {
+    "getmattered": {
       "command": "docker",
-      "args": ["run", "--rm", "-i", "aiapplyd-mcp"]
+      "args": ["run", "--rm", "-i", "getmattered-mcp"]
     }
   }
 }
@@ -269,8 +270,8 @@ docker run --rm -i aiapplyd-mcp
 
 | Environment variable | Default | Meaning |
 |---|---|---|
-| `AIAPPLYD_MCP_URL` | `https://mcp.aiapplyd.com/mcp` | Endpoint to relay to. Point it at `https://mcp-preview.aiapplyd.com/mcp` to test against preview. |
-| `AIAPPLYD_TOKEN` | unset | Optional bearer token. Without it the server still answers introspection; tool **calls** return 401 until an account is connected. |
+| `GETMATTERED_MCP_URL` | `https://mcp.getmattered.com/mcp` | Endpoint to relay to. Point it at `https://mcp-preview.getmattered.com/mcp` to test against preview, or at `https://mcp.aiapplyd.com/mcp` to reach the old host during the rename. The old name `AIAPPLYD_MCP_URL` is still read when this one is unset. |
+| `GETMATTERED_TOKEN` | unset | Optional bearer token. Without it the server still answers introspection; tool **calls** return 401 until an account is connected. The old name `AIAPPLYD_TOKEN` is still read when this one is unset. |
 
 ## Command line and bots
 
@@ -278,36 +279,49 @@ The same package is a small CLI, so a script, a cron job or a chat bot (Telegram
 iMessage) can run the whole job search without an MCP client.
 
 ```bash
-npx aiapplyd-mcp login                                    # sign in once in the browser
-npx aiapplyd-mcp tools                                    # list the tools
-npx aiapplyd-mcp call aiapplyd_get_matches '{"limit": 5}' # matched jobs as JSON
-npx aiapplyd-mcp call aiapplyd_apply '{"job_match_id": 123, "mode": "review"}'
-npx aiapplyd-mcp call aiapplyd_get_applications '{"status": "waiting_for_review"}'
-npx aiapplyd-mcp call aiapplyd_review_application '{"decision": "approve", "application_ids": [456]}'
+npx getmattered-mcp login                                    # sign in once in the browser
+npx getmattered-mcp tools                                    # list the tools
+npx getmattered-mcp call getmattered_get_matches '{"limit": 5}' # matched jobs as JSON
+npx getmattered-mcp call getmattered_apply '{"job_match_id": 123, "mode": "review"}'
+npx getmattered-mcp call getmattered_get_applications '{"status": "waiting_for_review"}'
+npx getmattered-mcp call getmattered_review_application '{"decision": "approve", "application_ids": [456]}'
 ```
 
 `login` runs the same OAuth sign-in a desktop client runs and stores the token in
-`~/.config/aiapplyd/credentials.json` (mode 600). It refreshes on its own, so an unattended bot
+`~/.config/getmattered/credentials.json` (mode 600). It refreshes on its own, so an unattended bot
 keeps working. `call` prints the tool's structured result as JSON. Exit code 0 means success,
 1 means the tool reported an error, 2 means you are not signed in.
 
-Run with no arguments and it is a stdio MCP server that relays to `https://mcp.aiapplyd.com/mcp`,
-signed in with the stored login. `AIAPPLYD_TOKEN` overrides the stored login and
-`AIAPPLYD_MCP_URL` overrides the endpoint.
+Run with no arguments and it is a stdio MCP server that relays to `https://mcp.getmattered.com/mcp`,
+signed in with the stored login. `GETMATTERED_TOKEN` overrides the stored login and
+`GETMATTERED_MCP_URL` overrides the endpoint.
+
+### Renamed from AI Applyd
+
+AI Applyd is now GetMattered, and the npm package `aiapplyd-mcp` is now `getmattered-mcp`.
+Existing setups keep working:
+
+- The package installs two commands, `getmattered-mcp` and the old `aiapplyd-mcp`. Both run the same code.
+- Tool ids are `getmattered_<name>`. `call` also accepts the old `aiapplyd_<name>` ids and runs
+  whichever name the server lists.
+- `GETMATTERED_TOKEN` and `GETMATTERED_MCP_URL` replace `AIAPPLYD_TOKEN` and `AIAPPLYD_MCP_URL`.
+  The old names are still read when the new ones are unset.
+- A sign-in stored by an older version in `~/.config/aiapplyd/credentials.json` is still read.
+  The next `login` or token refresh writes `~/.config/getmattered/credentials.json`.
 
 ## Endpoints
 
 | Environment | Streamable HTTP (modern) | SSE (legacy bridges) |
 |---|---|---|
-| Production | `https://mcp.aiapplyd.com/mcp` | `https://mcp.aiapplyd.com/sse` |
-| Preview | `https://mcp-preview.aiapplyd.com/mcp` | `https://mcp-preview.aiapplyd.com/sse` |
+| Production | `https://mcp.getmattered.com/mcp` | `https://mcp.getmattered.com/sse` |
+| Preview | `https://mcp-preview.getmattered.com/mcp` | `https://mcp-preview.getmattered.com/sse` |
 
 Use `/mcp`. `/sse` remains only for clients that cannot speak Streamable HTTP.
 
 ## Tools
 
-The table below is generated from the live `tools/list` of `https://mcp.aiapplyd.com/mcp`.
-Every tool runs on the caller's own AI Applyd account. Reading matches, applications
+The table below is generated from the live `tools/list` of `https://mcp.getmattered.com/mcp`.
+Every tool runs on the caller's own GetMattered account. Reading matches, applications
 and account limits does not run AI generation. AI work and applications use the
 account's allowance. Tool calls require sign-in; introspection is public.
 
@@ -317,50 +331,50 @@ Five tools run the whole job search from a chat, or from a bot where a match dro
 reply "yes":
 
 ```
-aiapplyd_get_matches -> aiapplyd_apply -> aiapplyd_get_applications -> aiapplyd_review_application
-                  aiapplyd_get_account (plan, what is left, readiness)
+getmattered_get_matches -> getmattered_apply -> getmattered_get_applications -> getmattered_review_application
+                  getmattered_get_account (plan, what is left, readiness)
 ```
 
 | Tool | Title | Hints | What it does |
 |---|---|---|---|
-| `aiapplyd_get_matches` | Get Job Matches | read-only, idempotent | Your matched jobs, best first, each with the `job_match_id` that apply takes. Also reads full postings, or any posting from a link |
-| `aiapplyd_apply` | Apply to Job | **destructive**, open-world | Apply to one job by `job_match_id` or `job_url` on the employer's own hiring system. `mode: "auto"` sends it, `mode: "review"` holds it for your yes |
-| `aiapplyd_get_applications` | Get Applications | read-only, idempotent | Every application and where it stands, the review queue, and the employer's own confirmation when it exists |
-| `aiapplyd_review_application` | Approve or Reject Applications | **destructive**, open-world | Approve (send) or reject waiting applications, up to 25 at once. Also cancel, refine a document, re-prepare, or record the interview stage |
-| `aiapplyd_get_account` | Get Account | read-only, idempotent | Your plan, token balance, applications left, job preferences, and whether your profile is ready to apply |
-| `aiapplyd_get_inbox` | Get Recruiter Inbox | read-only, idempotent | The emails employers send about your applications, with the full conversation and suggested replies |
-| `aiapplyd_reply_to_email` | Reply to an Employer Email | **destructive**, open-world | Sends your reply to an employer from your AI Applyd address, only after you approve the exact text |
-| `aiapplyd_manage_follow_ups` | Follow Up on Applications | **destructive**, open-world | Lists applications that went quiet, drafts a follow-up, and sends it once you approve it |
+| `getmattered_get_matches` | Get Job Matches | read-only, idempotent | Your matched jobs, best first, each with the `job_match_id` that apply takes. Also reads full postings, or any posting from a link |
+| `getmattered_apply` | Apply to Job | **destructive**, open-world | Apply to one job by `job_match_id` or `job_url` on the employer's own hiring system. `mode: "auto"` sends it, `mode: "review"` holds it for your yes |
+| `getmattered_get_applications` | Get Applications | read-only, idempotent | Every application and where it stands, the review queue, and the employer's own confirmation when it exists |
+| `getmattered_review_application` | Approve or Reject Applications | **destructive**, open-world | Approve (send) or reject waiting applications, up to 25 at once. Also cancel, refine a document, re-prepare, or record the interview stage |
+| `getmattered_get_account` | Get Account | read-only, idempotent | Your plan, token balance, applications left, job preferences, and whether your profile is ready to apply |
+| `getmattered_get_inbox` | Get Recruiter Inbox | read-only, idempotent | The emails employers send about your applications, with the full conversation and suggested replies |
+| `getmattered_reply_to_email` | Reply to an Employer Email | **destructive**, open-world | Sends your reply to an employer from your GetMattered address, only after you approve the exact text |
+| `getmattered_manage_follow_ups` | Follow Up on Applications | **destructive**, open-world | Lists applications that went quiet, drafts a follow-up, and sends it once you approve it |
 
 ### Setup and triage
 
 | Tool | Title | Hints | What it does |
 |---|---|---|---|
-| `aiapplyd_set_resume` | Set Resume | writes, open-world | Put your resume on your account as the base every application is tailored from: pasted text, a file link, or a saved resume |
-| `aiapplyd_triage_matches` | Save or Skip Matches | writes, idempotent | Save a match, or skip it with a reason, so a job you declined stops coming back |
-| `aiapplyd_update_job_preferences` | Update Job Preferences | **destructive**, idempotent | Point AI Applyd at the roles, locations, salary and seniority you want, and re-run discovery |
-| `aiapplyd_update_application_profile` | Update Application Profile | writes, idempotent | Reads or saves the answers employer forms ask for. EEO answers are optional and accept prefer not to say |
-| `aiapplyd_update_auto_apply` | Update Auto Apply | **destructive**, idempotent | Turns Auto Apply on or off and sets whether applications go out on their own or wait for your review |
-| `aiapplyd_manage_saved_searches` | Manage Saved Searches | writes | Saves your job preferences as named searches, with email alerts for new matches |
+| `getmattered_set_resume` | Set Resume | writes, open-world | Put your resume on your account as the base every application is tailored from: pasted text, a file link, or a saved resume |
+| `getmattered_triage_matches` | Save or Skip Matches | writes, idempotent | Save a match, or skip it with a reason, so a job you declined stops coming back |
+| `getmattered_update_job_preferences` | Update Job Preferences | **destructive**, idempotent | Point GetMattered at the roles, locations, salary and seniority you want, and re-run discovery |
+| `getmattered_update_application_profile` | Update Application Profile | writes, idempotent | Reads or saves the answers employer forms ask for. EEO answers are optional and accept prefer not to say |
+| `getmattered_update_auto_apply` | Update Auto Apply | **destructive**, idempotent | Turns Auto Apply on or off and sets whether applications go out on their own or wait for your review |
+| `getmattered_manage_saved_searches` | Manage Saved Searches | writes | Saves your job preferences as named searches, with email alerts for new matches |
 
 ### Resume, cover letter and interview
 
 | Tool | Title | Hints | What it does |
 |---|---|---|---|
-| `aiapplyd_score_resume` | Score Resume | writes, open-world | An ATS score with section scores, the keywords you match and the ones you are missing, and what to change |
-| `aiapplyd_analyze_job_description` | Analyze Job Description | writes, open-world | What a posting screens on, in its own language, so the resume can mirror it |
-| `aiapplyd_optimize_resume` | Optimize Resume with AI | writes, open-world | A resume rewritten to pass ATS screening and still reach a human reader |
-| `aiapplyd_generate_interview_questions` | Generate Interview Questions | writes, open-world | The questions this role is asked, with answer guidance, STAR scenarios and negotiation prep |
-| `aiapplyd_translate_resume` | Translate Resume | writes, open-world | Translates your resume into another language as a separate document. Works from the resume on file, or a resume pasted or attached in chat |
-| `aiapplyd_generate_cover_letter` | Generate Cover Letter | writes, destructive | A cover letter in your own voice, written from the resume on your account or one pasted in chat |
-| `aiapplyd_build_pdf` | Resume PDF or Draft | writes, open-world | Links the PDF of the resume on file, or creates an editable draft from pasted text |
+| `getmattered_score_resume` | Score Resume | writes, open-world | An ATS score with section scores, the keywords you match and the ones you are missing, and what to change |
+| `getmattered_analyze_job_description` | Analyze Job Description | writes, open-world | What a posting screens on, in its own language, so the resume can mirror it |
+| `getmattered_optimize_resume` | Optimize Resume with AI | writes, open-world | A resume rewritten to pass ATS screening and still reach a human reader |
+| `getmattered_generate_interview_questions` | Generate Interview Questions | writes, open-world | The questions this role is asked, with answer guidance, STAR scenarios and negotiation prep |
+| `getmattered_translate_resume` | Translate Resume | writes, open-world | Translates your resume into another language as a separate document. Works from the resume on file, or a resume pasted or attached in chat |
+| `getmattered_generate_cover_letter` | Generate Cover Letter | writes, destructive | A cover letter in your own voice, written from the resume on your account or one pasted in chat |
+| `getmattered_build_pdf` | Resume PDF or Draft | writes, open-world | Links the PDF of the resume on file, or creates an editable draft from pasted text |
 
 ### Older names, still answered
 
 | Tool | Title | Hints | What it does |
 |---|---|---|---|
-| `aiapplyd_search_jobs` | Search Jobs | read-only, idempotent | Older name for `aiapplyd_get_matches` with a title filter, kept for existing clients |
-| `aiapplyd_auto_apply` | Auto Apply to Job | **destructive**, open-world | Older name for `aiapplyd_apply` with a `job_url`, kept for existing clients |
+| `getmattered_search_jobs` | Search Jobs | read-only, idempotent | Older name for `getmattered_get_matches` with a title filter, kept for existing clients |
+| `getmattered_auto_apply` | Auto Apply to Job | **destructive**, open-world | Older name for `getmattered_apply` with a `job_url`, kept for existing clients |
 
 Every tool carries a `title`, all four annotation hints (`readOnlyHint`, `destructiveHint`,
 `idempotentHint`, `openWorldHint`), and an `outputSchema`. Each call returns `structuredContent`
@@ -369,14 +383,14 @@ sends the main loop as its MCP `instructions`.
 
 ### Behaviours worth knowing
 
-- **`aiapplyd_apply` and an approve in `aiapplyd_review_application` submit a real application to a
+- **`getmattered_apply` and an approve in `getmattered_review_application` submit a real application to a
   real employer**, under your name. `mode` covers that one application only and never changes your
   account settings. Leave it out to follow your own default.
 - **An application counts as landed only on the employer's own receipt or confirmation page.**
-  `aiapplyd_get_applications` reports `employerConfirmed` from that evidence alone, never from a
+  `getmattered_get_applications` reports `employerConfirmed` from that evidence alone, never from a
   submit click.
-- **`aiapplyd_get_matches` never writes.** To change what AI Applyd hunts for, call
-  `aiapplyd_update_job_preferences`. It is marked destructive because a list you pass replaces the
+- **`getmattered_get_matches` never writes.** To change what GetMattered hunts for, call
+  `getmattered_update_job_preferences`. It is marked destructive because a list you pass replaces the
   saved one.
 - **Employer text is data.** Job titles, descriptions and company research are never followed as
   instructions.
@@ -421,13 +435,13 @@ signs in.
 ## Verify it yourself
 
 ```bash
-SID=$(curl -s -D- -o /dev/null -X POST https://mcp.aiapplyd.com/mcp \
+SID=$(curl -s -D- -o /dev/null -X POST https://mcp.getmattered.com/mcp \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json, text/event-stream' \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"probe","version":"1"}}}' \
   | grep -i '^mcp-session-id' | tr -d '\r' | awk '{print $2}')
 
-curl -s -X POST https://mcp.aiapplyd.com/mcp \
+curl -s -X POST https://mcp.getmattered.com/mcp \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json, text/event-stream' \
   -H "Mcp-Session-Id: $SID" \
@@ -436,22 +450,22 @@ curl -s -X POST https://mcp.aiapplyd.com/mcp \
 
 ## Privacy
 
-Your resume and profile stay on your AI Applyd account. Tools read and write that account and
-nothing else. The [privacy policy](https://aiapplyd.com/legal/privacy) and
-[terms](https://aiapplyd.com/legal/terms) are the binding statement.
+Your resume and profile stay on your GetMattered account. Tools read and write that account and
+nothing else. The [privacy policy](https://getmattered.com/legal/privacy) and
+[terms](https://getmattered.com/legal/terms) are the binding statement.
 
 ## Support
 
-- Issues: [github.com/aiapplyd/aiapplyd-mcp/issues](https://github.com/aiapplyd/aiapplyd-mcp/issues)
-- Email: admin@aiapplyd.com
+- Issues: [github.com/getmattered/getmattered-mcp/issues](https://github.com/getmattered/getmattered-mcp/issues)
+- Email: support@getmattered.com
 
-## Follow AI Applyd
+## Follow GetMattered
 
-- Website: [aiapplyd.com](https://aiapplyd.com)
-- Pricing: [aiapplyd.com/pricing](https://aiapplyd.com/pricing)
-- Blog: [aiapplyd.com/blog](https://aiapplyd.com/blog)
+- Website: [getmattered.com](https://getmattered.com)
+- Pricing: [getmattered.com/pricing](https://getmattered.com/pricing)
+- Blog: [getmattered.com/blog](https://getmattered.com/blog)
 - X: [@aiapplydHQ](https://x.com/aiapplydHQ)
-- LinkedIn: [AI Applyd](https://www.linkedin.com/company/aiapplyd/)
+- LinkedIn: [GetMattered](https://www.linkedin.com/company/aiapplyd/)
 - YouTube: [@aiapplyd](https://www.youtube.com/@aiapplyd)
 - TikTok: [@aiapplydhq](https://www.tiktok.com/@aiapplydhq)
 - Instagram: [@aiapplyd](https://www.instagram.com/aiapplyd)
@@ -466,14 +480,14 @@ so you can read every line of what runs on your machine.
 
 ---
 
-## More from AI Applyd
+## More from GetMattered
 
-- [AI Applyd](https://aiapplyd.com) - auto-apply that ends on an interview
-- [How the MCP server works](https://aiapplyd.com/mcps) - setup for Claude, ChatGPT and Cursor
-- [Pricing](https://aiapplyd.com/pricing) - free to start, no card
-- [Blog](https://aiapplyd.com/blog) - how hiring systems actually screen you
-- [FAQ](https://aiapplyd.com/faq) - resume parsing, ATS behaviour, what "application received" means
-- [Compare](https://aiapplyd.com/vs) - AI Applyd against the other job-application tools
+- [GetMattered](https://getmattered.com) - auto-apply that ends on an interview
+- [How the MCP server works](https://getmattered.com/mcps) - setup for Claude, ChatGPT and Cursor
+- [Pricing](https://getmattered.com/pricing) - free to start, no card
+- [Blog](https://getmattered.com/blog) - how hiring systems actually screen you
+- [FAQ](https://getmattered.com/faq) - resume parsing, ATS behaviour, what "application received" means
+- [Compare](https://getmattered.com/vs) - GetMattered against the other job-application tools
 - [Four things that cost us money while automating job applications](https://dev.to/aiapplyd/four-things-that-cost-us-money-while-automating-job-applications-1l51) - engineering write-up
 
-Built by [AI Applyd](https://aiapplyd.com). Questions: [ava@aiapplyd.com](mailto:ava@aiapplyd.com)
+Built by [GetMattered](https://getmattered.com). Questions: [ava@getmattered.com](mailto:ava@getmattered.com)
