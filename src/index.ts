@@ -32,7 +32,7 @@ import { getAccessToken, login, logout } from './auth.js';
 import { resolveToolName } from './tool-names.js';
 
 const DEFAULT_ENDPOINT = 'https://mcp.getmattered.com/mcp';
-const VERSION = '1.10.0';
+const VERSION = '1.10.1';
 
 // AIAPPLYD_MCP_URL is the name from before the rename, still read so an existing
 // setup keeps its endpoint. Set either one to https://mcp.aiapplyd.com/mcp to
@@ -184,8 +184,7 @@ async function main() {
         '',
         "Example: getmattered-mcp call getmattered_get_matches '{\"limit\": 5}'",
         '',
-        'Renamed from aiapplyd-mcp. The old command, the old aiapplyd_<name> tool ids and',
-        'the old AIAPPLYD_TOKEN and AIAPPLYD_MCP_URL variables still work.',
+        'Renamed: earlier command names, tool ids and environment variable names still work.',
         '',
       ].join('\n'));
       return;

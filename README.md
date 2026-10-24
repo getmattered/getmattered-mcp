@@ -4,8 +4,7 @@
 
 # GetMattered MCP Server
 
-Version 1.10.0 renames the package from `aiapplyd-mcp` to `getmattered-mcp`. AI Applyd is now
-GetMattered. It includes fourteen portable job-search skills. See the [changelog](CHANGELOG.md).
+Version 1.10.1. It includes fourteen portable job-search skills. See the [changelog](CHANGELOG.md).
 
 **Auto-Apply That Ends on an Interview**
 
@@ -25,7 +24,7 @@ system actually returned, so a real rejection is distinguishable from a form tha
 dropped your application.
 
 [![Glama quality score](https://glama.ai/mcp/servers/aiapplyd/aiapplyd-mcp/badges/score.svg)](https://glama.ai/mcp/servers/aiapplyd/aiapplyd-mcp)
-[![Smithery](https://img.shields.io/badge/Smithery-aiapplyd%2Faiapplyd-7c3aed)](https://smithery.ai/servers/aiapplyd/aiapplyd)
+[![Smithery](https://img.shields.io/badge/Smithery-GetMattered-7c3aed)](https://smithery.ai/servers/aiapplyd/aiapplyd)
 [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-com.getmattered%2Fgetmattered-blue)](https://registry.modelcontextprotocol.io/v0/servers?search=getmattered)
 [![GetMattered on LobeHub](https://lobehub.com/badge/mcp/aiapplyd-aiapplyd-mcp)](https://lobehub.com/mcp/aiapplyd-aiapplyd-mcp)
 [![Listed on mcpservers.org](https://mcpservers.org/badge.svg)](https://mcpservers.org/servers/aiapplyd/aiapplyd-mcp)
@@ -270,8 +269,8 @@ docker run --rm -i getmattered-mcp
 
 | Environment variable | Default | Meaning |
 |---|---|---|
-| `GETMATTERED_MCP_URL` | `https://mcp.getmattered.com/mcp` | Endpoint to relay to. Point it at `https://mcp-preview.getmattered.com/mcp` to test against preview, or at `https://mcp.aiapplyd.com/mcp` to reach the old host during the rename. The old name `AIAPPLYD_MCP_URL` is still read when this one is unset. |
-| `GETMATTERED_TOKEN` | unset | Optional bearer token. Without it the server still answers introspection; tool **calls** return 401 until an account is connected. The old name `AIAPPLYD_TOKEN` is still read when this one is unset. |
+| `GETMATTERED_MCP_URL` | `https://mcp.getmattered.com/mcp` | Endpoint to relay to. Point it at `https://mcp-preview.getmattered.com/mcp` to test against preview. The variable name used before the rename is still read when this one is unset. |
+| `GETMATTERED_TOKEN` | unset | Optional bearer token. Without it the server still answers introspection; tool **calls** return 401 until an account is connected. The variable name used before the rename is still read when this one is unset. |
 
 ## Command line and bots
 
@@ -296,18 +295,16 @@ Run with no arguments and it is a stdio MCP server that relays to `https://mcp.g
 signed in with the stored login. `GETMATTERED_TOKEN` overrides the stored login and
 `GETMATTERED_MCP_URL` overrides the endpoint.
 
-### Renamed from AI Applyd
+### Renamed
 
-AI Applyd is now GetMattered, and the npm package `aiapplyd-mcp` is now `getmattered-mcp`.
-Existing setups keep working:
+This package was renamed to `getmattered-mcp`. Existing setups keep working:
 
-- The package installs two commands, `getmattered-mcp` and the old `aiapplyd-mcp`. Both run the same code.
-- Tool ids are `getmattered_<name>`. `call` also accepts the old `aiapplyd_<name>` ids and runs
-  whichever name the server lists.
-- `GETMATTERED_TOKEN` and `GETMATTERED_MCP_URL` replace `AIAPPLYD_TOKEN` and `AIAPPLYD_MCP_URL`.
-  The old names are still read when the new ones are unset.
-- A sign-in stored by an older version in `~/.config/aiapplyd/credentials.json` is still read.
-  The next `login` or token refresh writes `~/.config/getmattered/credentials.json`.
+- The package also installs the earlier command name. Both run the same code.
+- Tool ids are `getmattered_<name>`. Earlier tool ids are accepted as aliases.
+- The environment variable names used before the rename are still read when the
+  `GETMATTERED_*` ones are unset.
+- A sign-in stored by an earlier version is still read. The next `login` or token refresh
+  writes `~/.config/getmattered/credentials.json`.
 
 ## Endpoints
 
@@ -464,11 +461,11 @@ nothing else. The [privacy policy](https://getmattered.com/legal/privacy) and
 - Website: [getmattered.com](https://getmattered.com)
 - Pricing: [getmattered.com/pricing](https://getmattered.com/pricing)
 - Blog: [getmattered.com/blog](https://getmattered.com/blog)
-- X: [@aiapplydHQ](https://x.com/aiapplydHQ)
+- X: [GetMattered](https://x.com/aiapplydHQ)
 - LinkedIn: [GetMattered](https://www.linkedin.com/company/aiapplyd/)
-- YouTube: [@aiapplyd](https://www.youtube.com/@aiapplyd)
-- TikTok: [@aiapplydhq](https://www.tiktok.com/@aiapplydhq)
-- Instagram: [@aiapplyd](https://www.instagram.com/aiapplyd)
+- YouTube: [GetMattered](https://www.youtube.com/@aiapplyd)
+- TikTok: [GetMattered](https://www.tiktok.com/@aiapplydhq)
+- Instagram: [GetMattered](https://www.instagram.com/aiapplyd)
 - Discord: [join the community](https://discord.gg/ZXBsKvuvCD)
 
 ## About this repository
