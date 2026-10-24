@@ -461,11 +461,9 @@ nothing else. The [privacy policy](https://getmattered.com/legal/privacy) and
 - Website: [getmattered.com](https://getmattered.com)
 - Pricing: [getmattered.com/pricing](https://getmattered.com/pricing)
 - Blog: [getmattered.com/blog](https://getmattered.com/blog)
-- X: [GetMattered](https://x.com/aiapplydHQ)
-- LinkedIn: [GetMattered](https://www.linkedin.com/company/aiapplyd/)
-- YouTube: [GetMattered](https://www.youtube.com/@aiapplyd)
-- TikTok: [GetMattered](https://www.tiktok.com/@aiapplydhq)
-- Instagram: [GetMattered](https://www.instagram.com/aiapplyd)
+- X: [GetMattered](https://x.com/getmattered)
+- LinkedIn: [GetMattered](https://www.linkedin.com/company/getmattered/)
+- YouTube: [GetMattered](https://www.youtube.com/@getmattered)
 - Discord: [join the community](https://discord.gg/ZXBsKvuvCD)
 
 ## About this repository
@@ -485,6 +483,6 @@ so you can read every line of what runs on your machine.
 - [Blog](https://getmattered.com/blog) - how hiring systems actually screen you
 - [FAQ](https://getmattered.com/faq) - resume parsing, ATS behaviour, what "application received" means
 - [Compare](https://getmattered.com/vs) - GetMattered against the other job-application tools
-- [Four things that cost us money while automating job applications](https://dev.to/aiapplyd/four-things-that-cost-us-money-while-automating-job-applications-1l51) - engineering write-up
+- [How GetMattered decides a job application landed](https://dev.to/getmattered/how-getmattered-decides-a-job-application-landed-5e3c) - engineering write-up
 
 Built by [GetMattered](https://getmattered.com). Questions: [ava@getmattered.com](mailto:ava@getmattered.com)
