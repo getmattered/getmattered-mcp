@@ -3,7 +3,7 @@
   "name": "com.getmattered/getmattered",
   "title": "GetMattered",
   "description": "Auto-Apply That Ends on an Interview. Job matches, per-role resumes, apply, approve, track receipts.",
-  "version": "1.10.1",
+  "version": "1.10.2",
   "websiteUrl": "https://getmattered.com/mcps",
   "icons": [
     {
@@ -34,7 +34,7 @@
     {
       "registryType": "npm",
       "identifier": "getmattered-mcp",
-      "version": "1.10.1",
+      "version": "1.10.2",
       "transport": {
         "type": "stdio"
       },
