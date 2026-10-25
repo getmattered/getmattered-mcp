@@ -23,7 +23,7 @@ a number the tool awards itself off its own button click. This one reports what 
 system actually returned, so a real rejection is distinguishable from a form that quietly
 dropped your application.
 
-[![Glama quality score](https://glama.ai/mcp/servers/aiapplyd/aiapplyd-mcp/badges/score.svg)](https://glama.ai/mcp/servers/aiapplyd/aiapplyd-mcp)
+[![Glama quality score](https://glama.ai/mcp/servers/getmattered/getmattered-mcp/badges/score.svg)](https://glama.ai/mcp/servers/getmattered/getmattered-mcp)
 [![Smithery](https://img.shields.io/badge/Smithery-GetMattered-7c3aed)](https://smithery.ai/servers/aiapplyd/aiapplyd)
 [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-com.getmattered%2Fgetmattered-blue)](https://registry.modelcontextprotocol.io/v0/servers?search=getmattered)
 [![GetMattered on LobeHub](https://lobehub.com/badge/mcp/aiapplyd-aiapplyd-mcp)](https://lobehub.com/mcp/aiapplyd-aiapplyd-mcp)
@@ -75,7 +75,7 @@ The full list is under [Tools](#tools).
 
 ## Watch the demo
 
-[![GetMattered demo: AI auto-apply to jobs that ends on an interview](https://img.youtube.com/vi/xt1pbpVzf4I/maxresdefault.jpg)](https://www.youtube.com/watch?v=xt1pbpVzf4I)
+[![GetMattered demo: AI auto-apply to jobs that ends on an interview](https://img.youtube.com/vi/lplaKh2T1vY/maxresdefault.jpg)](https://www.youtube.com/watch?v=lplaKh2T1vY)
 
 90 seconds: resume upload, job matching, a real application sent on the employer's own form, the
 employer's confirmation email, interview prep, and applying from ChatGPT, Claude and Cursor.
