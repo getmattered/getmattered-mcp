@@ -4,7 +4,7 @@
 
 # GetMattered MCP Server
 
-Version 1.10.1. It includes fourteen portable job-search skills. See the [changelog](CHANGELOG.md).
+Version 1.10.2. It includes fourteen portable job-search skills. See the [changelog](CHANGELOG.md).
 
 **Auto-Apply That Ends on an Interview**
 
@@ -68,8 +68,8 @@ materials. It lands on 30+ hiring systems, including **Greenhouse, Lever, Ashby,
 Nothing to install. Connect once and run it from Claude, ChatGPT, Codex, Cursor, Gemini CLI, VS Code or any MCP client, and from your phone over iMessage through Poke.
 
 **The whole job search in five calls:** see your matches (`getmattered_get_matches`), apply to one
-(`getmattered_apply`, sent automatically or held for your yes), approve or reject what is waiting
-(`getmattered_review_application`), track every application to the employer's own receipt
+(`getmattered_apply`, sent automatically or held for your yes), approve what is waiting
+(`getmattered_approve_applications`), track every application to the employer's own receipt
 (`getmattered_get_applications`), and check your plan and what is left (`getmattered_get_account`).
 The full list is under [Tools](#tools).
 
@@ -158,7 +158,7 @@ skills, in the portable `plugin.json` format that Codex, ChatGPT, Claude Code an
 | [`follow-up-on-applications`](plugins/getmattered/skills/follow-up-on-applications/SKILL.md) | An application has gone quiet and you want to follow up |
 | [`manage-saved-searches`](plugins/getmattered/skills/manage-saved-searches/SKILL.md) | You want to save a search and get emailed about its new jobs |
 | [`translate-resume`](plugins/getmattered/skills/translate-resume/SKILL.md) | You want your resume in another language |
-| [`build-resume-document`](plugins/getmattered/skills/build-resume-document/SKILL.md) | You want a private editable summary draft, with a builder page to review before export |
+| [`build-resume-document`](plugins/getmattered/skills/build-resume-document/SKILL.md) | You want the PDF link of your resume on file, or a private editable summary draft to finish in the builder |
 
 The hosted skill index is at
 [`getmattered.com/.well-known/agent-skills/index.json`](https://getmattered.com/.well-known/agent-skills/index.json).
@@ -283,7 +283,7 @@ npx getmattered-mcp tools                                    # list the tools
 npx getmattered-mcp call getmattered_get_matches '{"limit": 5}' # matched jobs as JSON
 npx getmattered-mcp call getmattered_apply '{"job_match_id": 123, "mode": "review"}'
 npx getmattered-mcp call getmattered_get_applications '{"status": "waiting_for_review"}'
-npx getmattered-mcp call getmattered_review_application '{"decision": "approve", "application_ids": [456]}'
+npx getmattered-mcp call getmattered_approve_applications '{"application_ids": [456]}'
 ```
 
 `login` runs the same OAuth sign-in a desktop client runs and stores the token in
@@ -301,6 +301,8 @@ This package was renamed to `getmattered-mcp`. Existing setups keep working:
 
 - The package also installs the earlier command name. Both run the same code.
 - Tool ids are `getmattered_<name>`. Earlier tool ids are accepted as aliases.
+- Tool names from 1.10.1 and earlier, before each tool did one operation, still work. See
+  [Earlier tool names, still answered](#earlier-tool-names-still-answered).
 - The environment variable names used before the rename are still read when the
   `GETMATTERED_*` ones are unset.
 - A sign-in stored by an earlier version is still read. The next `login` or token refresh
@@ -322,56 +324,103 @@ Every tool runs on the caller's own GetMattered account. Reading matches, applic
 and account limits does not run AI generation. AI work and applications use the
 account's allowance. Tool calls require sign-in; introspection is public.
 
+### One tool per operation
+
+Since 1.10.2 every tool does exactly one thing, with its own description, input schema and
+annotations. No tool takes an `action` or `decision` argument that picks between operations.
+The server lists 39 tools.
+
 ### The main loop
 
 Five tools run the whole job search from a chat, or from a bot where a match drops and you
 reply "yes":
 
 ```
-getmattered_get_matches -> getmattered_apply -> getmattered_get_applications -> getmattered_review_application
+getmattered_get_matches -> getmattered_apply -> getmattered_get_applications -> getmattered_approve_applications
                   getmattered_get_account (plan, what is left, readiness)
 ```
 
 | Tool | Title | Hints | What it does |
 |---|---|---|---|
-| `getmattered_get_matches` | Get Job Matches | read-only, idempotent | Your matched jobs, best first, each with the `job_match_id` that apply takes. Also reads full postings, or any posting from a link |
+| `getmattered_get_matches` | Get Job Matches | read-only, idempotent, open-world | Your matched jobs, best first, each with the `job_match_id` that apply takes. Also reads full postings, or any posting from a link without saving it |
 | `getmattered_apply` | Apply to Job | **destructive**, open-world | Apply to one job by `job_match_id` or `job_url` on the employer's own hiring system. `mode: "auto"` sends it, `mode: "review"` holds it for your yes |
 | `getmattered_get_applications` | Get Applications | read-only, idempotent | Every application and where it stands, the review queue, and the employer's own confirmation when it exists |
-| `getmattered_review_application` | Approve or Reject Applications | **destructive**, open-world | Approve (send) or reject waiting applications, up to 25 at once. Also cancel, refine a document, re-prepare, or record the interview stage |
-| `getmattered_get_account` | Get Account | read-only, idempotent | Your plan, token balance, applications left, job preferences, and whether your profile is ready to apply |
-| `getmattered_get_inbox` | Get Recruiter Inbox | read-only, idempotent | The emails employers send about your applications, with the full conversation and suggested replies |
-| `getmattered_reply_to_email` | Reply to an Employer Email | **destructive**, open-world | Sends your reply to an employer from your GetMattered address, only after you approve the exact text |
-| `getmattered_manage_follow_ups` | Follow Up on Applications | **destructive**, open-world | Lists applications that went quiet, drafts a follow-up, and sends it once you approve it |
+| `getmattered_approve_applications` | Approve Applications | **destructive**, open-world | Sends applications held for your review to their employers, up to 25 at once. Cannot be undone |
+| `getmattered_get_account` | Get Account | read-only, idempotent | Your plan, token balance, applications left, job preferences, and whether your profile is ready to apply. Never passwords, tokens or card details |
+
+### Applications
+
+| Tool | Title | Hints | What it does |
+|---|---|---|---|
+| `getmattered_reject_applications` | Reject Applications | **destructive**, idempotent | Skips applications held for your review. Nothing is sent |
+| `getmattered_cancel_applications` | Cancel Applications | **destructive**, idempotent | Stops applications still queued or being prepared, before they are sent |
+| `getmattered_refine_application_documents` | Rewrite Application Documents | **destructive** | Rewrites an application's resume or cover letter from your instructions, before it is sent. Uses AI credits |
+| `getmattered_reprepare_applications` | Prepare Applications Again | **destructive** | Builds an application's tailored documents again. Uses AI credits |
+| `getmattered_set_application_stage` | Record Application Stage | writes, idempotent | Records how an application is going: callback, interview, offer or rejection |
 
 ### Setup and triage
 
 | Tool | Title | Hints | What it does |
 |---|---|---|---|
-| `getmattered_set_resume` | Set Resume | writes, open-world | Put your resume on your account as the base every application is tailored from: pasted text, a file link, or a saved resume |
-| `getmattered_triage_matches` | Save or Skip Matches | writes, idempotent | Save a match, or skip it with a reason, so a job you declined stops coming back |
+| `getmattered_set_resume` | Set Resume | **destructive**, open-world | Put your resume on your account as the base every application is tailored from: pasted text, a file link, or a saved resume |
+| `getmattered_save_matches` | Save Job Matches | writes, idempotent | Saves matches to your saved list. Undone by `getmattered_unsave_matches` |
+| `getmattered_skip_matches` | Skip Job Matches | writes, idempotent | Skips matches with a reason, so a job you declined stops coming back. Undone by `getmattered_restore_matches` |
+| `getmattered_unsave_matches` | Remove Saved Matches | writes, idempotent | Takes matches off your saved list |
+| `getmattered_restore_matches` | Restore Skipped Matches | writes, idempotent | Brings back skipped matches while the posting is open |
 | `getmattered_update_job_preferences` | Update Job Preferences | **destructive**, idempotent | Point GetMattered at the roles, locations, salary and seniority you want, and re-run discovery |
-| `getmattered_update_application_profile` | Update Application Profile | writes, idempotent | Reads or saves the answers employer forms ask for. EEO answers are optional and accept prefer not to say |
-| `getmattered_update_auto_apply` | Update Auto Apply | **destructive**, idempotent | Turns Auto Apply on or off and sets whether applications go out on their own or wait for your review |
-| `getmattered_manage_saved_searches` | Manage Saved Searches | writes | Saves your job preferences as named searches, with email alerts for new matches |
+| `getmattered_update_automatic_apply_settings` | Update Auto Apply Settings | **destructive**, idempotent, open-world | Turns Auto Apply on or off and sets whether applications go out on their own or wait for your review |
+| `getmattered_get_application_profile` | Get Application Profile | read-only, idempotent | The answers employer forms are filled from, and what is still missing |
+| `getmattered_update_application_profile` | Update Application Profile | **destructive**, idempotent | Saves only the fields you give. EEO answers are optional and accept prefer not to say |
+| `getmattered_list_saved_searches` | List Saved Searches | read-only, idempotent | Your saved searches and their email alerts |
+| `getmattered_create_saved_search` | Save Current Search | writes | Saves your current job preferences as a named search, with optional email alerts |
+| `getmattered_update_saved_search` | Update Saved Search | writes, idempotent | Renames a saved search or turns its email alerts on or off |
+| `getmattered_delete_saved_search` | Delete Saved Search | **destructive**, idempotent | Deletes a saved search, only when you ask |
+
+### Inbox and follow-ups
+
+| Tool | Title | Hints | What it does |
+|---|---|---|---|
+| `getmattered_get_inbox` | Get Recruiter Inbox | read-only, idempotent | The emails employers send about your applications, with the full conversation and suggested replies |
+| `getmattered_reply_to_email` | Reply to an Employer Email | **destructive**, open-world | Sends your reply to an employer from your GetMattered address, only after you approve the exact text |
+| `getmattered_list_due_follow_ups` | List Due Follow-ups | read-only, idempotent | Applications that went quiet and are due a follow-up, most urgent first |
+| `getmattered_list_sent_follow_ups` | List Sent Follow-ups | read-only, idempotent | The follow-ups you already sent or recorded |
+| `getmattered_draft_follow_up` | Draft a Follow-up | writes | Drafts a follow-up for one application. Nothing is sent. Uses AI credits |
+| `getmattered_send_follow_up` | Send a Follow-up Email | **destructive**, open-world | Sends a follow-up from your connected Gmail or Outlook, only after you approve the exact text |
+| `getmattered_record_follow_up` | Record a Follow-up | writes | Records a follow-up you sent yourself, so the next one is timed right |
 
 ### Resume, cover letter and interview
 
 | Tool | Title | Hints | What it does |
 |---|---|---|---|
-| `getmattered_score_resume` | Score Resume | writes, open-world | An ATS score with section scores, the keywords you match and the ones you are missing, and what to change |
-| `getmattered_analyze_job_description` | Analyze Job Description | writes, open-world | What a posting screens on, in its own language, so the resume can mirror it |
-| `getmattered_optimize_resume` | Optimize Resume with AI | writes, open-world | A resume rewritten to pass ATS screening and still reach a human reader |
+| `getmattered_score_resume` | Score Resume | writes | An ATS score with section scores, the keywords you match and the ones you are missing, and what to change |
+| `getmattered_analyze_job_description` | Analyze Job Description | writes | What a posting screens on, in its own language, so the resume can mirror it |
+| `getmattered_optimize_resume` | Optimize Resume | writes | A resume rewritten to pass ATS screening and still reach a human reader |
 | `getmattered_generate_interview_questions` | Generate Interview Questions | writes, open-world | The questions this role is asked, with answer guidance, STAR scenarios and negotiation prep |
-| `getmattered_translate_resume` | Translate Resume | writes, open-world | Translates your resume into another language as a separate document. Works from the resume on file, or a resume pasted or attached in chat |
-| `getmattered_generate_cover_letter` | Generate Cover Letter | writes, destructive | A cover letter in your own voice, written from the resume on your account or one pasted in chat |
-| `getmattered_build_pdf` | Resume PDF or Draft | writes, open-world | Links the PDF of the resume on file, or creates an editable draft from pasted text |
+| `getmattered_translate_resume` | Translate Resume | writes | Translates your resume into another language as a separate document. Works from the resume on file, or a resume pasted or attached in chat |
+| `getmattered_generate_cover_letter` | Generate Cover Letter | **destructive** | A cover letter in your own voice, written from the resume on your account or one pasted in chat |
+| `getmattered_get_resume_pdf_link` | Get Resume PDF Link | read-only, idempotent | The private link to the PDF of your resume on file. Creates nothing |
+| `getmattered_share_resume_pdf` | Share Resume PDF Publicly | writes, idempotent, open-world | Makes a public link to your resume PDF, only when you ask. Turn it off on the documents page |
+| `getmattered_create_resume_draft` | Create Resume Builder Draft | writes, open-world | An editable resume-builder draft from a summary of up to 2,000 characters, to finish in the builder. It creates no PDF |
 
-### Older names, still answered
+### Earlier tool names, still answered
 
-| Tool | Title | Hints | What it does |
-|---|---|---|---|
-| `getmattered_search_jobs` | Search Jobs | read-only, idempotent | Older name for `getmattered_get_matches` with a title filter, kept for existing clients |
-| `getmattered_auto_apply` | Auto Apply to Job | **destructive**, open-world | Older name for `getmattered_apply` with a `job_url`, kept for existing clients |
+Tool names from 1.10.1 and earlier keep working. They are not listed in `tools/list`. The server
+runs each one as the tool that does that operation now:
+
+| Earlier name | Runs as |
+|---|---|
+| `getmattered_review_application` | by `decision`: `approve`, `reject`, `cancel`, `refine`, `re_prepare` and `set_stage` run `getmattered_approve_applications`, `getmattered_reject_applications`, `getmattered_cancel_applications`, `getmattered_refine_application_documents`, `getmattered_reprepare_applications` and `getmattered_set_application_stage` |
+| `getmattered_triage_matches` | by `action`: `save`, `skip`, `unsave` and `restore` run `getmattered_save_matches`, `getmattered_skip_matches`, `getmattered_unsave_matches` and `getmattered_restore_matches` |
+| `getmattered_manage_follow_ups` | by `action`: `list`, `history`, `draft`, `send` and `record_sent` run `getmattered_list_due_follow_ups`, `getmattered_list_sent_follow_ups`, `getmattered_draft_follow_up`, `getmattered_send_follow_up` and `getmattered_record_follow_up` |
+| `getmattered_manage_saved_searches` | by `action`: `list`, `save`, `update` and `delete` run `getmattered_list_saved_searches`, `getmattered_create_saved_search`, `getmattered_update_saved_search` and `getmattered_delete_saved_search` |
+| `getmattered_build_pdf` | with `resume_text`: `getmattered_create_resume_draft`. Without it: `getmattered_share_resume_pdf` when `make_public` is true, else `getmattered_get_resume_pdf_link` |
+| `getmattered_update_auto_apply` | `getmattered_update_automatic_apply_settings`, same arguments |
+| `getmattered_auto_apply` | `getmattered_apply`, same arguments |
+| `getmattered_search_jobs` | `getmattered_get_matches`, with `job_title` as `query` |
+| `getmattered_update_application_profile` with no arguments | `getmattered_get_application_profile` |
+
+An unknown `action` or `decision` value answers "tool not found". New code should call the
+listed names.
 
 Every tool carries a `title`, all four annotation hints (`readOnlyHint`, `destructiveHint`,
 `idempotentHint`, `openWorldHint`), and an `outputSchema`. Each call returns `structuredContent`
@@ -380,7 +429,7 @@ sends the main loop as its MCP `instructions`.
 
 ### Behaviours worth knowing
 
-- **`getmattered_apply` and an approve in `getmattered_review_application` submit a real application to a
+- **`getmattered_apply` and `getmattered_approve_applications` submit a real application to a
   real employer**, under your name. `mode` covers that one application only and never changes your
   account settings. Leave it out to follow your own default.
 - **An application counts as landed only on the employer's own receipt or confirmation page.**
@@ -405,9 +454,11 @@ sends the main loop as its MCP `instructions`.
 
 | Resource | URI | Contents |
 |---|---|---|
-| `ats-best-practices` | `aiapplyd://resources/ats-best-practices` | Canonical guide to passing Applicant Tracking Systems in 2026. Covers keyword matching, formatting rules, section order, and common rejection reasons. |
-| `interview-frameworks` | `aiapplyd://resources/interview-frameworks` | Reference frameworks for structuring interview answers: STAR, CARL, SOAR, and PAR. |
-| `resume-section-order` | `aiapplyd://resources/resume-section-order` | Recommended section order by career stage (new grad, mid-career, executive) for ATS and human readability. |
+| `ats-best-practices` | `getmattered://resources/ats-best-practices` | Canonical guide to passing Applicant Tracking Systems in 2026. Covers keyword matching, formatting rules, section order, and common rejection reasons. |
+| `interview-frameworks` | `getmattered://resources/interview-frameworks` | Reference frameworks for structuring interview answers: STAR, CARL, SOAR, and PAR. |
+| `resume-section-order` | `getmattered://resources/resume-section-order` | Recommended section order by career stage (new grad, mid-career, executive) for ATS and human readability. |
+
+Resource URIs from earlier versions still resolve.
 
 ## Authentication
 

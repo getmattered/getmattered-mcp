@@ -1,6 +1,6 @@
 {
   "name": "getmattered",
-  "version": "1.10.1",
+  "version": "1.10.2",
   "description": "Auto-Apply That Ends on an Interview. Get matched jobs, apply on 30+ hiring systems automatically or after your approval, review and track every application, and tailor your resume and cover letter per role.",
   "author": {
     "name": "GetMattered",
@@ -105,7 +105,7 @@
             {
               "description": "Search the matched jobs by title and remote preference.",
               "prompt": "Find remote UX designer jobs in my matches.",
-              "tools_triggered": "getmattered_search_jobs",
+              "tools_triggered": "getmattered_get_matches",
               "expected_behavior": "Returns matched jobs that fit UX designer and allow remote work. Each job shows the title, company, location, match score and a link to the posting."
             },
             {
@@ -142,12 +142,12 @@
             }
           ]
         },
-        "demo_recording_url": "https://pub-e2e9a4d58b8742e187cc426023f47ad1.r2.dev/demo/aiapplyd-chatgpt-plugin-demo.mp4",
+        "demo_recording_url": "https://www.youtube.com/watch?v=lplaKh2T1vY",
         "commerce": false,
         "commerce_description": "The plugin does not sell products or take payments. Paid GetMattered plans are bought on getmattered.com."
       },
       "publication": {
-        "release_notes": "1.10.1: The plugin, package and server use the GetMattered name and mcp.getmattered.com. Earlier tool ids are accepted as aliases."
+        "release_notes": "1.10.2: Each tool does one operation. Reviewing, saving or skipping matches, follow-ups and saved searches are now separate tools, and the resume PDF tool is split into a read-only link, a public share and a summary draft. Earlier tool names still work as aliases."
       },
       "onboardingSkill": "./skills/setup-job-search/SKILL.md"
     }

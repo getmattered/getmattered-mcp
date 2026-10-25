@@ -28,21 +28,37 @@ startCommand:
     required: []
 tools:
   - name: getmattered_get_matches
-    description: "Your matched jobs, best first, each with the job_match_id that apply takes. Also reads full postings, or any posting from a link"
+    description: "Your matched jobs, best first, each with the job_match_id that apply takes. Also reads full postings, or any posting from a link. Read-only"
   - name: getmattered_apply
     description: "Apply to one job by job_match_id or job_url on the employer's own hiring system. mode: \"auto\" sends it, mode: \"review\" holds it for your yes"
   - name: getmattered_get_applications
-    description: "Every application and where it stands, the review queue, and the employer's own confirmation when it exists"
-  - name: getmattered_review_application
-    description: "Approve (send) or reject waiting applications, up to 25 at once. Also cancel, refine a document, re-prepare, or record the interview stage"
+    description: "Every application and where it stands, the review queue, and the employer's own confirmation when it exists. Read-only"
+  - name: getmattered_approve_applications
+    description: "Sends applications waiting for your review to their employers, up to 25 at once. Cannot be undone"
   - name: getmattered_get_account
-    description: "Your plan, token balance, applications left, job preferences, and whether your profile is ready to apply"
+    description: "Your plan, token balance, applications left, job preferences, and whether your profile is ready to apply. Read-only"
+  - name: getmattered_reject_applications
+    description: "Skips applications waiting for your review. Nothing is sent to the employer"
+  - name: getmattered_cancel_applications
+    description: "Stops applications that are still queued or being prepared, before they are sent"
+  - name: getmattered_refine_application_documents
+    description: "Rewrites the resume or cover letter of an application not yet sent, from your instructions"
+  - name: getmattered_reprepare_applications
+    description: "Builds an application's tailored documents again, for example after you changed your resume"
+  - name: getmattered_set_application_stage
+    description: "Records how an application is going: callback, interview, offer or rejection"
   - name: getmattered_set_resume
     description: "Put your resume on your account as the base every application is tailored from: pasted text, a file link, or a saved resume"
-  - name: getmattered_triage_matches
-    description: "Save a match, or skip it with a reason, so a job you declined stops coming back"
+  - name: getmattered_save_matches
+    description: "Saves matches to your saved list. Undo with getmattered_unsave_matches"
+  - name: getmattered_skip_matches
+    description: "Skips matches with a reason, so a job you declined stops coming back. Undo with getmattered_restore_matches"
+  - name: getmattered_unsave_matches
+    description: "Takes matches off your saved list"
+  - name: getmattered_restore_matches
+    description: "Brings back matches you skipped, while the posting is open"
   - name: getmattered_get_inbox
-    description: "The emails employers send about your applications, with the full conversation and suggested replies"
+    description: "The emails employers send about your applications, with the full conversation and suggested replies. Read-only"
   - name: getmattered_reply_to_email
     description: "Sends your reply to an employer from your GetMattered address, only after you approve the exact text"
   - name: getmattered_score_resume
@@ -52,27 +68,43 @@ tools:
   - name: getmattered_optimize_resume
     description: "A resume rewritten to pass ATS screening and still reach a human reader"
   - name: getmattered_generate_interview_questions
-    description: "Likely interview questions for this role, with answer guidance, STAR scenarios and negotiation prep"
+    description: "The questions this role is asked, with answer guidance, STAR scenarios and negotiation prep"
   - name: getmattered_translate_resume
-    description: "Translates the default saved resume-builder document, or first saved build, into a separate document"
-  - name: getmattered_search_jobs
-    description: "Older name for getmattered_get_matches with a title filter, kept for existing clients"
+    description: "A send-ready resume in another language, formatted for that market"
   - name: getmattered_update_job_preferences
     description: "Point GetMattered at the roles, locations, salary and seniority you want, and re-run discovery"
   - name: getmattered_generate_cover_letter
     description: "A cover letter in your own voice, written from the resume on your account"
-  - name: getmattered_auto_apply
-    description: "Older name for getmattered_apply with a job_url, kept for existing clients"
-  - name: getmattered_build_pdf
-    description: "Creates an editable summary draft of up to 2,000 characters. Open the builder to fill structured sections and review before PDF export"
-  - name: getmattered_update_auto_apply
+  - name: getmattered_get_resume_pdf_link
+    description: "The private link to the PDF of your resume on file. Read-only"
+  - name: getmattered_share_resume_pdf
+    description: "Makes a public link to your resume PDF, only when you ask. Turn it off on the documents page"
+  - name: getmattered_create_resume_draft
+    description: "An editable resume-builder draft from a summary of up to 2,000 characters, to finish in the builder"
+  - name: getmattered_update_automatic_apply_settings
     description: "Turns Auto Apply on or off and sets whether applications go out on their own or wait for your review"
+  - name: getmattered_get_application_profile
+    description: "The answers employer forms are filled from, and what is still missing. Read-only"
   - name: getmattered_update_application_profile
-    description: "Reads or saves the answers employer forms ask for. EEO answers are optional and accept prefer not to say"
-  - name: getmattered_manage_follow_ups
-    description: "Lists applications that went quiet, drafts a follow-up, and sends it once you approve it"
-  - name: getmattered_manage_saved_searches
-    description: "Saves your job preferences as named searches, with email alerts for new matches"
+    description: "Saves the answers employer forms ask for, only the fields you give. EEO answers are optional and accept prefer not to say"
+  - name: getmattered_list_due_follow_ups
+    description: "Applications that went quiet and are due a follow-up, most urgent first. Read-only"
+  - name: getmattered_list_sent_follow_ups
+    description: "The follow-ups you already sent or recorded. Read-only"
+  - name: getmattered_draft_follow_up
+    description: "Drafts a follow-up for one application. Nothing is sent"
+  - name: getmattered_send_follow_up
+    description: "Sends a follow-up from your Gmail or Outlook, only after you approve the exact text"
+  - name: getmattered_record_follow_up
+    description: "Records a follow-up you sent yourself, so the next one is timed right"
+  - name: getmattered_list_saved_searches
+    description: "Your saved searches and their email alerts. Read-only"
+  - name: getmattered_create_saved_search
+    description: "Saves your current job preferences as a named search, with email alerts for new matches"
+  - name: getmattered_update_saved_search
+    description: "Renames a saved search or turns its email alerts on or off"
+  - name: getmattered_delete_saved_search
+    description: "Deletes a saved search, only when you ask"
 prompts:
   - name: review_my_resume
     description: "Scores a resume against a posting and returns the three changes that move it past the filter"
