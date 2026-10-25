@@ -1,5 +1,56 @@
 # Changelog
 
+## 1.10.2
+
+Each tool now does one operation. The hosted server lists 39 tools, up from 23. Every earlier
+tool name still works: the server runs it as the tool that does that operation now, and never
+lists it in `tools/list`.
+
+New tools, one per operation:
+
+- Applications held for review: `getmattered_approve_applications`, `getmattered_reject_applications`,
+  `getmattered_cancel_applications`, `getmattered_refine_application_documents`,
+  `getmattered_reprepare_applications` and `getmattered_set_application_stage`.
+- Matches: `getmattered_save_matches`, `getmattered_skip_matches`, `getmattered_unsave_matches` and
+  `getmattered_restore_matches`.
+- Follow-ups: `getmattered_list_due_follow_ups`, `getmattered_list_sent_follow_ups`,
+  `getmattered_draft_follow_up`, `getmattered_send_follow_up` and `getmattered_record_follow_up`.
+- Saved searches: `getmattered_list_saved_searches`, `getmattered_create_saved_search`,
+  `getmattered_update_saved_search` and `getmattered_delete_saved_search`.
+- Application profile: `getmattered_get_application_profile` reads it.
+  `getmattered_update_application_profile` now saves only the fields passed. A call with no
+  arguments still returns the profile, as before.
+
+Renamed:
+
+- The resume PDF tool built no PDF, so it is three tools now: `getmattered_get_resume_pdf_link`
+  (read-only link to the PDF on file), `getmattered_share_resume_pdf` (public link, only on
+  request) and `getmattered_create_resume_draft` (summary-only builder draft from `summary_text`).
+- `getmattered_update_auto_apply` is `getmattered_update_automatic_apply_settings`.
+
+Deprecated, still accepted as aliases and no longer listed:
+
+- `getmattered_review_application` (routed by `decision`)
+- `getmattered_triage_matches` (routed by `action`)
+- `getmattered_manage_follow_ups` (routed by `action`)
+- `getmattered_manage_saved_searches` (routed by `action`)
+- `getmattered_build_pdf` (routed by its arguments)
+- `getmattered_update_auto_apply`
+- `getmattered_auto_apply` (runs `getmattered_apply`)
+- `getmattered_search_jobs` (runs `getmattered_get_matches` with `query`)
+
+The README lists every route. An unknown `action` or `decision` value answers "tool not found".
+
+Also in this release:
+
+- Every listed tool has a title, all four annotation hints, an output schema and a description
+  that says what changes, whether it can be undone, and when to use another tool instead.
+- Resource URIs use the `getmattered://` scheme. URIs from earlier versions still resolve.
+- The fourteen skills, the README, `GEMINI.md`, `llms-install.md`, `smithery.yaml` and the plugin
+  test cases use the new tool names.
+- The stdio bridge passes a tool name the server no longer lists through unchanged, so scripts
+  that call an earlier name keep working.
+
 ## 1.10.1
 
 - Documentation and listing text only. No code path changed except the `--help` footer.

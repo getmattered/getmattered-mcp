@@ -43,6 +43,7 @@ that, the tools are available in every session.
 
 The main loop is five tools: `getmattered_get_matches` (your matched jobs), `getmattered_apply` (apply
 to one, sent automatically or held for your approval), `getmattered_get_applications` (where each
-application stands), `getmattered_review_application` (approve or reject what is waiting) and
+application stands), `getmattered_approve_applications` (send what is waiting for your review) and
 `getmattered_get_account` (plan, balance and readiness). If no resume is on file, call
-`getmattered_set_resume` first. The full list of tools is in the README.
+`getmattered_set_resume` first. Each tool does one operation, for example `getmattered_reject_applications` skips a held
+application. Tool names from 1.10.1 and earlier still work. The full list of tools is in the README.
