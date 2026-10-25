@@ -1,6 +1,6 @@
 {
   "name": "getmattered",
-  "version": "1.10.1",
+  "version": "1.10.2",
   "description": "GetMattered for Gemini CLI: find jobs that fit your resume, tailor your resume and cover letter per posting, and apply on the employer's own hiring system. Auto-Apply That Ends on an Interview.",
   "mcpServers": {
     "getmattered": {

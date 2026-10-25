@@ -17,11 +17,11 @@ Start here. Call `getmattered_get_account` first. If its readiness shows no resu
 8. If the application is held for review, use the review-and-send skill. If the plan does not cover it, pass on the tool's message as written and link https://getmattered.com/pricing. Never buy a plan or credits during this workflow.
 9. On a timeout or an error, call `getmattered_get_applications` before you retry, because the application may already have started. Never call `getmattered_apply` again by `job_url` for a job already applied to by `job_match_id`.
 
-Apply only when the user asks. `getmattered_auto_apply` is an older name for `getmattered_apply` with a `job_url`. Prefer `getmattered_apply`.
+Apply only when the user asks.
 
 ## Turn Auto Apply on or off
 
-While Auto Apply is on, GetMattered starts applications every day with no request for each job. Change it with `getmattered_update_auto_apply` only when the user asks.
+While Auto Apply is on, GetMattered starts applications every day with no request for each job. Change it with `getmattered_update_automatic_apply_settings` only when the user asks.
 
 1. Call `getmattered_get_account` to read the current settings.
 2. Pass only what the user asked to change: `enabled`, `default_apply_mode` ("review" holds each application for approval, "auto" sends it with no review), `daily_limit` (1 to 50, and the plan can cap it lower) or `match_level` ("excellent", "strong", "good" or "stretch").
