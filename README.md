@@ -4,7 +4,7 @@
 
 # GetMattered MCP Server
 
-Version 1.10.2. It includes fourteen portable job-search skills. See the [changelog](CHANGELOG.md).
+Version 1.10.3. It includes fourteen portable job-search skills. See the [changelog](CHANGELOG.md).
 
 **Auto-Apply That Ends on an Interview**
 
@@ -75,7 +75,7 @@ The full list is under [Tools](#tools).
 
 ## Watch the demo
 
-[![GetMattered demo: AI auto-apply to jobs that ends on an interview](https://img.youtube.com/vi/lplaKh2T1vY/maxresdefault.jpg)](https://www.youtube.com/watch?v=lplaKh2T1vY)
+[![GetMattered demo: AI auto-apply to jobs that ends on an interview](https://img.youtube.com/vi/2uxVDG0dxQ4/maxresdefault.jpg)](https://www.youtube.com/watch?v=2uxVDG0dxQ4)
 
 90 seconds: resume upload, job matching, a real application sent on the employer's own form, the
 employer's confirmation email, interview prep, and applying from ChatGPT, Claude and Cursor.

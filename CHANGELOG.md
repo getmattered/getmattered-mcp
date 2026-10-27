@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.10.3
+
+The README and the plugin manifests link the current product demo film,
+[2uxVDG0dxQ4](https://www.youtube.com/watch?v=2uxVDG0dxQ4). No tool changes.
+
 ## 1.10.2
 
 Each tool now does one operation. The hosted server lists 39 tools, up from 23. Every earlier
