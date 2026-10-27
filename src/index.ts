@@ -26,13 +26,19 @@
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import type { JSONRPCMessage } from '@modelcontextprotocol/sdk/types.js';
+import {
+  isJSONRPCErrorResponse,
+  isJSONRPCRequest,
+  isJSONRPCResultResponse,
+  type JSONRPCMessage,
+} from '@modelcontextprotocol/sdk/types.js';
 
 import { getAccessToken, login, logout } from './auth.js';
 import { resolveToolName } from './tool-names.js';
 
 const DEFAULT_ENDPOINT = 'https://mcp.getmattered.com/mcp';
-const VERSION = '1.10.3';
+const VERSION = '1.10.4';
+const FLUSH_GRACE_MS = 1500;
 
 // AIAPPLYD_MCP_URL is the name from before the rename, still read so an existing
 // setup keeps its endpoint. Set either one to https://mcp.aiapplyd.com/mcp to
@@ -128,22 +134,64 @@ async function bridge() {
     return next;
   };
 
+  // Requests the host sent that the server has not answered yet. On shutdown the
+  // bridge waits for them (up to FLUSH_GRACE_MS) so a host that closes stdin right
+  // after its last request still reads the answer.
+  const pending = new Set<string | number>();
+  let settled: () => void = () => {};
+  let shuttingDown = false;
+  let stdoutWrites: Promise<void> = Promise.resolve();
+  const answered = (id: string | number) => {
+    pending.delete(id);
+    if (pending.size === 0) settled();
+  };
+
   remote.onmessage = (message: JSONRPCMessage) => {
-    void local.send(message).catch((error: unknown) => log(`stdout write failed: ${String(error)}`));
+    if (isJSONRPCResultResponse(message) || isJSONRPCErrorResponse(message)) {
+      if (message.id !== undefined) answered(message.id);
+    }
+    stdoutWrites = stdoutWrites
+      .then(() => local.send(message))
+      .catch((error: unknown) => log(`stdout write failed: ${String(error)}`));
   };
   local.onmessage = (message: JSONRPCMessage) => {
-    void sendUpstream(message).catch((error: unknown) => log(`upstream send failed: ${String(error)}`));
+    if (isJSONRPCRequest(message)) pending.add(message.id);
+    void sendUpstream(message).catch((error: unknown) => {
+      if (isJSONRPCRequest(message)) answered(message.id);
+      log(`upstream send failed: ${String(error)}`);
+    });
   };
 
-  remote.onerror = (error) => log(`upstream error: ${String(error)}`);
+  remote.onerror = (error) => {
+    if (!shuttingDown) log(`upstream error: ${String(error)}`);
+  };
   local.onerror = (error) => log(`stdio error: ${String(error)}`);
 
-  remote.onclose = () => {
-    void local.close().finally(() => process.exit(0));
+  // The stdio transport never reports end of input, so the bridge watches stdin
+  // and the signals a host sends itself. Every path converges on one shutdown.
+  const shutdown = async (reason: string) => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    log(`${reason}, shutting down`);
+    if (pending.size > 0) {
+      await Promise.race([
+        new Promise<void>(resolve => { settled = resolve; }),
+        new Promise<void>(resolve => setTimeout(resolve, FLUSH_GRACE_MS)),
+      ]);
+    }
+    await remote.close().catch(() => undefined);
+    await stdoutWrites;
+    process.stdout.write('', () => process.exit(0));
   };
-  local.onclose = () => {
-    void remote.close().finally(() => process.exit(0));
-  };
+
+  remote.onclose = () => void shutdown('upstream closed');
+  local.onclose = () => void shutdown('stdio closed');
+  process.stdin.once('end', () => void shutdown('stdin ended'));
+  process.stdin.once('close', () => void shutdown('stdin closed'));
+  const hostSignals: NodeJS.Signals[] = ['SIGHUP', 'SIGTERM', 'SIGINT'];
+  for (const signal of hostSignals) {
+    process.once(signal, () => void shutdown(`received ${signal}`));
+  }
 
   await remote.start();
   await local.start();

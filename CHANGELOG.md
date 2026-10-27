@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.10.4
+
+The stdio bridge now exits when its host lets go. It shuts down when stdin ends or closes, and on
+SIGHUP, SIGTERM and SIGINT. Before exiting it waits up to 1.5 seconds for answers to requests
+still in flight and writes them out. Before this, a host that closed stdin left the bridge running
+with an open stream to the server. A test spawns the bridge, closes stdin and checks it exits
+within 2 seconds.
+
 ## 1.10.3
 
 The README and the plugin manifests link the current product demo film,
