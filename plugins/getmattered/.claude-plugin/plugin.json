@@ -1,7 +1,7 @@
 {
   "name": "getmattered",
   "description": "Auto-Apply That Ends on an Interview. Connects Claude Code to the hosted GetMattered MCP server.",
-  "version": "1.10.3",
+  "version": "1.10.4",
   "author": {
     "name": "GetMattered",
     "email": "ava@getmattered.com",
