@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.12.0
+
+The hosted server now lists 40 tools. `getmattered_get_profile` (added in 1.11.0) reads the
+user's profile. The stdio bridge has no code change beyond its version.
+
+- An empty match list says what to do next: ask for the resume or roles, tell the user the
+  search is running (first matches usually in about 10 minutes, with an email), or ask whether
+  to widen roles or places. It no longer invites calling again at once.
+- A filtered `get_matches` checks up to 200 matches and says how many it checked.
+- A rate limit or an expired connection answers in its own words, says nothing was sent and how
+  long to wait.
+- Applying by link to a posting that is gone answers `posting_not_found` instead of an HTTP 404.
+- Tool analytics record argument names, never values.
+- Resume scoring, rewriting, cover letters, job analysis and document refinement follow stricter
+  no-invention rules.
+
 ## 1.10.4
 
 The stdio bridge now exits when its host lets go. It shuts down when stdin ends or closes, and on

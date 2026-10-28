@@ -4,7 +4,7 @@
 
 # GetMattered MCP Server
 
-Version 1.10.4. It includes fourteen portable job-search skills. See the [changelog](CHANGELOG.md).
+Version 1.12.0. It includes fourteen portable job-search skills. See the [changelog](CHANGELOG.md).
 
 **Auto-Apply That Ends on an Interview**
 
