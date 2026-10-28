@@ -129,8 +129,9 @@ claude mcp add --transport http getmattered https://mcp.getmattered.com/mcp
 
 ### ChatGPT
 
-**Settings → Connectors → Create** and paste `https://mcp.getmattered.com/mcp`. ChatGPT speaks MCP
-natively, so there is no Action schema to import and nothing to host.
+GetMattered is an app in ChatGPT. [Open GetMattered in ChatGPT](https://chatgpt.com/plugins/plugin_asdk_app_6ab3d2a748e48191a449904e048cd233),
+add it, and sign in with your GetMattered account when ChatGPT asks. Then ask for your job matches
+in a new chat. There is no Action schema to import and nothing to host.
 
 ### VS Code
 
@@ -328,7 +329,13 @@ account's allowance. Tool calls require sign-in; introspection is public.
 
 Since 1.10.2 every tool does exactly one thing, with its own description, input schema and
 annotations. No tool takes an `action` or `decision` argument that picks between operations.
-The server lists 39 tools.
+The server lists 40 tools.
+
+### First run
+
+On a new account, `getmattered_get_matches` comes back empty with `nextStep`, the one thing to ask
+for: the resume (`getmattered_set_resume`), then the roles and places (`getmattered_update_job_preferences`).
+The first matches usually arrive within about 10 minutes, and GetMattered emails you when they do.
 
 ### The main loop
 
@@ -347,6 +354,7 @@ getmattered_get_matches -> getmattered_apply -> getmattered_get_applications -> 
 | `getmattered_get_applications` | Get Applications | read-only, idempotent | Every application and where it stands, the review queue, and the employer's own confirmation when it exists |
 | `getmattered_approve_applications` | Approve Applications | **destructive**, open-world | Sends applications held for your review to their employers, up to 25 at once. Cannot be undone |
 | `getmattered_get_account` | Get Account | read-only, idempotent | Your plan, token balance, applications left, job preferences, and whether your profile is ready to apply. Never passwords, tokens or card details |
+| `getmattered_get_profile` | Get Profile | read-only, idempotent | Which GetMattered account the connection is signed in as: account id, name and email. ChatGPT labels each connected account with it |
 
 ### Applications
 
