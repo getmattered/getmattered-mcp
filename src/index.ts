@@ -37,7 +37,7 @@ import { getAccessToken, login, logout } from './auth.js';
 import { resolveToolName } from './tool-names.js';
 
 const DEFAULT_ENDPOINT = 'https://mcp.getmattered.com/mcp';
-const VERSION = '1.10.4';
+const VERSION = '1.12.0';
 const FLUSH_GRACE_MS = 1500;
 
 // AIAPPLYD_MCP_URL is the name from before the rename, still read so an existing
