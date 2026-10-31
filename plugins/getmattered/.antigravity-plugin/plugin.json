@@ -1,0 +1,18 @@
+{
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "name": "getmattered",
+  "displayName": "GetMattered",
+  "version": "1.12.0",
+  "description": "Auto-Apply That Ends on an Interview. Find matched jobs, tailor your resume and apply on 30+ hiring systems, then track every application.",
+  "logo": "assets/logo.png",
+  "suggestedPrompts": [
+    "Show me my best job matches.",
+    "Apply to the best match for me and hold it for my review.",
+    "What applications are waiting for my approval?"
+  ],
+  "author": { "name": "GetMattered", "email": "ava@getmattered.com", "url": "https://getmattered.com" },
+  "homepage": "https://getmattered.com/mcps",
+  "repository": "https://github.com/getmattered/getmattered-mcp",
+  "license": "MIT",
+  "keywords": ["jobs", "job search", "auto apply", "resume", "cover letter", "ats", "career"]
+}
