@@ -96,7 +96,8 @@ https://mcp.getmattered.com/mcp
 ```
 
 The first tool call opens an OAuth sign-in. Sign in with Google, and you are connected.
-A free account needs no card and arrives with a one-time 10,000-token starter grant.
+A free account needs no card and arrives with a one-time 10,000-token starter grant
+and five free applications from ChatGPT, Claude or any MCP client.
 
 ### Claude (web, Desktop, Code)
 
