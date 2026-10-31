@@ -31,7 +31,7 @@ dropped your application.
 [![Listed on cursor.directory](https://img.shields.io/badge/Listed%20on-cursor.directory-black)](https://cursor.directory/plugins/ai-applyd-1)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**[Listing page](https://getmattered.com/mcps)** · **[Website](https://getmattered.com)** · **[Privacy](https://getmattered.com/legal/privacy)** · **[Terms](https://getmattered.com/legal/terms)**
+**[Listing page](https://getmattered.com/mcps)** · **[Status](https://getmattered.com/status)** · **[Website](https://getmattered.com)** · **[Privacy](https://getmattered.com/legal/privacy)** · **[Terms](https://getmattered.com/legal/terms)**
 
 </div>
 
@@ -513,6 +513,7 @@ nothing else. The [privacy policy](https://getmattered.com/legal/privacy) and
 
 ## Support
 
+- Live status of the server: [getmattered.com/status](https://getmattered.com/status)
 - Issues: [github.com/getmattered/getmattered-mcp/issues](https://github.com/getmattered/getmattered-mcp/issues)
 - Email: support@getmattered.com
 
