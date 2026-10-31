@@ -24,11 +24,7 @@ system actually returned, so a real rejection is distinguishable from a form tha
 dropped your application.
 
 [![Glama quality score](https://glama.ai/mcp/servers/getmattered/getmattered-mcp/badges/score.svg)](https://glama.ai/mcp/servers/getmattered/getmattered-mcp)
-[![Smithery](https://img.shields.io/badge/Smithery-GetMattered-7c3aed)](https://smithery.ai/servers/aiapplyd/aiapplyd)
 [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-com.getmattered%2Fgetmattered-blue)](https://registry.modelcontextprotocol.io/v0/servers?search=getmattered)
-[![GetMattered on LobeHub](https://lobehub.com/badge/mcp/aiapplyd-aiapplyd-mcp)](https://lobehub.com/mcp/aiapplyd-aiapplyd-mcp)
-[![Listed on mcpservers.org](https://mcpservers.org/badge.svg)](https://mcpservers.org/servers/aiapplyd/aiapplyd-mcp)
-[![Listed on cursor.directory](https://img.shields.io/badge/Listed%20on-cursor.directory-black)](https://cursor.directory/plugins/ai-applyd-1)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 **[Listing page](https://getmattered.com/mcps)** · **[Status](https://getmattered.com/status)** · **[Website](https://getmattered.com)** · **[Privacy](https://getmattered.com/legal/privacy)** · **[Terms](https://getmattered.com/legal/terms)**
