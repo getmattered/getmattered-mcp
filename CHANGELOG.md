@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.13.0
+
+The hosted server lists the same 40 tools as 1.12.0, with the same names, descriptions and
+schemas. The stdio bridge has no code change beyond its version.
+
+- `getmattered_apply` with `job_url` now takes a LinkedIn or Indeed job link too.
+- A job link resolves to the employer's own posting first. It is checked against the hiring
+  systems GetMattered applies on before anything is spent. When it cannot apply, the answer is
+  `not_applied`, nothing is saved, sent or spent, and the text names the cause: LinkedIn Easy
+  Apply only, no employer posting found, or a hiring system GetMattered does not submit on.
+- `getmattered_get_applications` says in words where each application stands: preparing,
+  waiting for approval, sending, submitted and not yet confirmed, landed (only with the
+  employer's proof), or never started, with its reason.
+
 ## 1.12.0
 
 The hosted server now lists 40 tools. `getmattered_get_profile` (added in 1.11.0) reads the

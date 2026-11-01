@@ -3,15 +3,13 @@
   "name": "com.getmattered/getmattered",
   "title": "GetMattered",
   "description": "Auto-Apply That Ends on an Interview. Job matches, per-role resumes, apply, approve, track receipts.",
-  "version": "1.12.0",
+  "version": "1.13.0",
   "websiteUrl": "https://getmattered.com/mcps",
   "icons": [
     {
       "src": "https://getmattered.com/static/images/logos/icon-logo-dark-square.png",
       "mimeType": "image/png",
-      "sizes": [
-        "512x512"
-      ]
+      "sizes": ["512x512"]
     }
   ],
   "repository": {
@@ -34,14 +32,14 @@
     {
       "registryType": "npm",
       "identifier": "getmattered-mcp",
-      "version": "1.12.0",
+      "version": "1.13.0",
       "transport": {
         "type": "stdio"
       },
       "environmentVariables": [
         {
           "name": "GETMATTERED_TOKEN",
-          "description": "Optional bearer token. Leave unset and run `npx getmattered-mcp login` once instead. The variable name used before the rename is still read when this one is unset.",
+          "description": "Optional bearer token. Leave unset and run `npx getmattered-mcp login` once instead.",
           "isRequired": false,
           "isSecret": true
         }
