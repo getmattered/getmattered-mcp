@@ -20,8 +20,7 @@
  *   getmattered-mcp logout                      forget the stored sign-in
  *   getmattered-mcp                             run as a stdio MCP server
  *
- * The package was called aiapplyd-mcp before the rename to GetMattered. It still
- * installs the old command name as an alias of the same file.
+ * The package also installs the aiapplyd-mcp command as an alias of the same file.
  */
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
@@ -40,9 +39,8 @@ const DEFAULT_ENDPOINT = 'https://mcp.getmattered.com/mcp';
 const VERSION = '1.13.0';
 const FLUSH_GRACE_MS = 1500;
 
-// AIAPPLYD_MCP_URL is the name from before the rename, still read so an existing
-// setup keeps its endpoint. Set either one to https://mcp.aiapplyd.com/mcp to
-// reach the old host during the overlap.
+// GETMATTERED_MCP_URL overrides the default endpoint. AIAPPLYD_MCP_URL is read as
+// a fallback when it is unset.
 const endpoint =
   process.env.GETMATTERED_MCP_URL?.trim() || process.env.AIAPPLYD_MCP_URL?.trim() || DEFAULT_ENDPOINT;
 
@@ -231,8 +229,6 @@ async function main() {
         '  getmattered-mcp                             run as a stdio MCP server',
         '',
         "Example: getmattered-mcp call getmattered_get_matches '{\"limit\": 5}'",
-        '',
-        'Renamed: earlier command names, tool ids and environment variable names still work.',
         '',
       ].join('\n'));
       return;

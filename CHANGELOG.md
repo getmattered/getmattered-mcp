@@ -64,7 +64,7 @@ New tools, one per operation:
   `getmattered_update_application_profile` now saves only the fields passed. A call with no
   arguments still returns the profile, as before.
 
-Renamed:
+Replaced:
 
 - The resume PDF tool built no PDF, so it is three tools now: `getmattered_get_resume_pdf_link`
   (read-only link to the PDF on file), `getmattered_share_resume_pdf` (public link, only on
@@ -101,14 +101,14 @@ Also in this release:
 
 ## 1.10.0
 
-First release under the GetMattered name. Tool behavior is unchanged.
+Tool behavior is unchanged.
 
-- The npm package is `getmattered-mcp`. The earlier package is deprecated on npm and points here.
-- The package also installs the earlier command name. Both run the same file.
+- The npm package is `getmattered-mcp`.
+- The package also installs a second command name. Both run the same file.
 - The default endpoint is `https://mcp.getmattered.com/mcp`.
-- `GETMATTERED_TOKEN` and `GETMATTERED_MCP_URL` set the token and the endpoint. The variable names
-  used before the rename are still read when these are unset.
-- Tool ids are `getmattered_<name>`. Earlier tool ids are accepted as aliases.
+- `GETMATTERED_TOKEN` and `GETMATTERED_MCP_URL` set the token and the endpoint. Fallback variable
+  names are still read when these are unset.
+- Tool ids are `getmattered_<name>`. Other tool id prefixes are accepted as aliases.
 - The stored sign-in moves to `~/.config/getmattered/credentials.json`. A sign-in stored by an
   earlier version is still read, and `logout` removes both.
 - The plugin is `getmattered` in `plugins/getmattered`, and the tool map skill is `using-getmattered`.

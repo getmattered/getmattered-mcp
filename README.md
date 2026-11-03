@@ -267,8 +267,8 @@ docker run --rm -i getmattered-mcp
 
 | Environment variable | Default | Meaning |
 |---|---|---|
-| `GETMATTERED_MCP_URL` | `https://mcp.getmattered.com/mcp` | Endpoint to relay to. Point it at `https://mcp-preview.getmattered.com/mcp` to test against preview. The variable name used before the rename is still read when this one is unset. |
-| `GETMATTERED_TOKEN` | unset | Optional bearer token. Without it the server still answers introspection; tool **calls** return 401 until an account is connected. The variable name used before the rename is still read when this one is unset. |
+| `GETMATTERED_MCP_URL` | `https://mcp.getmattered.com/mcp` | Endpoint to relay to. Point it at `https://mcp-preview.getmattered.com/mcp` to test against preview. A fallback variable name is still read when this one is unset. |
+| `GETMATTERED_TOKEN` | unset | Optional bearer token. Without it the server still answers introspection; tool **calls** return 401 until an account is connected. A fallback variable name is still read when this one is unset. |
 
 ## Command line and bots
 
@@ -292,19 +292,6 @@ keeps working. `call` prints the tool's structured result as JSON. Exit code 0 m
 Run with no arguments and it is a stdio MCP server that relays to `https://mcp.getmattered.com/mcp`,
 signed in with the stored login. `GETMATTERED_TOKEN` overrides the stored login and
 `GETMATTERED_MCP_URL` overrides the endpoint.
-
-### Renamed
-
-This package was renamed to `getmattered-mcp`. Existing setups keep working:
-
-- The package also installs the earlier command name. Both run the same code.
-- Tool ids are `getmattered_<name>`. Earlier tool ids are accepted as aliases.
-- Tool names from 1.10.1 and earlier, before each tool did one operation, still work. See
-  [Earlier tool names, still answered](#earlier-tool-names-still-answered).
-- The environment variable names used before the rename are still read when the
-  `GETMATTERED_*` ones are unset.
-- A sign-in stored by an earlier version is still read. The next `login` or token refresh
-  writes `~/.config/getmattered/credentials.json`.
 
 ## Endpoints
 

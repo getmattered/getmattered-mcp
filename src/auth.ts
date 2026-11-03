@@ -8,12 +8,11 @@
  * file and refreshes the access token when it is close to expiry, so a bot or a
  * cron job keeps working without a person in the loop.
  *
- * Before the rename to GetMattered the file was ~/.config/aiapplyd/credentials.json.
- * That file is still read when the new one does not exist, and the next login or
- * refresh writes the new one.
+ * ~/.config/aiapplyd/credentials.json is read when that file does not exist, and
+ * the next login or refresh writes the main file.
  *
- * GETMATTERED_TOKEN, when set, wins over the stored file. AIAPPLYD_TOKEN is the
- * name from before the rename and is read when GETMATTERED_TOKEN is unset.
+ * GETMATTERED_TOKEN, when set, wins over the stored file. AIAPPLYD_TOKEN is read
+ * when GETMATTERED_TOKEN is unset.
  */
 import { createHash, randomBytes } from 'node:crypto';
 import { spawn } from 'node:child_process';
@@ -44,7 +43,7 @@ export function credentialsPath() {
   return configPath('getmattered');
 }
 
-/** Where the sign-in was stored before the rename to GetMattered. */
+/** The fallback sign-in file, read when the main one does not exist. */
 function legacyCredentialsPath() {
   return configPath('aiapplyd');
 }
