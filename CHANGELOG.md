@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.14.1
+
+The hosted server is unchanged. The bridge now reads only `GETMATTERED_TOKEN` and
+`~/.config/getmattered/credentials.json`. A setup saved under the earlier name must sign in
+again: run `getmattered-mcp login`, or set `GETMATTERED_TOKEN`.
+
 ## 1.14.0
 
 The hosted server lists the same 40 tools as 1.13.0, with the same names and schemas. Server
@@ -149,7 +155,7 @@ Changed behavior:
 
 Skills:
 
-- `using-ai-applyd` maps each request to its tools and order, lists the actions that need the user's yes, and ends each result with one next step offered to the user, with no prices or billing links.
+- `using-getmattered` maps each request to its tools and order, lists the actions that need the user's yes, and ends each result with one next step offered to the user, with no prices or billing links.
 - `handle-recruiter-replies`, `follow-up-on-applications` and `manage-saved-searches` are new.
 - The apply, setup, tailoring, cover letter, translation, resume document, matching, tracking and interview skills describe the new resume sources and point to the new workflows. `apply-to-a-job` covers Auto Apply settings.
 

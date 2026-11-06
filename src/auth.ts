@@ -8,11 +8,7 @@
  * file and refreshes the access token when it is close to expiry, so a bot or a
  * cron job keeps working without a person in the loop.
  *
- * ~/.config/aiapplyd/credentials.json is read when that file does not exist, and
- * the next login or refresh writes the main file.
- *
- * GETMATTERED_TOKEN, when set, wins over the stored file. AIAPPLYD_TOKEN is read
- * when GETMATTERED_TOKEN is unset.
+ * GETMATTERED_TOKEN, when set, wins over the stored file.
  */
 import { createHash, randomBytes } from 'node:crypto';
 import { spawn } from 'node:child_process';
@@ -34,23 +30,14 @@ type Credentials = {
   issuer: string;
 };
 
-function configPath(directory: string) {
-  const base = process.env.XDG_CONFIG_HOME?.trim() || join(homedir(), '.config');
-  return join(base, directory, 'credentials.json');
-}
-
 export function credentialsPath() {
-  return configPath('getmattered');
-}
-
-/** The fallback sign-in file, read when the main one does not exist. */
-function legacyCredentialsPath() {
-  return configPath('aiapplyd');
+  const base = process.env.XDG_CONFIG_HOME?.trim() || join(homedir(), '.config');
+  return join(base, 'getmattered', 'credentials.json');
 }
 
 function readCredentials(): Credentials | null {
-  const path = [credentialsPath(), legacyCredentialsPath()].find(candidate => existsSync(candidate));
-  if (!path) return null;
+  const path = credentialsPath();
+  if (!existsSync(path)) return null;
   try {
     return JSON.parse(readFileSync(path, 'utf8')) as Credentials;
   } catch {
@@ -67,9 +54,7 @@ function writeCredentials(credentials: Credentials) {
 
 export function logout() {
   const path = credentialsPath();
-  for (const candidate of [path, legacyCredentialsPath()]) {
-    if (existsSync(candidate)) rmSync(candidate);
-  }
+  if (existsSync(path)) rmSync(path);
   return path;
 }
 
@@ -187,7 +172,7 @@ export async function login(endpoint: string, log: (line: string) => void) {
  * caller unauthenticated, and the server then answers with its sign-in message.
  */
 export async function getAccessToken(endpoint: string, log: (line: string) => void) {
-  const fromEnv = process.env.GETMATTERED_TOKEN?.trim() || process.env.AIAPPLYD_TOKEN?.trim();
+  const fromEnv = process.env.GETMATTERED_TOKEN?.trim();
   if (fromEnv) return fromEnv;
 
   const stored = readCredentials();
