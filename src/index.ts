@@ -19,8 +19,6 @@
  *   getmattered-mcp call <tool> '<json args>'   run one tool, print its result
  *   getmattered-mcp logout                      forget the stored sign-in
  *   getmattered-mcp                             run as a stdio MCP server
- *
- * The package also installs the aiapplyd-mcp command as an alias of the same file.
  */
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
@@ -36,13 +34,11 @@ import { getAccessToken, login, logout } from './auth.js';
 import { resolveToolName } from './tool-names.js';
 
 const DEFAULT_ENDPOINT = 'https://mcp.getmattered.com/mcp';
-const VERSION = '1.13.0';
+const VERSION = '1.14.0';
 const FLUSH_GRACE_MS = 1500;
 
-// GETMATTERED_MCP_URL overrides the default endpoint. AIAPPLYD_MCP_URL is read as
-// a fallback when it is unset.
-const endpoint =
-  process.env.GETMATTERED_MCP_URL?.trim() || process.env.AIAPPLYD_MCP_URL?.trim() || DEFAULT_ENDPOINT;
+// GETMATTERED_MCP_URL overrides the default endpoint.
+const endpoint = process.env.GETMATTERED_MCP_URL?.trim() || DEFAULT_ENDPOINT;
 
 function log(message: string) {
   // stdout carries the protocol. Diagnostics go to stderr only.

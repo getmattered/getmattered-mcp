@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.14.0
+
+The hosted server lists the same 40 tools as 1.13.0, with the same names and schemas. Server
+instructions and tool descriptions are shorter.
+
+The stdio bridge drops two names from before the rename:
+
+- The `aiapplyd-mcp` command is gone. Run `getmattered-mcp`.
+- The `AIAPPLYD_MCP_URL` variable is no longer read. Set `GETMATTERED_MCP_URL`.
+
 ## 1.13.0
 
 The hosted server lists the same 40 tools as 1.12.0, with the same names, descriptions and
