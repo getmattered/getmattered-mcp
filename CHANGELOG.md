@@ -1,5 +1,37 @@
 # Changelog
 
+## 1.15.0
+
+The hosted server lists the same 40 tools as 1.14.0, with the same names. Its answers changed.
+The stdio bridge has no code change beyond its version.
+
+- Every answer that ends without an application names one next step inside GetMattered. Apply
+  only through GetMattered, never by email or through another connector.
+- A short or filtered match list says how to get more: save more roles or places, or pass a
+  posting link to `getmattered_apply`. Never add jobs from outside GetMattered to the list.
+- Missing profile fields are never asked for per application. Address fields come from the
+  saved address and location. With gap filling on, an empty postal code is filled too. With it
+  off, only a form that requires a postal code waits until the profile has one. Answers no
+  longer say a value was guessed.
+- `getmattered_apply` follows the user's apply setting when `mode` is left out, and reports
+  `review` or `auto`.
+- `getmattered_get_applications` gives one plain reason per application and counts held rows
+  on their own. A row the user declined reads "You declined it. Nothing was sent." Rejecting or
+  cancelling sends nothing, and the preparation already done stays charged.
+- Workday, BambooHR and unlisted Ashby links are read by their structure.
+- A job board link (LinkedIn, Indeed and others) resolves to the employer's own posting. When it
+  cannot, the answer gives one step: find the job on the employer's own careers page or hiring
+  system with your own search, then apply with that link. Otherwise tell the user GetMattered
+  cannot apply to it.
+- A careers page on the employer's own domain finds its Ashby, Greenhouse or Lever posting.
+- No answer names a placeholder such as "Untitled role" or "Unknown company".
+- `getmattered_get_account` shows the free MCP applications truthfully, including when an
+  account cannot use them.
+- `getmattered_update_job_preferences` reads the saved places back.
+
+Skills: apply-to-a-job, find-matching-jobs, review-and-send, setup-job-search,
+track-applications and using-getmattered follow these rules.
+
 ## 1.14.1
 
 The hosted server is unchanged. The bridge now reads only `GETMATTERED_TOKEN` and

@@ -9,8 +9,8 @@ description: Review the applications GetMattered prepared, change them, and send
 2. Wait for a clear decision on each one. Never approve on your own judgment. Rewrites and new preparations use AI credits, so get approval first. Do not buy credits or upgrade the plan.
 3. Each decision is its own tool:
    - `getmattered_approve_applications` submits to the employer under the user's name. It cannot be undone.
-   - `getmattered_reject_applications` skips it. Nothing is sent.
-   - `getmattered_cancel_applications` stops one still queued or preparing.
+   - `getmattered_reject_applications` declines it. Nothing is sent, and the preparation stays charged.
+   - `getmattered_cancel_applications` stops one before it is sent. Nothing is sent, and the preparation already done stays charged.
    - `getmattered_refine_application_documents` rewrites one document from the user's own words.
    - `getmattered_reprepare_applications` builds the documents again.
 4. After a rewrite, read the application again and show the user the change before they approve.
