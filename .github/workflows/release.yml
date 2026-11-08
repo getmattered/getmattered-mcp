@@ -16,17 +16,22 @@
 #   publish    the `release` environment: downloads those files and publishes them.
 #              It installs only npm itself (pinned, scripts off; trusted publishing
 #              needs npm 11.5.1+) and runs only this repo's own scripts with node.
+#   Every job after publish skips a run that a newer tag replaced.
 #   reminders  after publish, `issues: write` only: opens one "vX: human steps"
 #              issue when this release changed something a person must carry over
 #              (Claude listing tool names, the ChatGPT package, Glama).
 #   lobehub    after publish, the `release` environment for LOBEHUB_CREDENTIALS only,
 #              no id-token: `lhm plugin update`. No secret prints SKIPPED; a failure
 #              warns and never fails the release, which is already out.
+#   listings-xai  after publish, no environment, no secret: runs xAI's own index
+#              scripts on our fork branch and hands the commit on as a git bundle.
 #   listings   after publish, the `release-forks` environment (v* tags only): updates
 #              OUR open listing PR branches (xAI #1238, Docker #6054, Cline #230)
-#              only when the content they pin changed. Each fork has its own deploy
-#              key, written only for its push step. It never opens a PR, never
-#              comments, and a branch that already matches is left alone.
+#              only when the content they pin changed. It runs no third-party code.
+#              It checks the xAI bundle (parents, files, our catalog entry) before
+#              it pushes. Each fork has its own deploy key, which exists only in its
+#              push step. It never opens a PR, never comments, and a branch that
+#              already matches is left alone.
 #
 # Order: npm, then the GitHub release, then the MCP Registry. The registry is
 # last because it is the step most likely to refuse content (server.json) that a
@@ -174,6 +179,10 @@ jobs:
       id-token: write
     env:
       TAG: ${{ github.ref_name }}
+    # The jobs after this one read it: a run that a newer tag replaced publishes
+    # nothing, so it opens no reminder, pushes no LobeHub version, repins no PR.
+    outputs:
+      superseded_by: ${{ steps.newer.outputs.superseded_by }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -299,6 +308,7 @@ jobs:
   # edited on a re-run, never commented on.
   reminders:
     needs: publish
+    if: needs.publish.outputs.superseded_by == ''
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -344,6 +354,7 @@ jobs:
 
   lobehub:
     needs: publish
+    if: needs.publish.outputs.superseded_by == ''
     runs-on: ubuntu-24.04
     environment: release
     timeout-minutes: 10
@@ -400,23 +411,22 @@ jobs:
           fi
           exit 0
 
-  # OUR open listing PRs. Forks are cloned over HTTPS (they are public) and
-  # changed with no secret on the runner; each deploy key is written only in its
-  # own push step. xAI's index script (their code) runs before any key exists.
-  listings:
+  # xai-org/plugin-marketplace #1238: repin to the release commit and regenerate
+  # their index, as their CONTRIBUTING says. Only when plugins/getmattered changed.
+  # This job runs xAI's own scripts (from their main), so it has no environment and
+  # no secret, and nothing it leaves behind reaches a push. Its commit leaves as a
+  # git bundle, which `listings` checks on its own runner before it pushes.
+  listings-xai:
     needs: publish
+    if: needs.publish.outputs.superseded_by == ''
     runs-on: ubuntu-24.04
-    environment: release-forks
-    timeout-minutes: 30
-    concurrency:
-      group: listings
-      cancel-in-progress: false
+    timeout-minutes: 15
     permissions:
       contents: read
     env:
       TAG: ${{ github.ref_name }}
-      DRY_RUN: ${{ vars.LISTINGS_DRY_RUN }}
-      GITHUB_HOST_KEY: 'github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl'
+    outputs:
+      push: ${{ steps.xai.outputs.push }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -427,38 +437,13 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Git identity and the push helper
-        run: |
-          git config --global user.name GetMattered
-          git config --global user.email ava@getmattered.com
-          git config --global commit.gpgsign false
-          printf '%s\n' "$GITHUB_HOST_KEY" > "$RUNNER_TEMP/known_hosts"
-          cat > "$RUNNER_TEMP/push-fork.sh" <<'SH'
-          #!/usr/bin/env bash
-          # push-fork.sh <checkout> <owner/repo> <branch>; the key arrives in DEPLOY_KEY.
-          set -euo pipefail
-          if [ -z "${DEPLOY_KEY:-}" ]; then
-            echo "$2: SKIPPED (no deploy key secret)"
-            exit 0
-          fi
-          key="$RUNNER_TEMP/deploy_key"
-          install -m 600 /dev/null "$key"
-          trap 'rm -f "$key"' EXIT
-          printf '%s\n' "$DEPLOY_KEY" > "$key"
-          GIT_SSH_COMMAND="ssh -i $key -o IdentitiesOnly=yes -o UserKnownHostsFile=$RUNNER_TEMP/known_hosts -o StrictHostKeyChecking=yes" \
-            git -C "$1" push "git@github.com:$2.git" "HEAD:$3"
-          echo "$2:$3 now at $(git -C "$1" rev-parse HEAD)"
-          SH
-          chmod 700 "$RUNNER_TEMP/push-fork.sh"
-
-      # xai-org/plugin-marketplace #1238: repin to the release commit and regenerate
-      # their index, as their CONTRIBUTING says. Only when plugins/getmattered changed.
-      - name: xAI, prepare
+      - name: xAI, repin and regenerate the index
         id: xai
         run: |
           new_sha="$(git rev-parse "$TAG^{commit}")"
           work="$RUNNER_TEMP/xai"
           git clone --quiet --branch add-aiapplyd --single-branch https://github.com/getmattered/plugin-marketplace.git "$work"
+          base="$(git -C "$work" rev-parse HEAD)"
           old_sha="$(node scripts/listing-prs.mjs pin "$work/.grok-plugin/marketplace.json")"
           if [ "$old_sha" = "$new_sha" ]; then
             echo "xAI: the branch already pins $new_sha"
@@ -475,17 +460,107 @@ jobs:
           git -C "$work" merge --quiet -s ours --no-commit FETCH_HEAD || true
           git -C "$work" checkout FETCH_HEAD -- .
           node scripts/listing-prs.mjs xai "$RUNNER_TEMP/xai-branch.json" "$RUNNER_TEMP/xai-upstream.json" "$new_sha" "$work/.grok-plugin/marketplace.json"
+          # xAI's code. Everything after this line is checked again in `listings`.
           (cd "$work" && python3 scripts/generate-plugin-index.py && python3 scripts/validate-catalog.py && python3 scripts/generate-plugin-index.py --check)
           git -C "$work" add -A
-          git -C "$work" commit --quiet -m "Repin GetMattered to $TAG ($new_sha)"
+          git -C "$work" -c user.name=GetMattered -c user.email=ava@getmattered.com -c commit.gpgsign=false \
+            commit --quiet -m "Repin GetMattered to $TAG ($new_sha)"
           git -C "$work" show --stat HEAD
+          mkdir -p "$RUNNER_TEMP/xai-out"
+          git -C "$work" bundle create "$RUNNER_TEMP/xai-out/xai.bundle" refs/heads/add-aiapplyd "^$base"
+          echo "push=1" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: steps.xai.outputs.push == '1'
+        with:
+          name: listings-xai
+          path: ${{ runner.temp }}/xai-out
+          if-no-files-found: error
+          retention-days: 7
+
+  # OUR open listing PRs. The forks are public, so each is cloned over HTTPS with
+  # no secret. This job runs no third-party code: git, this repo's own script, and
+  # xAI's commit only as data from a bundle, checked before its push. Each deploy
+  # key exists only inside its own push step, with a fresh HOME, no git hooks and
+  # SSH as the only transport.
+  listings:
+    needs: [publish, listings-xai]
+    if: ${{ !cancelled() && needs.publish.result == 'success' && needs.publish.outputs.superseded_by == '' }}
+    runs-on: ubuntu-24.04
+    environment: release-forks
+    timeout-minutes: 30
+    concurrency:
+      group: listings
+      cancel-in-progress: false
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ github.ref_name }}
+      DRY_RUN: ${{ vars.LISTINGS_DRY_RUN }}
+      GIT_CONFIG_NOSYSTEM: '1'
+      GITHUB_HOST_KEY: 'github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        if: needs.listings-xai.result == 'success' && needs.listings-xai.outputs.push == '1'
+        with:
+          name: listings-xai
+          path: ${{ runner.temp }}/xai-in
+
+      # The bundle's commit must be a merge of our branch tip and a commit on xAI's
+      # main, change only their catalog and index, and carry exactly the catalog our
+      # own script writes. Anything else stops here.
+      - name: xAI, check the prepared commit
+        id: xai
+        if: needs.listings-xai.result == 'success' && needs.listings-xai.outputs.push == '1'
+        run: |
+          new_sha="$(git rev-parse "$TAG^{commit}")"
+          work="$RUNNER_TEMP/xai"
+          git clone --quiet --branch add-aiapplyd --single-branch https://github.com/getmattered/plugin-marketplace.git "$work"
+          git -C "$work" fetch --quiet "$RUNNER_TEMP/xai-in/xai.bundle" refs/heads/add-aiapplyd:refs/heads/listing
+          test "$(git -C "$work" rev-list --parents -n 1 listing | wc -w)" -eq 3
+          test "$(git -C "$work" rev-parse listing^1)" = "$(git -C "$work" rev-parse HEAD)"
+          git -C "$work" fetch --quiet https://github.com/xai-org/plugin-marketplace.git main
+          git -C "$work" merge-base --is-ancestor listing^2 FETCH_HEAD
+          outside="$(git -C "$work" diff --name-only listing^2 listing | grep -v -x -e .grok-plugin/marketplace.json -e .grok-plugin/plugin-index.json || true)"
+          if [ -n "$outside" ]; then
+            echo "::error::the xAI commit changes files outside the catalog and index: $outside"
+            exit 1
+          fi
+          git -C "$work" show HEAD:.grok-plugin/marketplace.json > "$RUNNER_TEMP/xai-branch.json"
+          git -C "$work" show listing^2:.grok-plugin/marketplace.json > "$RUNNER_TEMP/xai-upstream.json"
+          node scripts/listing-prs.mjs xai "$RUNNER_TEMP/xai-branch.json" "$RUNNER_TEMP/xai-upstream.json" "$new_sha" "$RUNNER_TEMP/xai-expected.json"
+          git -C "$work" show listing:.grok-plugin/marketplace.json | cmp - "$RUNNER_TEMP/xai-expected.json"
+          git -C "$work" show --stat listing
           echo "push=1" >> "$GITHUB_OUTPUT"
 
       - name: xAI, push
         if: steps.xai.outputs.push == '1' && env.DRY_RUN != '1'
         env:
           DEPLOY_KEY: ${{ secrets.XAI_FORK_DEPLOY_KEY }}
-        run: '"$RUNNER_TEMP/push-fork.sh" "$RUNNER_TEMP/xai" getmattered/plugin-marketplace add-aiapplyd'
+          WORK: ${{ runner.temp }}/xai
+          SRC: refs/heads/listing
+          FORK: getmattered/plugin-marketplace
+          BRANCH: add-aiapplyd
+        run: |
+          if [ -z "$DEPLOY_KEY" ]; then echo "$FORK: SKIPPED (no deploy key secret)"; exit 0; fi
+          home="$(mktemp -d)"
+          trap 'rm -rf "$home"' EXIT
+          install -m 600 /dev/null "$home/deploy_key"
+          printf '%s\n' "$DEPLOY_KEY" > "$home/deploy_key"
+          printf '%s\n' "$GITHUB_HOST_KEY" > "$home/known_hosts"
+          HOME="$home" GIT_SSH_COMMAND="ssh -F /dev/null -i $home/deploy_key -o IdentitiesOnly=yes -o UserKnownHostsFile=$home/known_hosts -o StrictHostKeyChecking=yes" \
+            git -C "$WORK" -c core.hooksPath=/dev/null -c protocol.allow=never -c protocol.ssh.allow=always \
+            push "git@github.com:$FORK.git" "$SRC:refs/heads/$BRANCH"
+          echo "$FORK:$BRANCH now at $(git -C "$WORK" rev-parse "$SRC")"
 
       # docker/mcp-registry #6054: metadata only (server.yaml, readme.md).
       - name: Docker, prepare
@@ -499,7 +574,8 @@ jobs:
             exit 0
           fi
           git -C "$work" add -A
-          git -C "$work" commit --quiet -m "Update the GetMattered listing text ($TAG)"
+          git -C "$work" -c user.name=GetMattered -c user.email=ava@getmattered.com -c commit.gpgsign=false \
+            commit --quiet -m "Update the GetMattered listing text ($TAG)"
           git -C "$work" show HEAD
           echo "push=1" >> "$GITHUB_OUTPUT"
 
@@ -507,7 +583,21 @@ jobs:
         if: steps.docker.outputs.push == '1' && env.DRY_RUN != '1'
         env:
           DEPLOY_KEY: ${{ secrets.DOCKER_FORK_DEPLOY_KEY }}
-        run: '"$RUNNER_TEMP/push-fork.sh" "$RUNNER_TEMP/docker" whateverneveranywhere/mcp-registry add-getmattered'
+          WORK: ${{ runner.temp }}/docker
+          SRC: HEAD
+          FORK: whateverneveranywhere/mcp-registry
+          BRANCH: add-getmattered
+        run: |
+          if [ -z "$DEPLOY_KEY" ]; then echo "$FORK: SKIPPED (no deploy key secret)"; exit 0; fi
+          home="$(mktemp -d)"
+          trap 'rm -rf "$home"' EXIT
+          install -m 600 /dev/null "$home/deploy_key"
+          printf '%s\n' "$DEPLOY_KEY" > "$home/deploy_key"
+          printf '%s\n' "$GITHUB_HOST_KEY" > "$home/known_hosts"
+          HOME="$home" GIT_SSH_COMMAND="ssh -F /dev/null -i $home/deploy_key -o IdentitiesOnly=yes -o UserKnownHostsFile=$home/known_hosts -o StrictHostKeyChecking=yes" \
+            git -C "$WORK" -c core.hooksPath=/dev/null -c protocol.allow=never -c protocol.ssh.allow=always \
+            push "git@github.com:$FORK.git" "$SRC:refs/heads/$BRANCH"
+          echo "$FORK:$BRANCH now at $(git -C "$WORK" rev-parse "$SRC")"
 
       # cline/marketplace #230: text only (the two entry.json files).
       - name: Cline, prepare
@@ -521,7 +611,8 @@ jobs:
             exit 0
           fi
           git -C "$work" add -A
-          git -C "$work" commit --quiet -m "Update the GetMattered listing text ($TAG)"
+          git -C "$work" -c user.name=GetMattered -c user.email=ava@getmattered.com -c commit.gpgsign=false \
+            commit --quiet -m "Update the GetMattered listing text ($TAG)"
           git -C "$work" show HEAD
           echo "push=1" >> "$GITHUB_OUTPUT"
 
@@ -529,4 +620,18 @@ jobs:
         if: steps.cline.outputs.push == '1' && env.DRY_RUN != '1'
         env:
           DEPLOY_KEY: ${{ secrets.CLINE_FORK_DEPLOY_KEY }}
-        run: '"$RUNNER_TEMP/push-fork.sh" "$RUNNER_TEMP/cline" whateverneveranywhere/marketplace add-aiapplyd'
+          WORK: ${{ runner.temp }}/cline
+          SRC: HEAD
+          FORK: whateverneveranywhere/marketplace
+          BRANCH: add-aiapplyd
+        run: |
+          if [ -z "$DEPLOY_KEY" ]; then echo "$FORK: SKIPPED (no deploy key secret)"; exit 0; fi
+          home="$(mktemp -d)"
+          trap 'rm -rf "$home"' EXIT
+          install -m 600 /dev/null "$home/deploy_key"
+          printf '%s\n' "$DEPLOY_KEY" > "$home/deploy_key"
+          printf '%s\n' "$GITHUB_HOST_KEY" > "$home/known_hosts"
+          HOME="$home" GIT_SSH_COMMAND="ssh -F /dev/null -i $home/deploy_key -o IdentitiesOnly=yes -o UserKnownHostsFile=$home/known_hosts -o StrictHostKeyChecking=yes" \
+            git -C "$WORK" -c core.hooksPath=/dev/null -c protocol.allow=never -c protocol.ssh.allow=always \
+            push "git@github.com:$FORK.git" "$SRC:refs/heads/$BRANCH"
+          echo "$FORK:$BRANCH now at $(git -C "$WORK" rev-parse "$SRC")"
