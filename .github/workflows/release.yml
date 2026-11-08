@@ -22,8 +22,10 @@
 #   GitHub    the built-in GITHUB_TOKEN.
 #
 # One run at a time. GitHub keeps only one pending run per group: a third tag
-# pushed while one runs and one waits replaces the waiting one. Re-dispatch the
-# replaced tag with the command above; the check:mcp-release row stays red until then.
+# pushed while one runs and one waits replaces the waiting one. Do not re-run the
+# replaced tag: the newest tag carries its changes. A run for a tag that a newer
+# v* tag replaced publishes nothing and says so in its summary, because npm and
+# `gh release --latest` would mark the older version latest.
 name: release
 
 on:
@@ -46,6 +48,8 @@ jobs:
       contents: read
     env:
       TAG: ${{ github.ref_name }}
+    outputs:
+      superseded_by: ${{ steps.newer.outputs.superseded_by }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -55,25 +59,39 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Is a newer release already tagged?
+        id: newer
+        run: |
+          newer="$(node scripts/release-steps.mjs newer "$TAG")"
+          echo "$newer" >> "$GITHUB_OUTPUT"
+          if [ "$newer" != "superseded_by=" ]; then
+            echo "## $TAG publishes nothing: ${newer#superseded_by=} replaces it" >> "$GITHUB_STEP_SUMMARY"
+            echo "$TAG publishes nothing: ${newer#superseded_by=} replaces it"
+          fi
+
       - name: Tag, version and release notes agree
+        if: steps.newer.outputs.superseded_by == ''
         run: |
           node scripts/release-steps.mjs check-tag "$TAG"
           mkdir -p "$RUNNER_TEMP/release"
           node scripts/release-steps.mjs notes "${TAG#v}" > "$RUNNER_TEMP/release/notes.md"
 
       - name: Build, test and verify the package
+        if: steps.newer.outputs.superseded_by == ''
         run: |
           npm ci --ignore-scripts --no-audit --no-fund
           npm test
           npm run verify:package
 
       - name: Pack the npm tarball and the OpenAI package
+        if: steps.newer.outputs.superseded_by == ''
         run: |
           npm pack --ignore-scripts --pack-destination "$RUNNER_TEMP/release"
           node scripts/openai-package.mjs "$RUNNER_TEMP/release"
           ls -l "$RUNNER_TEMP/release"
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: steps.newer.outputs.superseded_by == ''
         with:
           name: release
           path: ${{ runner.temp }}/release
@@ -82,6 +100,7 @@ jobs:
 
   publish:
     needs: build
+    if: needs.build.outputs.superseded_by == ''
     runs-on: ubuntu-24.04
     environment: release
     timeout-minutes: 45

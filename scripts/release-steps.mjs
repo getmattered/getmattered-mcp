@@ -7,9 +7,11 @@
  *   node scripts/release-steps.mjs wait <surface> <version> [seconds]
  *   node scripts/release-steps.mjs has <surface> <version> exit 0 when already published
  *   node scripts/release-steps.mjs readback <version>      npm latest and registry latest
+ *   node scripts/release-steps.mjs newer <tag>             prints superseded_by=<newest newer v* tag, or empty>
  *
  * Surfaces: card (the hosted server card), npm, registry.
  */
+import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { argv, exit, stdout } from 'node:process';
 import { pathToFileURL } from 'node:url';
@@ -33,6 +35,28 @@ export function changelogSection(text, version) {
   if (!body) throw new Error(`the ${version} section of CHANGELOG.md is empty`);
   if (body.includes(DRAFT_MARKER)) throw new Error(`the ${version} section of CHANGELOG.md is still a draft`);
   return body;
+}
+
+const compareVersions = (a, b) => {
+  const left = a.split('.').map(Number);
+  const right = b.split('.').map(Number);
+  for (let i = 0; i < 3; i += 1) {
+    if (left[i] !== right[i]) return left[i] - right[i];
+  }
+  return 0;
+};
+
+/**
+ * The newest release tag above `tag` in `git ls-remote --tags --refs` output, or null.
+ * A run for a replaced tag publishes nothing: npm and `gh release --latest` would
+ * otherwise mark the older version latest. The newer release carries its changes.
+ */
+export function newerTag(tag, lsRemote) {
+  const names = lsRemote.split('\n').map(line => line.split('\t')[1]?.replace('refs/tags/', '') ?? '');
+  const newer = names
+    .filter(name => /^v\d+\.\d+\.\d+$/.test(name) && compareVersions(name.slice(1), tag.slice(1)) > 0)
+    .sort((a, b) => compareVersions(a.slice(1), b.slice(1)));
+  return newer.at(-1) ?? null;
 }
 
 /** The tag that started the run must be the package version. */
@@ -93,6 +117,12 @@ async function main() {
   }
   if (command === 'wait') {
     if (!(await waitFor(first, second, { seconds: Number(argv[5] ?? 900) }))) throw new Error(`${first} did not report ${second} in time`);
+    return;
+  }
+  if (command === 'newer') {
+    // Throws when the remote does not answer: an unread tag list is never "no newer tag".
+    const listed = execFileSync('git', ['ls-remote', '--tags', '--refs', 'origin', 'v*'], { encoding: 'utf8', timeout: 60_000 });
+    stdout.write(`superseded_by=${newerTag(first, listed) ?? ''}\n`);
     return;
   }
   if (command === 'readback') {

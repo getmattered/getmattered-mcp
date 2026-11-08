@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
-import { changelogSection, DRAFT_MARKER, readbackProblems, SURFACE_URLS, surfaceHas, tagMatches, waitFor } from '../scripts/release-steps.mjs';
+import { changelogSection, DRAFT_MARKER, newerTag, readbackProblems, SURFACE_URLS, surfaceHas, tagMatches, waitFor } from '../scripts/release-steps.mjs';
 
 const CHANGELOG = '# Changelog\n\n## 1.15.1\n\nREADME only.\n\n- One line.\n\n## 1.15.0\n\nOlder.\n';
 
@@ -20,6 +20,14 @@ test('a missing, empty or draft section stops the release', () => {
 test('the committed changelog has a section for the package version', () => {
   const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
   assert.ok(changelogSection(readFileSync(new URL('../CHANGELOG.md', import.meta.url), 'utf8'), pkg.version).length > 0);
+});
+
+test('a tag that a newer release tag replaced is found, so its run publishes nothing', () => {
+  const listed = ['a\trefs/tags/v1.14.1', 'b\trefs/tags/v1.15.0', 'c\trefs/tags/v1.15.10', 'd\trefs/tags/v1.15.2', 'e\trefs/tags/v2.0.0-rc.1', ''].join('\n');
+  assert.equal(newerTag('v1.15.0', listed), 'v1.15.10');
+  assert.equal(newerTag('v1.15.2', listed), 'v1.15.10');
+  assert.equal(newerTag('v1.15.10', listed), null);
+  assert.equal(newerTag('v1.16.0', listed), null);
 });
 
 test('the tag must be the package version', () => {
