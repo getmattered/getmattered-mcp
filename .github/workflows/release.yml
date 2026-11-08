@@ -1,17 +1,32 @@
 # Publishes one GetMattered MCP release from its tag: npm, the MCP Registry and
-# the GitHub release, with the OpenAI package ZIP for the ChatGPT app attached.
+# the GitHub release, with the OpenAI package ZIP for the ChatGPT app and the
+# Claude Desktop bundle (.mcpb, unsigned) attached.
 #
 # The tag is pushed by GetMattered's own build after the hosted server is live
 # (this repository is a mirror of tools/mcp-bridge there; see the README). Every
 # step skips what is already published, so a re-run is safe:
 #   gh workflow run release.yml --ref v<version>
 #
-# Two jobs, so third-party code never runs next to a publish credential:
-#   build    read-only token, no secrets: installs (scripts off), tests, verifies,
-#            packs the npm tarball, builds the OpenAI ZIP, cuts the release notes.
-#   publish  the `release` environment: downloads those files and publishes them.
-#            It installs only npm itself (pinned, scripts off; trusted publishing
-#            needs npm 11.5.1+) and runs only this repo's own scripts with node.
+# Jobs, so third-party code never runs next to a publish credential:
+#   build      read-only token, no secrets: gates (claude plugin validate with the
+#              directory profile, the wording lint), installs (scripts off), tests,
+#              verifies, packs the npm tarball, builds the OpenAI ZIP and the .mcpb,
+#              cuts the release notes. Claude Code's own installer runs here, with
+#              no secret in reach.
+#   publish    the `release` environment: downloads those files and publishes them.
+#              It installs only npm itself (pinned, scripts off; trusted publishing
+#              needs npm 11.5.1+) and runs only this repo's own scripts with node.
+#   reminders  after publish, `issues: write` only: opens one "vX: human steps"
+#              issue when this release changed something a person must carry over
+#              (Claude listing tool names, the ChatGPT package, Glama).
+#   lobehub    after publish, the `release` environment for LOBEHUB_CREDENTIALS only,
+#              no id-token: `lhm plugin update`. No secret prints SKIPPED; a failure
+#              warns and never fails the release, which is already out.
+#   listings   after publish, the `release-forks` environment (v* tags only): updates
+#              OUR open listing PR branches (xAI #1238, Docker #6054, Cline #230)
+#              only when the content they pin changed. Each fork has its own deploy
+#              key, written only for its push step. It never opens a PR, never
+#              comments, and a branch that already matches is left alone.
 #
 # Order: npm, then the GitHub release, then the MCP Registry. The registry is
 # last because it is the step most likely to refuse content (server.json) that a
@@ -26,6 +41,14 @@
 #             mcp-publisher takes it only as --private-key, so it sits in the argv
 #             of one step on a throwaway runner; GitHub masks it in the log.
 #   GitHub    the built-in GITHUB_TOKEN.
+#   LobeHub   LOBEHUB_CREDENTIALS, an environment secret of `release`: the
+#             ~/.lobehub-market/user-credentials.json that `lhm login` wrote.
+#   forks     XAI_FORK_DEPLOY_KEY, DOCKER_FORK_DEPLOY_KEY, CLINE_FORK_DEPLOY_KEY,
+#             environment secrets of `release-forks`: SSH deploy keys with write
+#             access to one fork each. Backed up in the macOS keychain
+#             (mattered-fork-key-<xai|docker|cline>).
+#   Repository variable LISTINGS_DRY_RUN=1 makes the listings job print its diff
+#   and push nothing.
 #
 # One run at a time. GitHub keeps only one pending run per group: a third tag
 # pushed while one runs and one waits replaces the waiting one. Do not re-run the
@@ -84,6 +107,22 @@ jobs:
           mkdir -p "$RUNNER_TEMP/release"
           node scripts/release-steps.mjs notes "${TAG#v}" > "$RUNNER_TEMP/release/notes.md"
 
+      - name: Wording lint (skills and manifests)
+        if: steps.newer.outputs.superseded_by == ''
+        run: node scripts/wording-lint.mjs .
+
+      # The directory runs more checks than this; a pass here does not promise the portal accepts it.
+      - name: Claude plugin validate (directory profile, strict)
+        if: steps.newer.outputs.superseded_by == ''
+        env:
+          CLAUDE_CODE_VERSION: '2.1.319'
+        run: |
+          npm install --prefix "$RUNNER_TEMP/claude-code" --no-audit --no-fund "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
+          claude="$RUNNER_TEMP/claude-code/node_modules/.bin/claude"
+          "$claude" --version
+          "$claude" plugin validate --profile directory --strict plugins/getmattered
+          "$claude" plugin validate --strict .
+
       - name: Build, test and verify the package
         if: steps.newer.outputs.superseded_by == ''
         run: |
@@ -96,6 +135,24 @@ jobs:
         run: |
           npm pack --ignore-scripts --pack-destination "$RUNNER_TEMP/release"
           node scripts/openai-package.mjs "$RUNNER_TEMP/release"
+
+      # The bridge with its production dependencies, signing in on the first tool call
+      # (manifest.json sets GETMATTERED_LOGIN_ON_START=1). Unsigned: a CA certificate is paid.
+      - name: Pack the Claude Desktop bundle (.mcpb)
+        if: steps.newer.outputs.superseded_by == ''
+        env:
+          MCPB_VERSION: '2.1.2'
+        run: |
+          stage="$RUNNER_TEMP/mcpb-stage"
+          mkdir -p "$stage/assets"
+          cp -R manifest.json package.json package-lock.json LICENSE README.md dist "$stage/"
+          cp assets/logo-400.png "$stage/assets/"
+          (cd "$stage" && npm ci --omit=dev --ignore-scripts --no-audit --no-fund)
+          npm install --prefix "$RUNNER_TEMP/mcpb-cli" --ignore-scripts --no-audit --no-fund "@anthropic-ai/mcpb@${MCPB_VERSION}"
+          mcpb="$RUNNER_TEMP/mcpb-cli/node_modules/.bin/mcpb"
+          "$mcpb" validate "$stage/manifest.json"
+          "$mcpb" pack "$stage" "$RUNNER_TEMP/release/getmattered-${TAG#v}.mcpb"
+          "$mcpb" info "$RUNNER_TEMP/release/getmattered-${TAG#v}.mcpb"
           ls -l "$RUNNER_TEMP/release"
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -159,6 +216,7 @@ jobs:
             echo "VERSION=$VERSION"
             echo "TARBALL=$RUNNER_TEMP/release/getmattered-mcp-$VERSION.tgz"
             echo "OPENAI_ZIP=$RUNNER_TEMP/release/getmattered-$VERSION-openai.zip"
+            echo "MCPB=$RUNNER_TEMP/release/getmattered-$VERSION.mcpb"
             echo "NOTES=$RUNNER_TEMP/release/notes.md"
           } >> "$GITHUB_ENV"
 
@@ -178,17 +236,25 @@ jobs:
           # The registry checks the npm package and its mcpName before it accepts server.json.
           node scripts/release-steps.mjs wait npm "$VERSION" 600
 
-      - name: Publish the GitHub release with the OpenAI package
+      # The notes end with a hidden line of the live tool names, so the next
+      # release's reminders can tell whether the Claude listing needs a sync.
+      - name: Publish the GitHub release with the OpenAI package and the .mcpb
         if: steps.newer.outputs.superseded_by == ''
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           test -f "$OPENAI_ZIP"
+          test -f "$MCPB"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
             echo "release $TAG already exists"
-            gh release upload "$TAG" "$OPENAI_ZIP" --repo "$GITHUB_REPOSITORY" --clobber
+            gh release upload "$TAG" "$OPENAI_ZIP" "$MCPB" --repo "$GITHUB_REPOSITORY" --clobber
           else
-            gh release create "$TAG" "$OPENAI_ZIP" --repo "$GITHUB_REPOSITORY" --verify-tag --latest \
+            if marker="$(node scripts/release-steps.mjs tool-marker)"; then
+              printf '\n%s\n' "$marker" >> "$NOTES"
+            else
+              echo "::warning::tool names unread; the next release's reminders will say UNOBSERVED"
+            fi
+            gh release create "$TAG" "$OPENAI_ZIP" "$MCPB" --repo "$GITHUB_REPOSITORY" --verify-tag --latest \
               --title "GetMattered MCP $VERSION" --notes-file "$NOTES"
           fi
 
@@ -218,11 +284,249 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           surfaces="$(node scripts/release-steps.mjs readback "$VERSION")"
-          release="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,isPrerelease,tagName,assets --jq '"\(.tagName) draft=\(.isDraft) prerelease=\(.isPrerelease) assets=\([.assets[].name] | join(","))"')"
+          release="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,isPrerelease,tagName --jq '"\(.tagName) draft=\(.isDraft) prerelease=\(.isPrerelease)"')"
+          assets="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '[.assets[].name] | join(",")')"
           {
             echo "## GetMattered MCP $VERSION"
             echo "- $surfaces"
-            echo "- GitHub release: $release"
-            echo "- ChatGPT: upload getmattered-$VERSION-openai.zip at platform.openai.com/plugins only when skills, metadata or assets changed; tool text reaches ChatGPT through its daily scan (press Rescan)."
+            echo "- GitHub release: $release assets=$assets"
+            echo "- Human steps, when this release has any, are on the issue \"$TAG: human steps\"."
           } >> "$GITHUB_STEP_SUMMARY"
-          test "$release" = "$TAG draft=false prerelease=false assets=getmattered-$VERSION-openai.zip"
+          test "$release" = "$TAG draft=false prerelease=false"
+          node scripts/release-steps.mjs assets "$VERSION" "$assets"
+
+  # One issue per release, only when a person has something to carry over. It is
+  # edited on a re-run, never commented on.
+  reminders:
+    needs: publish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+
+      - name: Open the human steps issue when this release has steps
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${TAG#v}"
+          previous="$(node scripts/release-steps.mjs previous "$TAG")"
+          notes="$RUNNER_TEMP/previous-notes.md"
+          : > "$notes"
+          if [ -n "$previous" ]; then
+            gh release view "$previous" --repo "$GITHUB_REPOSITORY" --json body --jq .body > "$notes" || : > "$notes"
+          fi
+          body="$RUNNER_TEMP/reminders.md"
+          node scripts/release-steps.mjs reminders "$VERSION" "$previous" "$notes" > "$body"
+          if [ ! -s "$body" ]; then
+            echo "$TAG needs no human steps"
+            exit 0
+          fi
+          title="$TAG: human steps"
+          number="$(gh issue list --repo "$GITHUB_REPOSITORY" --state all --search "\"$title\" in:title" --json number,title --jq "[.[] | select(.title == \"$title\")][0].number // empty")"
+          if [ -n "$number" ]; then
+            gh issue edit "$number" --repo "$GITHUB_REPOSITORY" --body-file "$body"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file "$body"
+          fi
+          cat "$body" >> "$GITHUB_STEP_SUMMARY"
+
+  lobehub:
+    needs: publish
+    runs-on: ubuntu-24.04
+    environment: release
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+
+      # lhm reads ~/.lobehub-market/user-credentials.json. It may rotate the refresh
+      # token; the step warns when the file changed, so the secret can be replaced.
+      - name: Push the version to LobeHub
+        env:
+          LOBEHUB_CREDENTIALS: ${{ secrets.LOBEHUB_CREDENTIALS }}
+          LHM_VERSION: '0.0.46'
+        run: |
+          if [ -z "$LOBEHUB_CREDENTIALS" ]; then
+            echo "LobeHub: SKIPPED (no LOBEHUB_CREDENTIALS secret)"
+            echo "- LobeHub: SKIPPED, no LOBEHUB_CREDENTIALS secret" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          creds="$HOME/.lobehub-market/user-credentials.json"
+          set +e
+          (
+            set -e
+            install -d -m 700 "$HOME/.lobehub-market"
+            install -m 600 /dev/null "$creds"
+            printf '%s' "$LOBEHUB_CREDENTIALS" > "$creds"
+            before="$(sha256sum "$creds" | cut -d' ' -f1)"
+            npm install --prefix "$RUNNER_TEMP/lhm" --ignore-scripts --no-audit --no-fund "@lobehub/market-cli@${LHM_VERSION}"
+            lhm="$RUNNER_TEMP/lhm/node_modules/.bin/lhm"
+            mkdir -p "$RUNNER_TEMP/lhm-init"
+            "$lhm" plugin init --url https://mcp.getmattered.com/mcp --dir "$RUNNER_TEMP/lhm-init" --force
+            node scripts/release-steps.mjs lobehub "$RUNNER_TEMP/lhm-init/lhm.plugin.json" "$RUNNER_TEMP/lhm-update/lhm.plugin.json"
+            "$lhm" plugin update --dir "$RUNNER_TEMP/lhm-update"
+            if [ "$before" != "$(sha256sum "$creds" | cut -d' ' -f1)" ]; then
+              echo "::warning::LobeHub rotated its sign-in. Save a fresh user-credentials.json as LOBEHUB_CREDENTIALS before the next release."
+            fi
+          )
+          status=$?
+          rm -rf "$HOME/.lobehub-market"
+          if [ "$status" -ne 0 ]; then
+            echo "::warning::LobeHub update failed (exit $status). The release itself is published."
+            echo "- LobeHub: FAILED (exit $status); the release itself is published" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- LobeHub: updated to ${TAG#v}" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit 0
+
+  # OUR open listing PRs. Forks are cloned over HTTPS (they are public) and
+  # changed with no secret on the runner; each deploy key is written only in its
+  # own push step. xAI's index script (their code) runs before any key exists.
+  listings:
+    needs: publish
+    runs-on: ubuntu-24.04
+    environment: release-forks
+    timeout-minutes: 30
+    concurrency:
+      group: listings
+      cancel-in-progress: false
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ github.ref_name }}
+      DRY_RUN: ${{ vars.LISTINGS_DRY_RUN }}
+      GITHUB_HOST_KEY: 'github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+
+      - name: Git identity and the push helper
+        run: |
+          git config --global user.name GetMattered
+          git config --global user.email ava@getmattered.com
+          git config --global commit.gpgsign false
+          printf '%s\n' "$GITHUB_HOST_KEY" > "$RUNNER_TEMP/known_hosts"
+          cat > "$RUNNER_TEMP/push-fork.sh" <<'SH'
+          #!/usr/bin/env bash
+          # push-fork.sh <checkout> <owner/repo> <branch>; the key arrives in DEPLOY_KEY.
+          set -euo pipefail
+          if [ -z "${DEPLOY_KEY:-}" ]; then
+            echo "$2: SKIPPED (no deploy key secret)"
+            exit 0
+          fi
+          key="$RUNNER_TEMP/deploy_key"
+          install -m 600 /dev/null "$key"
+          trap 'rm -f "$key"' EXIT
+          printf '%s\n' "$DEPLOY_KEY" > "$key"
+          GIT_SSH_COMMAND="ssh -i $key -o IdentitiesOnly=yes -o UserKnownHostsFile=$RUNNER_TEMP/known_hosts -o StrictHostKeyChecking=yes" \
+            git -C "$1" push "git@github.com:$2.git" "HEAD:$3"
+          echo "$2:$3 now at $(git -C "$1" rev-parse HEAD)"
+          SH
+          chmod 700 "$RUNNER_TEMP/push-fork.sh"
+
+      # xai-org/plugin-marketplace #1238: repin to the release commit and regenerate
+      # their index, as their CONTRIBUTING says. Only when plugins/getmattered changed.
+      - name: xAI, prepare
+        id: xai
+        run: |
+          new_sha="$(git rev-parse "$TAG^{commit}")"
+          work="$RUNNER_TEMP/xai"
+          git clone --quiet --branch add-aiapplyd --single-branch https://github.com/getmattered/plugin-marketplace.git "$work"
+          old_sha="$(node scripts/listing-prs.mjs pin "$work/.grok-plugin/marketplace.json")"
+          if [ "$old_sha" = "$new_sha" ]; then
+            echo "xAI: the branch already pins $new_sha"
+            exit 0
+          fi
+          if git cat-file -e "$old_sha^{commit}" 2>/dev/null && git diff --quiet "$old_sha" "$new_sha" -- plugins/getmattered; then
+            echo "xAI: plugins/getmattered is unchanged since $old_sha, nothing to repin"
+            exit 0
+          fi
+          cp "$work/.grok-plugin/marketplace.json" "$RUNNER_TEMP/xai-branch.json"
+          git -C "$work" fetch --quiet https://github.com/xai-org/plugin-marketplace.git main
+          git -C "$work" show FETCH_HEAD:.grok-plugin/marketplace.json > "$RUNNER_TEMP/xai-upstream.json"
+          # Their main, plus our entry: a merge that takes upstream's tree, so the PR is not behind.
+          git -C "$work" merge --quiet -s ours --no-commit FETCH_HEAD || true
+          git -C "$work" checkout FETCH_HEAD -- .
+          node scripts/listing-prs.mjs xai "$RUNNER_TEMP/xai-branch.json" "$RUNNER_TEMP/xai-upstream.json" "$new_sha" "$work/.grok-plugin/marketplace.json"
+          (cd "$work" && python3 scripts/generate-plugin-index.py && python3 scripts/validate-catalog.py && python3 scripts/generate-plugin-index.py --check)
+          git -C "$work" add -A
+          git -C "$work" commit --quiet -m "Repin GetMattered to $TAG ($new_sha)"
+          git -C "$work" show --stat HEAD
+          echo "push=1" >> "$GITHUB_OUTPUT"
+
+      - name: xAI, push
+        if: steps.xai.outputs.push == '1' && env.DRY_RUN != '1'
+        env:
+          DEPLOY_KEY: ${{ secrets.XAI_FORK_DEPLOY_KEY }}
+        run: '"$RUNNER_TEMP/push-fork.sh" "$RUNNER_TEMP/xai" getmattered/plugin-marketplace add-aiapplyd'
+
+      # docker/mcp-registry #6054: metadata only (server.yaml, readme.md).
+      - name: Docker, prepare
+        id: docker
+        run: |
+          work="$RUNNER_TEMP/docker"
+          git clone --quiet --depth 20 --branch add-getmattered --single-branch https://github.com/whateverneveranywhere/mcp-registry.git "$work"
+          changed="$(node scripts/listing-prs.mjs copy docker "$work")"
+          if [ -z "$changed" ]; then
+            echo "Docker: the branch already matches listings/docker"
+            exit 0
+          fi
+          git -C "$work" add -A
+          git -C "$work" commit --quiet -m "Update the GetMattered listing text ($TAG)"
+          git -C "$work" show HEAD
+          echo "push=1" >> "$GITHUB_OUTPUT"
+
+      - name: Docker, push
+        if: steps.docker.outputs.push == '1' && env.DRY_RUN != '1'
+        env:
+          DEPLOY_KEY: ${{ secrets.DOCKER_FORK_DEPLOY_KEY }}
+        run: '"$RUNNER_TEMP/push-fork.sh" "$RUNNER_TEMP/docker" whateverneveranywhere/mcp-registry add-getmattered'
+
+      # cline/marketplace #230: text only (the two entry.json files).
+      - name: Cline, prepare
+        id: cline
+        run: |
+          work="$RUNNER_TEMP/cline"
+          git clone --quiet --depth 20 --branch add-aiapplyd --single-branch https://github.com/whateverneveranywhere/marketplace.git "$work"
+          changed="$(node scripts/listing-prs.mjs copy cline "$work")"
+          if [ -z "$changed" ]; then
+            echo "Cline: the branch already matches listings/cline"
+            exit 0
+          fi
+          git -C "$work" add -A
+          git -C "$work" commit --quiet -m "Update the GetMattered listing text ($TAG)"
+          git -C "$work" show HEAD
+          echo "push=1" >> "$GITHUB_OUTPUT"
+
+      - name: Cline, push
+        if: steps.cline.outputs.push == '1' && env.DRY_RUN != '1'
+        env:
+          DEPLOY_KEY: ${{ secrets.CLINE_FORK_DEPLOY_KEY }}
+        run: '"$RUNNER_TEMP/push-fork.sh" "$RUNNER_TEMP/cline" whateverneveranywhere/marketplace add-aiapplyd'

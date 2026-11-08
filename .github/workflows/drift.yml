@@ -1,0 +1,90 @@
+# Reads every platform that shows GetMattered once a day and rewrites the body of
+# the one pinned "Platform drift" issue (created when missing). It never comments.
+#
+# The rows, classes and thresholds live in scripts/platform-drift.mjs (mirrored
+# from tools/mcp-bridge in GetMattered's monorepo, like the rest of this repo):
+#   gate        hosted server, npm, MCP Registry, GitHub release. Behind past 6 h,
+#               or unreadable, fails this run.
+#   follower    registry, npm and GitHub followers. 48 h for the GitHub MCP gallery
+#               (read through /v0.1), 7 days for the rest. Prints only.
+#   manual      Glama (Sync Server, Make Release). Prints only.
+#   submission  Gemini CLI gallery: not listed. Prints only.
+# A blocked read prints UNOBSERVED, never a pass. Several sites block Actions IPs.
+#
+#   gh workflow run drift.yml --repo getmattered/getmattered-mcp
+name: drift
+
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: drift
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  drift:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+
+      - name: Read every platform
+        id: read
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          body="$RUNNER_TEMP/drift.md"
+          if [ ! -f scripts/platform-drift.mjs ]; then
+            echo "scripts/platform-drift.mjs is not on main yet: it arrives with the next release. Nothing was read."
+            echo "status=skip" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          set +e
+          node scripts/platform-drift.mjs --out "$body" > /dev/null
+          status=$?
+          set -e
+          if [ ! -s "$body" ]; then
+            printf 'The drift reader stopped before it wrote the table (exit %s), so every row is UNOBSERVED. Run: %s\n' \
+              "$status" "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" > "$body"
+          fi
+          cat "$body" >> "$GITHUB_STEP_SUMMARY"
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+
+      - name: Rewrite the pinned Platform drift issue
+        if: steps.read.outputs.status != 'skip'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title="Platform drift"
+          body="$RUNNER_TEMP/drift.md"
+          number="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"$title\" in:title" --json number,title --jq "[.[] | select(.title == \"$title\")][0].number // empty")"
+          if [ -z "$number" ]; then
+            url="$(gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file "$body")"
+            number="${url##*/}"
+            echo "created #$number"
+          else
+            gh issue edit "$number" --repo "$GITHUB_REPOSITORY" --body-file "$body"
+            echo "rewrote #$number"
+          fi
+          if [ "$(gh issue view "$number" --repo "$GITHUB_REPOSITORY" --json isPinned --jq .isPinned)" != "true" ]; then
+            gh issue pin "$number" --repo "$GITHUB_REPOSITORY" || echo "::warning::could not pin #$number"
+          fi
+
+      - name: Core surfaces gate the run
+        if: steps.read.outputs.status != 'skip'
+        env:
+          STATUS: ${{ steps.read.outputs.status }}
+        run: exit "$STATUS"
