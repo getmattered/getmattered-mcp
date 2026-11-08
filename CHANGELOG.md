@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.15.1
+
+40 tools with the same names. Server instructions, tool descriptions and skills describe what each tool does, with no orders and no comparisons. Email applications are gone; the inbox and replies stay. A refused job link names the reason, a preference save keeps the stated fields when the AI allowance is used up, a batch of links waits and retries inside the call, and a resume sent as a link or as text is read.
+
 ## 1.15.0
 
 The hosted server lists the same 40 tools as 1.14.0, with the same names. Its answers changed.

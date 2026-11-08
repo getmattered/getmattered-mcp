@@ -27,7 +27,9 @@ for (const key of ['websiteURL', 'supportURL', 'privacyPolicyURL', 'termsOfServi
 assert.ok(ui.capabilities.length <= 20 && ui.capabilities.every(value => value.length <= 120));
 assert.ok(ui.defaultPrompt.length <= 3 && ui.defaultPrompt.every(value => value.length <= 128));
 assert.equal(new Set(ui.defaultPrompt).size, ui.defaultPrompt.length);
-const [pack] = JSON.parse(execFileSync('npm', ['pack', '--dry-run', '--ignore-scripts', '--json'], { encoding: 'utf8' }));
+// npm 11 prints an array of packs; npm 12 prints an object keyed by package name.
+const packed = JSON.parse(execFileSync('npm', ['pack', '--dry-run', '--ignore-scripts', '--json'], { encoding: 'utf8' }));
+const pack = Array.isArray(packed) ? packed[0] : packed[pkg.name];
 const files = new Set(pack.files.map(file => file.path));
 const skills = readdirSync(`${root}/skills`, { withFileTypes: true }).filter(entry => entry.isDirectory());
 assert.equal(skills.length, 14, 'Expected the fourteen job-search workflows');

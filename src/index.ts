@@ -34,7 +34,7 @@ import { getAccessToken, login, logout } from './auth.js';
 import { resolveToolName } from './tool-names.js';
 
 const DEFAULT_ENDPOINT = 'https://mcp.getmattered.com/mcp';
-const VERSION = '1.15.0';
+const VERSION = '1.15.1';
 const FLUSH_GRACE_MS = 1500;
 
 // GETMATTERED_MCP_URL overrides the default endpoint.

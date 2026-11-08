@@ -1,6 +1,6 @@
 {
   "name": "getmattered",
-  "version": "1.15.0",
+  "version": "1.15.1",
   "description": "Auto-Apply That Ends on an Interview. Get matched jobs, apply on 30+ hiring systems automatically or after your approval, review and track every application, and tailor your resume and cover letter per role.",
   "author": {
     "name": "GetMattered",
@@ -147,7 +147,7 @@
         "commerce_description": "The plugin does not sell products or take payments. Paid GetMattered plans are bought on getmattered.com."
       },
       "publication": {
-        "release_notes": "1.15.0: The same 40 tools with the same names. Answers are clearer. An answer that ends without an application names one next step inside GetMattered. A short match list says how to get more matches. Profile fields are no longer asked for on each application, and address fields come from the saved address. Apply follows the user's apply setting when no mode is given. The application list gives one plain reason per row, and a declined row says nothing was sent. Workday, BambooHR and Ashby links are read more reliably. A LinkedIn or Indeed link leads to the employer's own posting, or the answer says how to find it. The account tool shows the free applications correctly."
+        "release_notes": "1.15.1: 40 tools with the same names. Server instructions, tool descriptions and skills describe what each tool does, with no orders and no comparisons. Email applications are gone; the inbox and replies stay. A refused job link names the reason, a preference save keeps the stated fields when the AI allowance is used up, a batch of links waits and retries inside the call, and a resume sent as a link or as text is read."
       },
       "onboardingSkill": "./skills/setup-job-search/SKILL.md"
     }

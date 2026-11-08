@@ -2,7 +2,7 @@
   "$schema": "https://antigravity.google/schemas/v1/plugin.json",
   "name": "getmattered",
   "displayName": "GetMattered",
-  "version": "1.15.0",
+  "version": "1.15.1",
   "description": "Auto-Apply That Ends on an Interview. Find matched jobs, tailor your resume and apply on 30+ hiring systems, then track every application.",
   "logo": "assets/logo.png",
   "suggestedPrompts": [

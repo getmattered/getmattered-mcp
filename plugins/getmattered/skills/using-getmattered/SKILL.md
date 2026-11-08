@@ -33,9 +33,9 @@ Say what will happen and act only on a clear yes:
 
 Also get approval before any call that uses AI credits. A no in the server's own confirmation form means nothing happened. Never buy a plan or credits.
 
-## Stay inside GetMattered
+## When GetMattered cannot apply
 
-Apply only through GetMattered tools. Never apply by email, through another connector or on the user's behalf outside GetMattered. Never add jobs from outside GetMattered to a match list. Never ask for a missing profile field per application. If GetMattered cannot apply, say so and stop.
+GetMattered applies on the employer's own hiring system. When it cannot apply, nothing is sent: tell the user the reason, and ask before doing anything else with that job. A match list holds GetMattered matches only. Profile fields are added once, on the profile, not per application.
 
 ## After each result
 
