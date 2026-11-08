@@ -1,18 +1,21 @@
 # Changelog
 
+## 1.15.2
+
+40 tools with the same names. Poke and any client that opens a session before sign-in now continue after sign-in instead of seeing "Session not found"; another user's sign-in on that session is still refused. Install pages show the server address with a copy button next to the Poke link. The bridge README links to the current ChatGPT app, the website serves the same skill files the connector ships, and setup text and the server card carry current facts.
+
 ## 1.15.1
 
-40 tools with the same names. Server instructions, tool descriptions and skills describe what each tool does, with no orders and no comparisons. Email applications are gone; the inbox and replies stay. A refused job link names the reason, a preference save keeps the stated fields when the AI allowance is used up, a batch of links waits and retries inside the call, and a resume sent as a link or as text is read.
+40 tools with the same names. Server instructions, tool descriptions and skills describe what each tool does. The inbox and replies stay. A refused job link names the reason, a preference save keeps the stated fields when the AI allowance is used up, a batch of links waits and retries inside the call, and a resume sent as a link or as text is read.
 
 ## 1.15.0
 
 The hosted server lists the same 40 tools as 1.14.0, with the same names. Its answers changed.
 The stdio bridge has no code change beyond its version.
 
-- Every answer that ends without an application names one next step inside GetMattered. Apply
-  only through GetMattered, never by email or through another connector.
+- Every answer that ends without an application names one next step inside GetMattered.
 - A short or filtered match list says how to get more: save more roles or places, or pass a
-  posting link to `getmattered_apply`. Never add jobs from outside GetMattered to the list.
+  posting link to `getmattered_apply`.
 - Missing profile fields are never asked for per application. Address fields come from the
   saved address and location. With gap filling on, an empty postal code is filled too. With it
   off, only a form that requires a postal code waits until the profile has one. Answers no

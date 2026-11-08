@@ -1,6 +1,6 @@
 {
   "name": "getmattered",
-  "version": "1.15.1",
+  "version": "1.15.2",
   "description": "Auto-Apply That Ends on an Interview. Get matched jobs, apply on 30+ hiring systems automatically or after your approval, review and track every application, and tailor your resume and cover letter per role.",
   "author": {
     "name": "GetMattered",
@@ -147,7 +147,7 @@
         "commerce_description": "The plugin does not sell products or take payments. Paid GetMattered plans are bought on getmattered.com."
       },
       "publication": {
-        "release_notes": "1.15.1: 40 tools with the same names. Server instructions, tool descriptions and skills describe what each tool does, with no orders and no comparisons. Email applications are gone; the inbox and replies stay. A refused job link names the reason, a preference save keeps the stated fields when the AI allowance is used up, a batch of links waits and retries inside the call, and a resume sent as a link or as text is read."
+        "release_notes": "1.15.2: 40 tools with the same names. Poke and any client that opens a session before sign-in now continue after sign-in instead of seeing \"Session not found\"; another user's sign-in on that session is still refused. Install pages show the server address with a copy button next to the Poke link. The bridge README links to the current ChatGPT app, the website serves the same skill files the connector ships, and setup text and the server card carry current facts."
       },
       "onboardingSkill": "./skills/setup-job-search/SKILL.md"
     }

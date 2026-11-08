@@ -7,7 +7,7 @@ description: Save the user's current GetMattered job preferences as a named sear
 
 1. Call `getmattered_list_saved_searches`. Show each search's name and whether alerts are on.
 2. A saved search is a snapshot of the current preferences. Call `getmattered_create_saved_search` to save them.
-3. To save a different search, the preferences must change first, which also changes the matches. Do it only when the user asks.
+3. To save a different search, the preferences change first, which also changes the matches. Do it only when the user asks.
 4. `getmattered_update_saved_search` renames a search or switches its alerts.
 5. `getmattered_delete_saved_search` removes it for good. Name it first, and act only when the user asks.
 

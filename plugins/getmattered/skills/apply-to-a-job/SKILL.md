@@ -15,7 +15,7 @@ Start here. Call `getmattered_get_account`. If no resume is on file, ask for it 
 6. If it is held for review, use the review-and-send skill.
 7. On a timeout or an error, call `getmattered_get_applications` before you retry, because the application may already have started.
 8. A job board link (LinkedIn, Indeed and others) resolves to the employer's own posting. If the answer says it could not, find the job on the employer's own careers page or hiring system with your own search, and call `getmattered_apply` with that link. If you cannot find it, tell the user GetMattered cannot apply to it.
-9. If the answer is `not_applied`, nothing was sent. Tell the user the reason and the next step it names.
+9. If the answer status is not_applied, nothing was sent. Tell the user the reason and the next step it names.
 
 When GetMattered cannot apply, nothing was sent to the employer. Tell the user, and ask before doing anything else with this job. Profile fields are added once, on the profile, not per application.
 

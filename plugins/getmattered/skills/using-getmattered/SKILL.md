@@ -23,7 +23,7 @@ Start with `getmattered_get_account`. Set a resume before you match or apply. Th
 
 ## Actions that need the user's yes
 
-Say what will happen and act only on a clear yes:
+Say what will happen and wait for a clear yes:
 
 - `getmattered_apply` when it can submit with no review.
 - `getmattered_approve_applications`. It sends the application.
@@ -35,7 +35,7 @@ Also get approval before any call that uses AI credits. A no in the server's own
 
 ## When GetMattered cannot apply
 
-GetMattered applies on the employer's own hiring system. When it cannot apply, nothing is sent: tell the user the reason, and ask before doing anything else with that job. A match list holds GetMattered matches only. Profile fields are added once, on the profile, not per application.
+GetMattered applies on the employer's own hiring system. When it cannot apply, nothing is sent: tell the user the reason, and ask before doing anything else with that job. `getmattered_get_matches` lists the user's GetMattered matches. Profile fields are added once, on the profile, not per application.
 
 ## After each result
 

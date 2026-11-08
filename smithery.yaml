@@ -1,15 +1,15 @@
 name: getmattered
 description: >-
-  Auto-apply that ends on an interview, not an application sent. Every other tool counts the
-  applications it sent; this one submits on the company's own hiring system and keeps the
-  confirmation their system returns, so a real rejection is distinguishable from a form that
-  dropped the application. It runs
-  inside the assistant you already work in: your matched jobs, the application itself (sent
-  automatically or held for your yes), the review queue, receipt tracking, ATS resume scoring, a
-  resume rewritten for each specific role, cover letters in your own voice and interview preparation. It applies on 30+ hiring systems, including
-  Greenhouse, Lever, Ashby, Workday, Personio, Teamtailor, SmartRecruiters, Recruitee, Breezy, Workable, Rippling, BambooHR, JazzHR, softgarden, Jobvite, Gem, Zoho Recruit, Dayforce, Hireology, Dover, Oracle Recruiting Cloud, Paylocity, Oracle Taleo, UKG Pro Recruiting, ADP, Avature, CareerPlug, Pinpoint, Manatal, and Eightfold. Every application goes in on the company's real careers page, under your name, with
-  your own materials. Free GetMattered account (Google sign-in, no card) with a 10,000-token starter
-  grant; every tool runs on your own AI credits.
+  Auto-Apply That Ends on an Interview. GetMattered submits each application on the company's own
+  hiring system and keeps the confirmation that system returns, so a rejection reads as a rejection
+  and a dropped form reads as a dropped form. It runs inside the assistant you already work in: your
+  matched jobs, the application itself (sent automatically or held for your yes), the review queue,
+  receipt tracking, ATS resume scoring, a resume rewritten for each specific role, cover letters in
+  your own voice and interview preparation. It applies on 30+ hiring systems, including
+  Greenhouse, Lever, Ashby, Workday, Personio, Teamtailor, SmartRecruiters, Recruitee, Breezy, Workable, Rippling, BambooHR, JazzHR, softgarden, Jobvite, Gem, Zoho Recruit, Dayforce, Hireology, Dover, Oracle Recruiting Cloud, Paylocity, Oracle Taleo, UKG Pro Recruiting, ADP, Avature, CareerPlug, Pinpoint, Manatal, and Eightfold.
+  Every application goes in on the company's real careers page, under your name, with your own
+  materials. Free GetMattered account (sign in with Google or an email link, no card) with a
+  10,000-token starter grant; every tool runs on your own AI credits.
 author: Ava Bagherzadeh
 homepage: https://getmattered.com
 # The public mirror DOES exist now, so the repo is advertised again. The old comment here said
@@ -23,7 +23,7 @@ startCommand:
   configSchema:
     type: object
     title: GetMattered MCP Configuration
-    description: Nothing to install and nothing to configure. Sign in with Google on the first tool call and every tool runs on your own GetMattered credits.
+    description: Nothing to install and nothing to configure. Sign in with Google or an email link on the first tool call and every tool runs on your own GetMattered credits.
     properties: {}
     required: []
 tools:

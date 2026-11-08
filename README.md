@@ -36,7 +36,7 @@ https://mcp.getmattered.com/mcp
 [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Server-0098FF?logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=getmattered&config=%7B%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A//mcp.getmattered.com/mcp%22%7D)
 [![Add to Poke (iMessage)](https://img.shields.io/badge/iMessage-Add_to_Poke-34C759?logo=imessage&logoColor=white)](https://poke.com/integrations/new?name=GetMattered&url=https%3A%2F%2Fmcp.getmattered.com%2Fmcp)
 
-- **ChatGPT:** [open GetMattered in ChatGPT](https://chatgpt.com/plugins/plugin_asdk_app_6ab3d2a748e48191a449904e048cd233), add it and sign in.
+- **ChatGPT:** [open GetMattered in ChatGPT](https://chatgpt.com/plugins/plugin_asdk_app_6adce5a7d5d881918e5bba3849d7d836), add it and sign in.
 - **Claude:** in Settings, open Connectors, add a custom connector, paste the address and sign in.
 - **Claude Code:** `claude mcp add --transport http --scope user getmattered https://mcp.getmattered.com/mcp`, then type `/mcp` and sign in.
 - **Codex:** `codex mcp add getmattered --url https://mcp.getmattered.com/mcp`, then `codex mcp login getmattered`.
