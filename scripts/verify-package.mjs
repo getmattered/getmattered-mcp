@@ -12,6 +12,9 @@ for (const path of manifestPaths) assert.equal(read(path).version, pkg.version, 
 assert.equal(read('server.json').packages.find(entry => entry.identifier === pkg.name)?.version, pkg.version, 'server.json npm package version drift');
 assert.equal(readFileSync('src/index.ts', 'utf8').match(/const VERSION = '([^']+)'/)?.[1], pkg.version, 'src/index.ts VERSION drift');
 assert.equal(readFileSync('CHANGELOG.md', 'utf8').match(/^## (\S+)/m)?.[1], pkg.version, 'CHANGELOG.md must start with this version');
+const notes = codex.extensions['com.openai'].publication?.release_notes ?? '';
+assert.ok(notes.startsWith(`${pkg.version}: `), `.codex-plugin/plugin.json release_notes must start with "${pkg.version}: "`);
+assert.ok(!notes.includes('DRAFT: write this release line'), 'release_notes are still a draft');
 const ui = portable.extensions['com.openai'].interface;
 assert.deepEqual(ui, codex.interface, 'OpenAI and Codex presentation must match');
 assert.deepEqual(portable.extensions['com.openai'], codex.extensions['com.openai'], 'OpenAI compatibility metadata must match');

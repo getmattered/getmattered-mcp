@@ -68,7 +68,7 @@ async function read(url) {
 }
 
 /** Polls until the surface has the version; returns false at the deadline. */
-export async function waitFor(surface, version, { seconds = 900, every = 15, fetchReading = read, sleep = ms => new Promise(done => setTimeout(done, ms)) } = {}) {
+export async function waitFor(surface, version, { seconds = 900, every = 15, fetchReading = read, sleep = ms => new Promise(resolve => setTimeout(resolve, ms)) } = {}) {
   const deadline = Date.now() + seconds * 1000;
   for (;;) {
     if (surfaceHas(surface, version, await fetchReading(SURFACE_URLS[surface](version)))) return true;

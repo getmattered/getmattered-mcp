@@ -111,7 +111,7 @@
         "commerce_description": "The plugin does not sell products or take payments. Paid GetMattered plans are bought on getmattered.com."
       },
       "publication": {
-        "release_notes": "1.10.2: Each tool does one operation. Reviewing, saving or skipping matches, follow-ups and saved searches are now separate tools, and the resume PDF tool is split into a read-only link, a public share and a summary draft. Earlier tool names still work as aliases."
+        "release_notes": "1.15.0: The same 40 tools with the same names. Answers are clearer. An answer that ends without an application names one next step inside GetMattered. A short match list says how to get more matches. Profile fields are no longer asked for on each application, and address fields come from the saved address. Apply follows the user's apply setting when no mode is given. The application list gives one plain reason per row, and a declined row says nothing was sent. Workday, BambooHR and Ashby links are read more reliably. A LinkedIn or Indeed link leads to the employer's own posting, or the answer says how to find it. The account tool shows the free applications correctly."
       },
       "onboardingSkill": "./skills/setup-job-search/SKILL.md"
     },

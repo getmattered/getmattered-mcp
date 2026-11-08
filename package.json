@@ -23,6 +23,7 @@
     "start": "node dist/index.js",
     "prepublishOnly": "npm run build && npm run verify:package",
     "verify:package": "node scripts/verify-package.mjs",
+    "package:openai": "node scripts/openai-package.mjs",
     "test": "npm run build && node --test test/*.test.mjs"
   },
   "keywords": [

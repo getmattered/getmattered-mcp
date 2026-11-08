@@ -1,17 +1,29 @@
 # Publishes one GetMattered MCP release from its tag: npm, the MCP Registry and
-# the GitHub release.
+# the GitHub release, with the OpenAI package ZIP for the ChatGPT app attached.
 #
 # The tag is pushed by GetMattered's own build after the hosted server is live
 # (this repository is a mirror of tools/mcp-bridge there; see the README). Every
 # step skips what is already published, so a re-run is safe:
 #   gh workflow run release.yml --ref v<version>
 #
-# Credentials:
+# Two jobs, so third-party code never runs next to a publish credential:
+#   build    read-only token, no secrets: installs (scripts off), tests, verifies,
+#            packs the npm tarball, builds the OpenAI ZIP, cuts the release notes.
+#   publish  the `release` environment: downloads those files and publishes them.
+#            It installs nothing and runs only this repo's own scripts with node.
+#
+# Credentials (publish job only):
 #   npm       none. Trusted publishing: npmjs.com trusts this repo, this file and
 #             the `release` environment, and GitHub issues a short-lived token.
 #   registry  MCP_REGISTRY_DNS_KEY_HEX, an environment secret of `release`
 #             (Ed25519 seed in hex; its public half is a TXT record on getmattered.com).
+#             mcp-publisher takes it only as --private-key, so it sits in the argv
+#             of one step on a throwaway runner; GitHub masks it in the log.
 #   GitHub    the built-in GITHUB_TOKEN.
+#
+# One run at a time. GitHub keeps only one pending run per group: a third tag
+# pushed while one runs and one waits replaces the waiting one. Re-dispatch the
+# replaced tag with the command above; the check:mcp-release row stays red until then.
 name: release
 
 on:
@@ -23,16 +35,59 @@ concurrency:
   group: release
   cancel-in-progress: false
 
-permissions:
-  contents: write
-  id-token: write
+permissions: {}
 
 jobs:
-  release:
+  build:
     if: github.ref_type == 'tag'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+
+      - name: Tag, version and release notes agree
+        run: |
+          node scripts/release-steps.mjs check-tag "$TAG"
+          mkdir -p "$RUNNER_TEMP/release"
+          node scripts/release-steps.mjs notes "${TAG#v}" > "$RUNNER_TEMP/release/notes.md"
+
+      - name: Build, test and verify the package
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm test
+          npm run verify:package
+
+      - name: Pack the npm tarball and the OpenAI package
+        run: |
+          npm pack --ignore-scripts --pack-destination "$RUNNER_TEMP/release"
+          node scripts/openai-package.mjs "$RUNNER_TEMP/release"
+          ls -l "$RUNNER_TEMP/release"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release
+          path: ${{ runner.temp }}/release
+          if-no-files-found: error
+          retention-days: 30
+
+  publish:
+    needs: build
     runs-on: ubuntu-24.04
     environment: release
     timeout-minutes: 45
+    permissions:
+      contents: write
+      id-token: write
     env:
       TAG: ${{ github.ref_name }}
     steps:
@@ -47,29 +102,34 @@ jobs:
 
       # Trusted publishing needs npm 11.5.1 or newer.
       - name: Pin npm
-        run: npm install -g npm@11.21.1 && npm --version
+        run: npm install -g --ignore-scripts npm@11.21.1 && npm --version
 
-      - name: Tag, version and release notes agree
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release
+          path: ${{ runner.temp }}/release
+
+      - name: Name the built files
         run: |
+          VERSION="${TAG#v}"
           node scripts/release-steps.mjs check-tag "$TAG"
-          echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
-          node scripts/release-steps.mjs notes "${TAG#v}" > "$RUNNER_TEMP/notes.md"
-
-      - name: Build, test and verify the package
-        run: |
-          npm ci
-          npm test
-          npm run verify:package
+          {
+            echo "VERSION=$VERSION"
+            echo "TARBALL=$RUNNER_TEMP/release/getmattered-mcp-$VERSION.tgz"
+            echo "OPENAI_ZIP=$RUNNER_TEMP/release/getmattered-$VERSION-openai.zip"
+            echo "NOTES=$RUNNER_TEMP/release/notes.md"
+          } >> "$GITHUB_ENV"
 
       - name: Wait for the hosted server to report the version
         run: node scripts/release-steps.mjs wait card "$VERSION" 900
 
       - name: Publish to npm
         run: |
+          test -f "$TARBALL"
           if node scripts/release-steps.mjs has npm "$VERSION"; then
             echo "npm already has getmattered-mcp@$VERSION"
           else
-            npm publish --access public --provenance
+            npm publish "$TARBALL" --access public --provenance --ignore-scripts
           fi
           # The registry checks the npm package and its mcpName before it accepts server.json.
           node scripts/release-steps.mjs wait npm "$VERSION" 600
@@ -93,15 +153,17 @@ jobs:
           fi
           node scripts/release-steps.mjs wait registry "$VERSION" 300
 
-      - name: Publish the GitHub release
+      - name: Publish the GitHub release with the OpenAI package
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          test -f "$OPENAI_ZIP"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
             echo "release $TAG already exists"
+            gh release upload "$TAG" "$OPENAI_ZIP" --repo "$GITHUB_REPOSITORY" --clobber
           else
-            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --latest \
-              --title "GetMattered MCP $VERSION" --notes-file "$RUNNER_TEMP/notes.md"
+            gh release create "$TAG" "$OPENAI_ZIP" --repo "$GITHUB_REPOSITORY" --verify-tag --latest \
+              --title "GetMattered MCP $VERSION" --notes-file "$NOTES"
           fi
 
       - name: Read every surface back
@@ -109,10 +171,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           surfaces="$(node scripts/release-steps.mjs readback "$VERSION")"
-          release="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,isPrerelease,tagName --jq '"\(.tagName) draft=\(.isDraft) prerelease=\(.isPrerelease)"')"
+          release="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,isPrerelease,tagName,assets --jq '"\(.tagName) draft=\(.isDraft) prerelease=\(.isPrerelease) assets=\([.assets[].name] | join(","))"')"
           {
             echo "## GetMattered MCP $VERSION"
             echo "- $surfaces"
             echo "- GitHub release: $release"
+            echo "- ChatGPT: upload getmattered-$VERSION-openai.zip at platform.openai.com/plugins only when skills, metadata or assets changed; tool text reaches ChatGPT through its daily scan (press Rescan)."
           } >> "$GITHUB_STEP_SUMMARY"
-          test "$release" = "$TAG draft=false prerelease=false"
+          test "$release" = "$TAG draft=false prerelease=false assets=getmattered-$VERSION-openai.zip"
