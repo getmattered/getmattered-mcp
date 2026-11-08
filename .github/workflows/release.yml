@@ -10,7 +10,13 @@
 #   build    read-only token, no secrets: installs (scripts off), tests, verifies,
 #            packs the npm tarball, builds the OpenAI ZIP, cuts the release notes.
 #   publish  the `release` environment: downloads those files and publishes them.
-#            It installs nothing and runs only this repo's own scripts with node.
+#            It installs only npm itself (pinned, scripts off; trusted publishing
+#            needs npm 11.5.1+) and runs only this repo's own scripts with node.
+#
+# Order: npm, then the GitHub release, then the MCP Registry. The registry is
+# last because it is the step most likely to refuse content (server.json) that a
+# re-run cannot change. npm and the GitHub release are then already out, so the
+# way forward is a hold on the registry (versionHold) and the next version.
 #
 # Credentials (publish job only):
 #   npm       none. Trusted publishing: npmjs.com trusts this repo, this file and
@@ -25,7 +31,9 @@
 # pushed while one runs and one waits replaces the waiting one. Do not re-run the
 # replaced tag: the newest tag carries its changes. A run for a tag that a newer
 # v* tag replaced publishes nothing and says so in its summary, because npm and
-# `gh release --latest` would mark the older version latest.
+# `gh release --latest` would mark the older version latest. Both jobs check
+# this, because "Re-run failed jobs" re-runs `publish` alone with the old
+# `build` outputs.
 name: release
 
 on:
@@ -119,16 +127,31 @@ jobs:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'
 
+      # Again here: "Re-run failed jobs" reuses the build job's old outputs, and a
+      # newer tag may have been pushed since.
+      - name: Is a newer release already tagged?
+        id: newer
+        run: |
+          newer="$(node scripts/release-steps.mjs newer "$TAG")"
+          echo "$newer" >> "$GITHUB_OUTPUT"
+          if [ "$newer" != "superseded_by=" ]; then
+            echo "## $TAG publishes nothing: ${newer#superseded_by=} replaces it" >> "$GITHUB_STEP_SUMMARY"
+            echo "$TAG publishes nothing: ${newer#superseded_by=} replaces it"
+          fi
+
       # Trusted publishing needs npm 11.5.1 or newer.
       - name: Pin npm
+        if: steps.newer.outputs.superseded_by == ''
         run: npm install -g --ignore-scripts npm@11.21.1 && npm --version
 
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        if: steps.newer.outputs.superseded_by == ''
         with:
           name: release
           path: ${{ runner.temp }}/release
 
       - name: Name the built files
+        if: steps.newer.outputs.superseded_by == ''
         run: |
           VERSION="${TAG#v}"
           node scripts/release-steps.mjs check-tag "$TAG"
@@ -140,9 +163,11 @@ jobs:
           } >> "$GITHUB_ENV"
 
       - name: Wait for the hosted server to report the version
+        if: steps.newer.outputs.superseded_by == ''
         run: node scripts/release-steps.mjs wait card "$VERSION" 900
 
       - name: Publish to npm
+        if: steps.newer.outputs.superseded_by == ''
         run: |
           test -f "$TARBALL"
           if node scripts/release-steps.mjs has npm "$VERSION"; then
@@ -153,7 +178,22 @@ jobs:
           # The registry checks the npm package and its mcpName before it accepts server.json.
           node scripts/release-steps.mjs wait npm "$VERSION" 600
 
+      - name: Publish the GitHub release with the OpenAI package
+        if: steps.newer.outputs.superseded_by == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test -f "$OPENAI_ZIP"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "release $TAG already exists"
+            gh release upload "$TAG" "$OPENAI_ZIP" --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$TAG" "$OPENAI_ZIP" --repo "$GITHUB_REPOSITORY" --verify-tag --latest \
+              --title "GetMattered MCP $VERSION" --notes-file "$NOTES"
+          fi
+
       - name: Publish to the MCP Registry
+        if: steps.newer.outputs.superseded_by == ''
         env:
           MCP_REGISTRY_DNS_KEY_HEX: ${{ secrets.MCP_REGISTRY_DNS_KEY_HEX }}
           PUBLISHER_VERSION: '1.8.4'
@@ -172,20 +212,8 @@ jobs:
           fi
           node scripts/release-steps.mjs wait registry "$VERSION" 300
 
-      - name: Publish the GitHub release with the OpenAI package
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          test -f "$OPENAI_ZIP"
-          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
-            echo "release $TAG already exists"
-            gh release upload "$TAG" "$OPENAI_ZIP" --repo "$GITHUB_REPOSITORY" --clobber
-          else
-            gh release create "$TAG" "$OPENAI_ZIP" --repo "$GITHUB_REPOSITORY" --verify-tag --latest \
-              --title "GetMattered MCP $VERSION" --notes-file "$NOTES"
-          fi
-
       - name: Read every surface back
+        if: steps.newer.outputs.superseded_by == ''
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
