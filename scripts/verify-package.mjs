@@ -7,7 +7,7 @@ const pkg = read('package.json');
 const root = 'plugins/getmattered';
 const portable = read(`${root}/plugin.json`);
 const codex = read(`${root}/.codex-plugin/plugin.json`);
-const manifestPaths = ['server.json', 'gemini-extension.json', `${root}/plugin.json`, `${root}/.claude-plugin/plugin.json`, `${root}/.codex-plugin/plugin.json`, `${root}/.cursor-plugin/plugin.json`, `${root}/.antigravity-plugin/plugin.json`];
+const manifestPaths = ['server.json', 'gemini-extension.json', 'manifest.json', 'lhm.plugin.json', `${root}/plugin.json`, `${root}/.claude-plugin/plugin.json`, `${root}/.codex-plugin/plugin.json`, `${root}/.cursor-plugin/plugin.json`, `${root}/.antigravity-plugin/plugin.json`];
 for (const path of manifestPaths) assert.equal(read(path).version, pkg.version, `${path} version drift`);
 assert.equal(read('server.json').packages.find(entry => entry.identifier === pkg.name)?.version, pkg.version, 'server.json npm package version drift');
 assert.equal(readFileSync('src/index.ts', 'utf8').match(/const VERSION = '([^']+)'/)?.[1], pkg.version, 'src/index.ts VERSION drift');

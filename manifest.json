@@ -1,0 +1,43 @@
+{
+  "manifest_version": "0.3",
+  "name": "getmattered",
+  "display_name": "GetMattered",
+  "version": "1.15.3",
+  "description": "Auto-Apply That Ends on an Interview. Your matched jobs, applications on the employer's own hiring system, a review queue, employer receipts and interview preparation.",
+  "long_description": "GetMattered finds jobs matched to your resume, tailors the resume and cover letter for each role, and submits the application on the employer's own hiring system across 30+ hiring systems. Each application is sent automatically or held for your approval. The extension runs the getmattered-mcp bridge, which relays every message to the hosted server at https://mcp.getmattered.com/mcp. On the first tool call without a stored sign-in, it opens your browser once to sign in.",
+  "author": {
+    "name": "GetMattered",
+    "email": "ava@getmattered.com",
+    "url": "https://getmattered.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/getmattered/getmattered-mcp"
+  },
+  "homepage": "https://getmattered.com/mcps",
+  "documentation": "https://getmattered.com/mcps",
+  "support": "https://github.com/getmattered/getmattered-mcp/issues",
+  "icon": "assets/logo-400.png",
+  "server": {
+    "type": "node",
+    "entry_point": "dist/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/dist/index.js"],
+      "env": {
+        "GETMATTERED_LOGIN_ON_START": "1"
+      }
+    }
+  },
+  "tools_generated": true,
+  "prompts_generated": true,
+  "keywords": ["auto-apply", "career", "interview-prep", "job-search", "resume"],
+  "license": "MIT",
+  "privacy_policies": ["https://getmattered.com/legal/privacy"],
+  "compatibility": {
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "node": ">=20.0.0"
+    }
+  }
+}

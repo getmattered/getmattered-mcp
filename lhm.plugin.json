@@ -1,0 +1,11 @@
+{
+  "identifier": "getmattered-getmattered-mcp",
+  "name": "GetMattered",
+  "version": "1.15.3",
+  "description": "Auto-Apply That Ends on an Interview. Your matched jobs, applications on the employer's own hiring system across 30+ hiring systems (sent automatically or held for your approval), a review queue, employer-receipt tracking, a resume tailored to each role, cover letters and interview preparation.",
+  "author": "GetMattered",
+  "authorUrl": "https://getmattered.com",
+  "homepage": "https://getmattered.com/mcps",
+  "cloudEndpoint": "https://mcp.getmattered.com/mcp",
+  "tags": ["auto-apply", "career", "interview-prep", "job-search", "resume"]
+}

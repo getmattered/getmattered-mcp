@@ -19,11 +19,15 @@
  *   getmattered-mcp call <tool> '<json args>'   run one tool, print its result
  *   getmattered-mcp logout                      forget the stored sign-in
  *   getmattered-mcp                             run as a stdio MCP server
+ *
+ * GETMATTERED_LOGIN_ON_START=1 (set by the Claude Desktop extension, manifest.json)
+ * opens the browser sign-in on the first tool call when no sign-in is stored.
  */
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import {
+  CancelledNotificationSchema,
   isJSONRPCErrorResponse,
   isJSONRPCRequest,
   isJSONRPCResultResponse,
@@ -31,11 +35,16 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 
 import { getAccessToken, login, logout } from './auth.js';
+import { createLoginGate } from './login-gate.js';
 import { resolveToolName } from './tool-names.js';
 
 const DEFAULT_ENDPOINT = 'https://mcp.getmattered.com/mcp';
-const VERSION = '1.15.2';
+const VERSION = '1.15.3';
 const FLUSH_GRACE_MS = 1500;
+// How long tool calls wait for the browser sign-in, from the moment it opens, before
+// they go out unauthenticated. Under the MCP SDK's 60 s default request timeout, so
+// the host still waits for the answer.
+const LOGIN_WAIT_MS = 45_000;
 
 // GETMATTERED_MCP_URL overrides the default endpoint.
 const endpoint = process.env.GETMATTERED_MCP_URL?.trim() || DEFAULT_ENDPOINT;
@@ -112,6 +121,23 @@ async function bridge() {
   });
   const local = new StdioServerTransport();
 
+  // Sign-in on first use (GETMATTERED_LOGIN_ON_START=1): never before initialize.
+  // The transport reads `headers` on every request, so the token reaches the
+  // session that is already open; the server lets it continue after sign-in.
+  const gate = createLoginGate({
+    enabled: process.env.GETMATTERED_LOGIN_ON_START === '1',
+    log,
+    login: async () => {
+      await login(endpoint, log);
+      return getAccessToken(endpoint, log);
+    },
+    onToken: (token) => {
+      headers.authorization = `Bearer ${token}`;
+    },
+    signedIn,
+    waitMs: LOGIN_WAIT_MS,
+  });
+
   // Streamable HTTP hands out an `Mcp-Session-Id` on the initialize response, and
   // every later request must carry it. A client that pipelines initialize and
   // tools/list in the same tick would otherwise send both before the id exists,
@@ -148,12 +174,35 @@ async function bridge() {
       .then(() => local.send(message))
       .catch((error: unknown) => log(`stdout write failed: ${String(error)}`));
   };
-  local.onmessage = (message: JSONRPCMessage) => {
-    if (isJSONRPCRequest(message)) pending.add(message.id);
+  const forward = (message: JSONRPCMessage) => {
     void sendUpstream(message).catch((error: unknown) => {
       if (isJSONRPCRequest(message)) answered(message.id);
       log(`upstream send failed: ${String(error)}`);
     });
+  };
+  local.onmessage = (message: JSONRPCMessage) => {
+    if (!isJSONRPCRequest(message)) {
+      // A cancelled request gets no answer, so shutdown stops waiting for it. One
+      // still held for the sign-in never reaches the server, and neither does its cancel.
+      const cancelled = CancelledNotificationSchema.safeParse(message);
+      const cancelledId = cancelled.success ? cancelled.data.params.requestId : undefined;
+      if (cancelledId !== undefined && pending.has(cancelledId)) {
+        const wasHeld = gate.cancel(cancelledId);
+        answered(cancelledId);
+        if (wasHeld) return;
+      }
+      forward(message);
+      return;
+    }
+    pending.add(message.id);
+    const wait = gate.hold(message.method, message.id);
+    if (wait) {
+      void wait.then((mayGo) => {
+        if (mayGo) forward(message);
+      });
+    } else {
+      forward(message);
+    }
   };
 
   remote.onerror = (error) => {
@@ -190,7 +239,8 @@ async function bridge() {
   await remote.start();
   await local.start();
 
-  log(`bridging stdio to ${endpoint}${signedIn ? ' signed in' : ' unauthenticated (run: getmattered-mcp login)'}`);
+  const howToSignIn = gate.signedIn || process.env.GETMATTERED_LOGIN_ON_START !== '1' ? 'run: getmattered-mcp login' : 'the first tool call opens the browser sign-in';
+  log(`bridging stdio to ${endpoint}${signedIn ? ' signed in' : ` unauthenticated (${howToSignIn})`}`);
 }
 
 async function main() {

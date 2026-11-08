@@ -53,7 +53,9 @@ This repository is also a plugin marketplace and a Gemini CLI extension, with fo
 npx skills add https://getmattered.com -g -y
 ```
 
-Claude Code: `claude plugin marketplace add getmattered/getmattered-mcp`, then `claude plugin install getmattered@getmattered`.
+Claude Code: `claude plugin marketplace add getmattered/getmattered-mcp`, then `claude plugin install getmattered@getmattered`. Enable auto-update for the getmattered marketplace in /plugin > Marketplaces to receive each new release.
+
+Claude Desktop: download `getmattered-<version>.mcpb` from the newest [GitHub release](https://github.com/getmattered/getmattered-mcp/releases/latest) and open it. On the first tool call it opens your browser once to sign in. The bundle is unsigned, and a new release means installing the new file.
 
 Codex: `codex plugin marketplace add getmattered/getmattered-mcp`, then `codex plugin add getmattered@getmattered`.
 

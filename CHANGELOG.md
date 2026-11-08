@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.15.3
+
+40 tools with the same names. Each GitHub release also carries a Claude Desktop bundle (.mcpb). With it, the first tool call without a sign-in opens your browser to sign in. A tool call waits at most 45 seconds for that sign-in, and a cancelled call is never sent. Every release checks the plugin and its wording before it publishes, and a daily check lists which directories show the newest version.
+
 ## 1.15.2
 
 40 tools with the same names. Poke and any client that opens a session before sign-in now continue after sign-in instead of seeing "Session not found"; another user's sign-in on that session is still refused. Install pages show the server address with a copy button next to the Poke link. The bridge README links to the current ChatGPT app, the website serves the same skill files the connector ships, and setup text and the server card carry current facts.

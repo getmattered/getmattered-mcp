@@ -6,13 +6,22 @@
  *   node scripts/release-steps.mjs notes <version>         prints the CHANGELOG.md section
  *   node scripts/release-steps.mjs wait <surface> <version> [seconds]
  *   node scripts/release-steps.mjs has <surface> <version> exit 0 when already published
- *   node scripts/release-steps.mjs readback <version>      npm latest and registry latest
+ *   node scripts/release-steps.mjs readback <version>      npm latest and registry latest (gate),
+ *                                                          the GitHub MCP gallery (follower, never fails)
  *   node scripts/release-steps.mjs newer <tag>             prints superseded_by=<newest newer v* tag, or empty>
+ *   node scripts/release-steps.mjs previous <tag>          prints the newest v* tag below <tag>, or nothing
+ *   node scripts/release-steps.mjs assets <version> <names> exit 1 unless the release has exactly the expected files
+ *   node scripts/release-steps.mjs tool-marker             prints the release-notes line that records the tool names
+ *   node scripts/release-steps.mjs reminders <version> <previous tag> <previous notes file>
+ *                                                          prints the "vX: human steps" issue body, or nothing
+ *   node scripts/release-steps.mjs lobehub <generated> <out> writes lhm.plugin.json with the live tools, for `lhm plugin update`
  *
  * Surfaces: card (the hosted server card), npm, registry.
  */
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { argv, exit, stdout } from 'node:process';
 import { pathToFileURL } from 'node:url';
 
@@ -82,6 +91,122 @@ export function readbackProblems(version, npmLatest, registryLatest) {
   return problems;
 }
 
+/** The files every GitHub release carries: the OpenAI package and the Claude Desktop bundle. */
+export const releaseAssets = version => [`getmattered-${version}-openai.zip`, `getmattered-${version}.mcpb`];
+
+/** Why the release's asset list is wrong, or null. Order does not matter. */
+export function assetProblem(version, names) {
+  const want = releaseAssets(version).sort();
+  const have = [...names].filter(Boolean).sort();
+  return want.join(',') === have.join(',') ? null : `release assets are [${have.join(', ')}], expected [${want.join(', ')}]`;
+}
+
+/** The newest release tag below `tag` in `git ls-remote --tags --refs` output, or null. */
+export function previousTag(tag, lsRemote) {
+  const names = lsRemote.split('\n').map(line => line.split('\t')[1]?.replace('refs/tags/', '') ?? '');
+  const older = names
+    .filter(name => /^v\d+\.\d+\.\d+$/.test(name) && compareVersions(name.slice(1), tag.slice(1)) < 0)
+    .sort((a, b) => compareVersions(a.slice(1), b.slice(1)));
+  return older.at(-1) ?? null;
+}
+
+export const GALLERY_URL = 'https://api.mcp.github.com/v0.1/servers/com.getmattered%2Fgetmattered/versions/latest';
+
+/**
+ * The GitHub MCP gallery (VS Code, Copilot in JetBrains, Eclipse and Xcode) re-syncs
+ * from the registry on its own clock, so it is a follower: it prints, it never
+ * fails the release. Only /v0.1 honours the server name; /v0 answers with other servers.
+ */
+export function galleryLine(version, reading) {
+  const shown = reading?.status === 200 ? reading.body?.server?.version : null;
+  if (!shown) return `GitHub MCP gallery unreadable (HTTP ${reading?.status ?? 0}): UNOBSERVED (follower)`;
+  return shown === version ? `GitHub MCP gallery ${shown} (follower)` : `GitHub MCP gallery still ${shown}, syncs within 48 h (follower)`;
+}
+
+const TOOL_MARKER = /<!-- getmattered-tools: ([^>]*) -->/;
+
+/** The hidden line the release notes carry, so the next release can compare tool names. */
+export const toolMarker = names => `<!-- getmattered-tools: ${[...names].sort().join(' ')} -->`;
+
+/** The tool names a release's notes recorded, or null when they recorded none. */
+export function toolNamesFromNotes(notes) {
+  const match = String(notes ?? '').match(TOOL_MARKER);
+  return match ? match[1].split(' ').filter(Boolean).sort() : null;
+}
+
+const OPENAI_FILES = /^plugins\/getmattered\/(?:\.codex-plugin\/plugin\.json|\.mcp\.json|skills\/.+|assets\/.+)$/;
+
+/**
+ * A hash of what the OpenAI package shows (skills, metadata, assets), from
+ * [path, bytes] pairs under plugins/getmattered. The version and release_notes
+ * change every release, so they are left out: a release that changed neither
+ * skills nor metadata nor assets keeps the hash and needs no upload.
+ */
+export function openaiContentHash(entries) {
+  const hash = createHash('sha256');
+  for (const [path, bytes] of [...entries].filter(([path]) => OPENAI_FILES.test(path)).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) {
+    let data = bytes;
+    if (path.endsWith('.codex-plugin/plugin.json')) {
+      const manifest = JSON.parse(String(bytes));
+      delete manifest.version;
+      delete manifest.extensions?.['com.openai']?.publication?.release_notes;
+      data = Buffer.from(JSON.stringify(manifest));
+    }
+    hash.update(`${path}\0${data.length}\0`).update(data);
+  }
+  return hash.digest('hex').slice(0, 16);
+}
+
+/** The OpenAI package files at a git ref, as [path, bytes] pairs. */
+function openaiEntriesAt(ref) {
+  const listed = execFileSync('git', ['ls-tree', '-r', '--name-only', ref, '--', 'plugins/getmattered'], { encoding: 'utf8' });
+  return listed.split('\n').filter(path => OPENAI_FILES.test(path)).map(path => [path, execFileSync('git', ['show', `${ref}:${path}`], { maxBuffer: 64 * 1024 * 1024 })]);
+}
+
+/**
+ * The human steps a release needs, each only when this release changed what it
+ * shows. Glama has no write API: its Sync Server and Make Release stay a person
+ * (or an on-demand `ab` job on Ava's Mac) every release. A value that could not
+ * be read is null, and its step says UNOBSERVED instead of guessing.
+ */
+export function reminderSteps({ version, toolsBefore, toolsNow, hashBefore, hashNow }) {
+  const steps = [];
+  if (!toolsNow) {
+    steps.push('Claude connector listing: the server card was unreadable, so the tool names are UNOBSERVED. Compare them by hand; if they changed, press "Sync from server", then "Save and update submission" in claude.ai/directory/manage.');
+  } else if (!toolsBefore) {
+    steps.push('Claude connector listing: the previous release recorded no tool names (UNOBSERVED). Compare them by hand once; if they changed, press "Sync from server", then "Save and update submission" in claude.ai/directory/manage.');
+  } else {
+    const added = toolsNow.filter(name => !toolsBefore.includes(name));
+    const removed = toolsBefore.filter(name => !toolsNow.includes(name));
+    if (added.length > 0 || removed.length > 0) {
+      const what = [added.length > 0 ? `added ${added.join(', ')}` : null, removed.length > 0 ? `removed ${removed.join(', ')}` : null].filter(Boolean).join('; ');
+      steps.push(`Claude connector listing: tool names changed (${what}). In claude.ai/directory/manage press "Sync from server", then "Save and update submission".`);
+    }
+  }
+  if (!hashNow || !hashBefore) {
+    steps.push(`ChatGPT package: the content hash is UNOBSERVED. Compare skills, metadata and assets by hand; if they changed, upload getmattered-${version}-openai.zip at platform.openai.com/plugins. Never while a review is open.`);
+  } else if (hashNow !== hashBefore) {
+    steps.push(`ChatGPT package: skills, metadata or assets changed (${hashBefore} to ${hashNow}). Upload getmattered-${version}-openai.zip from this release at platform.openai.com/plugins. Never while a review is open.`);
+  }
+  steps.push(`Glama: in the server admin for getmattered/getmattered-mcp press "Sync Server", then "Make Release" ${version}. It has no API; an on-demand ab job on Ava's Mac can do it.`);
+  return steps;
+}
+
+/** The body of the one "vX: human steps" issue, or an empty string when there is nothing to do. */
+export function remindersBody(version, steps) {
+  if (steps.length === 0) return '';
+  return [`Release ${version} needs these steps. Tick each one when it is done.`, '', ...steps.map(step => `- [ ] ${step}`), ''].join('\n');
+}
+
+/**
+ * lhm.plugin.json for `lhm plugin update`: the committed fields (identifier,
+ * name, version, description, links) over what `lhm plugin init --url` read
+ * from the live server (tools, prompts, resources).
+ */
+export function lobehubManifest(committed, generated) {
+  return { ...committed, prompts: generated.prompts ?? [], resources: generated.resources ?? [], tools: generated.tools ?? [] };
+}
+
 async function read(url) {
   try {
     const response = await fetch(url, { headers: { Accept: 'application/json', 'User-Agent': 'getmattered-mcp-release' }, signal: AbortSignal.timeout(20_000) });
@@ -130,7 +255,61 @@ async function main() {
     const registry = await read(`${REGISTRY}/latest`);
     const problems = readbackProblems(first, npm.body, registry.body);
     if (problems.length > 0) throw new Error(problems.join('; '));
-    stdout.write(`npm latest ${first}; registry latest ${first}, isLatest\n`);
+    stdout.write(`npm latest ${first}; registry latest ${first}, isLatest; ${galleryLine(first, await read(GALLERY_URL))}\n`);
+    return;
+  }
+  if (command === 'previous') {
+    const listed = execFileSync('git', ['ls-remote', '--tags', '--refs', 'origin', 'v*'], { encoding: 'utf8', timeout: 60_000 });
+    stdout.write(`${previousTag(first, listed) ?? ''}\n`);
+    return;
+  }
+  if (command === 'assets') {
+    const problem = assetProblem(first, (second ?? '').split(','));
+    if (problem) throw new Error(problem);
+    stdout.write(`assets ${releaseAssets(first).join(', ')}\n`);
+    return;
+  }
+  if (command === 'tool-marker') {
+    const card = await read(SURFACE_URLS.card());
+    const names = (card.body?.tools ?? []).map(tool => tool?.name).filter(Boolean);
+    if (names.length === 0) throw new Error(`the server card listed no tools (HTTP ${card.status})`);
+    stdout.write(`${toolMarker(names)}\n`);
+    return;
+  }
+  if (command === 'reminders') {
+    const previous = second;
+    const notesFile = argv[5];
+    let notes = null;
+    try {
+      notes = notesFile ? readFileSync(notesFile, 'utf8') : null;
+    } catch {
+      notes = null;
+    }
+    const card = await read(SURFACE_URLS.card());
+    const live = (card.body?.tools ?? []).map(tool => tool?.name).filter(Boolean).sort();
+    let hashBefore = null;
+    try {
+      hashBefore = previous ? openaiContentHash(openaiEntriesAt(previous)) : null;
+    } catch {
+      hashBefore = null;
+    }
+    const steps = reminderSteps({
+      hashBefore,
+      hashNow: openaiContentHash(openaiEntriesAt('HEAD')),
+      toolsBefore: toolNamesFromNotes(notes),
+      toolsNow: live.length > 0 ? live : null,
+      version: first,
+    });
+    stdout.write(remindersBody(first, steps));
+    return;
+  }
+  if (command === 'lobehub') {
+    const out = second;
+    const merged = lobehubManifest(JSON.parse(readFileSync('lhm.plugin.json', 'utf8')), JSON.parse(readFileSync(first, 'utf8')));
+    if (merged.tools.length === 0) throw new Error('lhm plugin init read no tools from the live server');
+    mkdirSync(dirname(out), { recursive: true });
+    writeFileSync(out, `${JSON.stringify(merged, null, 2)}\n`);
+    stdout.write(`lhm.plugin.json ${merged.identifier}@${merged.version}: ${merged.tools.length} tools\n`);
     return;
   }
   throw new Error(`unknown command ${command}`);
