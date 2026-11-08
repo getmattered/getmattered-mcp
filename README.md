@@ -86,3 +86,5 @@ Your resume and profile stay on your GetMattered account. Tools read and write t
 ## About this repository
 
 The hosted server runs on Cloudflare Workers and its source is not public. This repository holds the `server.json` manifest, the plugin and skills, and the small MIT licensed stdio bridge, which forwards messages verbatim. See the [changelog](CHANGELOG.md).
+
+This repository is published from GetMattered's own repository on every release, so pull requests here are read but not merged directly. Each `v*` tag runs [the release workflow](.github/workflows/release.yml), which publishes the same version to npm (with provenance), the MCP Registry and GitHub Releases.

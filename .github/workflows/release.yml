@@ -1,0 +1,118 @@
+# Publishes one GetMattered MCP release from its tag: npm, the MCP Registry and
+# the GitHub release.
+#
+# The tag is pushed by GetMattered's own build after the hosted server is live
+# (this repository is a mirror of tools/mcp-bridge there; see the README). Every
+# step skips what is already published, so a re-run is safe:
+#   gh workflow run release.yml --ref v<version>
+#
+# Credentials:
+#   npm       none. Trusted publishing: npmjs.com trusts this repo, this file and
+#             the `release` environment, and GitHub issues a short-lived token.
+#   registry  MCP_REGISTRY_DNS_KEY_HEX, an environment secret of `release`
+#             (Ed25519 seed in hex; its public half is a TXT record on getmattered.com).
+#   GitHub    the built-in GITHUB_TOKEN.
+name: release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-24.04
+    environment: release
+    timeout-minutes: 45
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      # Trusted publishing needs npm 11.5.1 or newer.
+      - name: Pin npm
+        run: npm install -g npm@11.21.1 && npm --version
+
+      - name: Tag, version and release notes agree
+        run: |
+          node scripts/release-steps.mjs check-tag "$TAG"
+          echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
+          node scripts/release-steps.mjs notes "${TAG#v}" > "$RUNNER_TEMP/notes.md"
+
+      - name: Build, test and verify the package
+        run: |
+          npm ci
+          npm test
+          npm run verify:package
+
+      - name: Wait for the hosted server to report the version
+        run: node scripts/release-steps.mjs wait card "$VERSION" 900
+
+      - name: Publish to npm
+        run: |
+          if node scripts/release-steps.mjs has npm "$VERSION"; then
+            echo "npm already has getmattered-mcp@$VERSION"
+          else
+            npm publish --access public --provenance
+          fi
+          # The registry checks the npm package and its mcpName before it accepts server.json.
+          node scripts/release-steps.mjs wait npm "$VERSION" 600
+
+      - name: Publish to the MCP Registry
+        env:
+          MCP_REGISTRY_DNS_KEY_HEX: ${{ secrets.MCP_REGISTRY_DNS_KEY_HEX }}
+          PUBLISHER_VERSION: '1.8.4'
+          PUBLISHER_SHA256: '5dc2fd415369c73551259f31cd33e2aacc9e0d1021e7f08fef1492d93b781628'
+        run: |
+          if node scripts/release-steps.mjs has registry "$VERSION"; then
+            echo "the registry already has $VERSION"
+          else
+            archive="$RUNNER_TEMP/mcp-publisher.tar.gz"
+            curl -fsSL -o "$archive" "https://github.com/modelcontextprotocol/registry/releases/download/v${PUBLISHER_VERSION}/mcp-publisher_linux_amd64.tar.gz"
+            echo "${PUBLISHER_SHA256}  $archive" | sha256sum -c -
+            tar -xzf "$archive" -C "$RUNNER_TEMP" mcp-publisher
+            "$RUNNER_TEMP/mcp-publisher" login dns --domain getmattered.com --private-key "$MCP_REGISTRY_DNS_KEY_HEX"
+            "$RUNNER_TEMP/mcp-publisher" publish
+            "$RUNNER_TEMP/mcp-publisher" logout || true
+          fi
+          node scripts/release-steps.mjs wait registry "$VERSION" 300
+
+      - name: Publish the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "release $TAG already exists"
+          else
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --latest \
+              --title "GetMattered MCP $VERSION" --notes-file "$RUNNER_TEMP/notes.md"
+          fi
+
+      - name: Read every surface back
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          surfaces="$(node scripts/release-steps.mjs readback "$VERSION")"
+          release="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,isPrerelease,tagName --jq '"\(.tagName) draft=\(.isDraft) prerelease=\(.isPrerelease)"')"
+          {
+            echo "## GetMattered MCP $VERSION"
+            echo "- $surfaces"
+            echo "- GitHub release: $release"
+          } >> "$GITHUB_STEP_SUMMARY"
+          test "$release" = "$TAG draft=false prerelease=false"
