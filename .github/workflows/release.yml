@@ -25,13 +25,20 @@
 #              warns and never fails the release, which is already out.
 #   listings-xai  after publish, no environment, no secret: runs xAI's own index
 #              scripts on our fork branch and hands the commit on as a git bundle.
-#   listings   after publish, the `release-forks` environment (v* tags only): updates
+#   listings   after publish, the `release-forks` environment (v* tags and main): updates
 #              OUR open listing PR branches (xAI #1238, Docker #6054, Cline #230)
 #              only when the content they pin changed. It runs no third-party code.
 #              It checks the xAI bundle (parents, files, our catalog entry) before
 #              it pushes. Each fork has its own deploy key, which exists only in its
 #              push step. It never opens a PR, never comments, and a branch that
-#              already matches is left alone.
+#              already matches is left alone. The three forks are independent: a
+#              failed xAI step does not stop Docker or Cline (the job still fails).
+#
+# Listings only, for a tag that is already published (publishes nothing). A re-run
+# or a dispatch on the tag uses the tag's own copy of this file, so dispatch from
+# main to use the current jobs:
+#   gh workflow run release.yml --ref main -f listings_tag=v<version>
+# The tag must be the newest v* tag.
 #
 # Order: npm, then the GitHub release, then the MCP Registry. The registry is
 # last because it is the step most likely to refuse content (server.json) that a
@@ -68,6 +75,11 @@ on:
   push:
     tags: ['v*']
   workflow_dispatch:
+    inputs:
+      listings_tag:
+        description: 'Run only the listing PR jobs for this published tag (dispatch from main). Empty: the full release of the dispatched tag.'
+        required: false
+        default: ''
 
 concurrency:
   group: release
@@ -77,7 +89,7 @@ permissions: {}
 
 jobs:
   build:
-    if: github.ref_type == 'tag'
+    if: github.ref_type == 'tag' && !inputs.listings_tag
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
@@ -416,15 +428,35 @@ jobs:
   # This job runs xAI's own scripts (from their main), so it has no environment and
   # no secret, and nothing it leaves behind reaches a push. Its commit leaves as a
   # git bundle, which `listings` checks on its own runner before it pushes.
+  # A listings-only dispatch: the tag must be a published release and the newest
+  # v* tag, so a dispatch can never repin a PR to an older version.
+  listings-tag:
+    if: github.event_name == 'workflow_dispatch' && inputs.listings_tag != ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ inputs.listings_tag }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Check the tag
+        run: |
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::listings_tag must look like v1.2.3, got $TAG"; exit 1; }
+          newest="$(gh api "repos/$GITHUB_REPOSITORY/git/matching-refs/tags/v" --jq '.[].ref' | sed 's#^refs/tags/##' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)"
+          [ "$newest" = "$TAG" ] || { echo "::error::$TAG is not the newest tag ($newest): dispatch $newest"; exit 1; }
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json tagName >/dev/null || { echo "::error::$TAG has no GitHub release, so it is not published"; exit 1; }
+          echo "Listings only for $TAG"
+
   listings-xai:
-    needs: publish
-    if: needs.publish.outputs.superseded_by == ''
+    needs: [publish, listings-tag]
+    if: ${{ !cancelled() && ((needs.publish.result == 'success' && needs.publish.outputs.superseded_by == '') || needs.listings-tag.result == 'success') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
       contents: read
     env:
-      TAG: ${{ github.ref_name }}
+      TAG: ${{ inputs.listings_tag || github.ref_name }}
     outputs:
       push: ${{ steps.xai.outputs.push }}
     steps:
@@ -432,6 +464,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
+          ref: refs/tags/${{ env.TAG }}
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -455,10 +488,19 @@ jobs:
           fi
           cp "$work/.grok-plugin/marketplace.json" "$RUNNER_TEMP/xai-branch.json"
           git -C "$work" fetch --quiet https://github.com/xai-org/plugin-marketplace.git main
-          git -C "$work" show FETCH_HEAD:.grok-plugin/marketplace.json > "$RUNNER_TEMP/xai-upstream.json"
-          # Their main, plus our entry: a merge that takes upstream's tree, so the PR is not behind.
-          git -C "$work" merge --quiet -s ours --no-commit FETCH_HEAD || true
-          git -C "$work" checkout FETCH_HEAD -- .
+          upstream="$(git -C "$work" rev-parse FETCH_HEAD)"
+          if git -C "$work" merge-base --is-ancestor "$upstream" HEAD; then
+            # Their main is already in our branch: a plain commit on our tip.
+            echo "xAI: the branch already contains xAI's main ($upstream)"
+          else
+            # Their main, plus our entry: a merge that takes upstream's tree, so the PR is not behind.
+            # The merge records a committer, so it needs the identity too.
+            git -C "$work" -c user.name=GetMattered -c user.email=ava@getmattered.com \
+              merge --quiet -s ours --no-commit "$upstream"
+            git -C "$work" rev-parse --verify --quiet MERGE_HEAD >/dev/null || { echo "::error::the merge with xAI's main did not start"; exit 1; }
+            git -C "$work" read-tree -u --reset "$upstream"
+          fi
+          git -C "$work" show "$upstream:.grok-plugin/marketplace.json" > "$RUNNER_TEMP/xai-upstream.json"
           node scripts/listing-prs.mjs xai "$RUNNER_TEMP/xai-branch.json" "$RUNNER_TEMP/xai-upstream.json" "$new_sha" "$work/.grok-plugin/marketplace.json"
           # xAI's code. Everything after this line is checked again in `listings`.
           (cd "$work" && python3 scripts/generate-plugin-index.py && python3 scripts/validate-catalog.py && python3 scripts/generate-plugin-index.py --check)
@@ -484,8 +526,8 @@ jobs:
   # key exists only inside its own push step, with a fresh HOME, no git hooks and
   # SSH as the only transport.
   listings:
-    needs: [publish, listings-xai]
-    if: ${{ !cancelled() && needs.publish.result == 'success' && needs.publish.outputs.superseded_by == '' }}
+    needs: [publish, listings-tag, listings-xai]
+    if: ${{ !cancelled() && ((needs.publish.result == 'success' && needs.publish.outputs.superseded_by == '') || needs.listings-tag.result == 'success') }}
     runs-on: ubuntu-24.04
     environment: release-forks
     timeout-minutes: 30
@@ -495,7 +537,7 @@ jobs:
     permissions:
       contents: read
     env:
-      TAG: ${{ github.ref_name }}
+      TAG: ${{ inputs.listings_tag || github.ref_name }}
       DRY_RUN: ${{ vars.LISTINGS_DRY_RUN }}
       GIT_CONFIG_NOSYSTEM: '1'
       GITHUB_HOST_KEY: 'github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl'
@@ -504,6 +546,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
+          ref: refs/tags/${{ env.TAG }}
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -515,30 +558,44 @@ jobs:
           name: listings-xai
           path: ${{ runner.temp }}/xai-in
 
-      # The bundle's commit must be a merge of our branch tip and a commit on xAI's
-      # main, change only their catalog and index, and carry exactly the catalog our
-      # own script writes. Anything else stops here.
+      # The bundle's commit must sit on our branch tip, and either merge a commit on
+      # xAI's main (when their main moved) or be a plain commit (when our branch
+      # already has their main). Upstream's own changes arrive through the merge and
+      # are allowed. What our step changed, the commit against the tree it started
+      # from, may touch only their catalog and index, and the catalog must be exactly
+      # the one our own script writes. Anything else stops here.
       - name: xAI, check the prepared commit
         id: xai
         if: needs.listings-xai.result == 'success' && needs.listings-xai.outputs.push == '1'
         run: |
+          fail() { echo "::error::$*"; exit 1; }
           new_sha="$(git rev-parse "$TAG^{commit}")"
           work="$RUNNER_TEMP/xai"
           git clone --quiet --branch add-aiapplyd --single-branch https://github.com/getmattered/plugin-marketplace.git "$work"
           git -C "$work" fetch --quiet "$RUNNER_TEMP/xai-in/xai.bundle" refs/heads/add-aiapplyd:refs/heads/listing
-          test "$(git -C "$work" rev-list --parents -n 1 listing | wc -w)" -eq 3
-          test "$(git -C "$work" rev-parse listing^1)" = "$(git -C "$work" rev-parse HEAD)"
+          tip="$(git -C "$work" rev-parse HEAD)"
+          [ "$(git -C "$work" rev-parse listing^1)" = "$tip" ] || fail "the xAI commit does not build on our branch tip $tip"
           git -C "$work" fetch --quiet https://github.com/xai-org/plugin-marketplace.git main
-          git -C "$work" merge-base --is-ancestor listing^2 FETCH_HEAD
-          outside="$(git -C "$work" diff --name-only listing^2 listing | grep -v -x -e .grok-plugin/marketplace.json -e .grok-plugin/plugin-index.json || true)"
-          if [ -n "$outside" ]; then
-            echo "::error::the xAI commit changes files outside the catalog and index: $outside"
-            exit 1
-          fi
-          git -C "$work" show HEAD:.grok-plugin/marketplace.json > "$RUNNER_TEMP/xai-branch.json"
-          git -C "$work" show listing^2:.grok-plugin/marketplace.json > "$RUNNER_TEMP/xai-upstream.json"
+          case "$(git -C "$work" rev-list --parents -n 1 listing | wc -w)" in
+            3)
+              # A merge that takes xAI's tree: our step's changes are against that parent.
+              from="$(git -C "$work" rev-parse listing^2)"
+              git -C "$work" merge-base --is-ancestor "$from" FETCH_HEAD || fail "the merged parent $from is not on xAI's main"
+              upstream="$from"
+              ;;
+            2)
+              # Our branch already had xAI's main: our step's changes are against our tip.
+              from="$tip"
+              upstream="$(git -C "$work" merge-base "$tip" FETCH_HEAD)" || fail "our branch shares no history with xAI's main"
+              ;;
+            *) fail "the xAI commit has more than two parents" ;;
+          esac
+          outside="$(git -C "$work" diff --name-only "$from" listing | grep -v -x -e .grok-plugin/marketplace.json -e .grok-plugin/plugin-index.json || true)"
+          [ -z "$outside" ] || fail "the xAI commit changes files outside the catalog and index: $outside"
+          git -C "$work" show "$tip:.grok-plugin/marketplace.json" > "$RUNNER_TEMP/xai-branch.json"
+          git -C "$work" show "$upstream:.grok-plugin/marketplace.json" > "$RUNNER_TEMP/xai-upstream.json"
           node scripts/listing-prs.mjs xai "$RUNNER_TEMP/xai-branch.json" "$RUNNER_TEMP/xai-upstream.json" "$new_sha" "$RUNNER_TEMP/xai-expected.json"
-          git -C "$work" show listing:.grok-plugin/marketplace.json | cmp - "$RUNNER_TEMP/xai-expected.json"
+          git -C "$work" show listing:.grok-plugin/marketplace.json | cmp - "$RUNNER_TEMP/xai-expected.json" || fail "the xAI catalog is not the one our script writes"
           git -C "$work" show --stat listing
           echo "push=1" >> "$GITHUB_OUTPUT"
 
@@ -565,6 +622,7 @@ jobs:
       # docker/mcp-registry #6054: metadata only (server.yaml, readme.md).
       - name: Docker, prepare
         id: docker
+        if: ${{ !cancelled() }}
         run: |
           work="$RUNNER_TEMP/docker"
           git clone --quiet --depth 20 --branch add-getmattered --single-branch https://github.com/whateverneveranywhere/mcp-registry.git "$work"
@@ -580,7 +638,7 @@ jobs:
           echo "push=1" >> "$GITHUB_OUTPUT"
 
       - name: Docker, push
-        if: steps.docker.outputs.push == '1' && env.DRY_RUN != '1'
+        if: ${{ !cancelled() && steps.docker.outputs.push == '1' && env.DRY_RUN != '1' }}
         env:
           DEPLOY_KEY: ${{ secrets.DOCKER_FORK_DEPLOY_KEY }}
           WORK: ${{ runner.temp }}/docker
@@ -602,6 +660,7 @@ jobs:
       # cline/marketplace #230: text only (the two entry.json files).
       - name: Cline, prepare
         id: cline
+        if: ${{ !cancelled() }}
         run: |
           work="$RUNNER_TEMP/cline"
           git clone --quiet --depth 20 --branch add-aiapplyd --single-branch https://github.com/whateverneveranywhere/marketplace.git "$work"
@@ -617,7 +676,7 @@ jobs:
           echo "push=1" >> "$GITHUB_OUTPUT"
 
       - name: Cline, push
-        if: steps.cline.outputs.push == '1' && env.DRY_RUN != '1'
+        if: ${{ !cancelled() && steps.cline.outputs.push == '1' && env.DRY_RUN != '1' }}
         env:
           DEPLOY_KEY: ${{ secrets.CLINE_FORK_DEPLOY_KEY }}
           WORK: ${{ runner.temp }}/cline
