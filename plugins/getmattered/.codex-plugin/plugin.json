@@ -1,6 +1,6 @@
 {
   "name": "getmattered",
-  "version": "1.15.3",
+  "version": "1.15.4",
   "description": "Auto-Apply That Ends on an Interview. Get matched jobs, apply on 30+ hiring systems automatically or after your approval, review and track every application, and tailor your resume and cover letter per role.",
   "author": {
     "name": "GetMattered",
@@ -147,7 +147,7 @@
         "commerce_description": "The plugin does not sell products or take payments. Paid GetMattered plans are bought on getmattered.com."
       },
       "publication": {
-        "release_notes": "1.15.3: 40 tools with the same names. Each release also ships a Claude Desktop bundle that opens the browser sign-in on the first tool call. A tool call waits at most 45 seconds for that sign-in, and a cancelled call is never sent. The plugin and its wording are checked before each release publishes."
+        "release_notes": "1.15.4: 40 tools with the same names. When GetMattered cannot apply to a job, the answer says why and offers the closest job from the user's GetMattered matches. Two skills say the same."
       },
       "onboardingSkill": "./skills/setup-job-search/SKILL.md"
     }

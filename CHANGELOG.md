@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.15.4
+
+40 tools with the same names. When GetMattered cannot apply to a job, the answer says why and offers the closest job from the user's GetMattered matches. Two skills say the same.
+
 ## 1.15.3
 
 40 tools with the same names. Each GitHub release also carries a Claude Desktop bundle (.mcpb). With it, the first tool call without a sign-in opens your browser to sign in. A tool call waits at most 45 seconds for that sign-in, and a cancelled call is never sent. Every release checks the plugin and its wording before it publishes, and a daily check lists which directories show the newest version.
