@@ -1,7 +1,7 @@
 {
   "name": "getmattered-mcp",
-  "version": "1.16.0",
-  "description": "Auto-Apply That Ends on an Interview. GetMattered MCP server: your matched jobs, applications submitted on the employer's own hiring system across 30+ hiring systems (sent automatically or held for your approval), a review queue, employer-receipt tracking, a resume rewritten for each role, cover letters and interview preparation.",
+  "version": "1.17.0",
+  "description": "Job search and auto apply MCP server for ChatGPT, Claude, Cursor and any MCP client. Auto-Apply That Ends on an Interview: matched jobs, applications sent on the employer's own site, tailored resumes, cover letters, interview prep and an application tracker.",
   "type": "module",
   "bin": {
     "getmattered-mcp": "dist/index.js"
@@ -27,21 +27,33 @@
     "test": "npm run build && node --test test/*.test.mjs"
   },
   "keywords": [
+    "ai-job-search",
     "ats",
     "auto-apply",
+    "auto-apply-jobs",
     "career",
     "chatgpt",
     "claude",
+    "claude-code",
+    "claude-desktop",
     "cli",
+    "cover-letter",
     "cursor",
     "getmattered",
     "interview-prep",
     "job-application",
+    "job-application-tracker",
     "job-search",
+    "job-search-mcp",
+    "job-tracker",
     "mcp",
     "mcp-server",
     "model-context-protocol",
-    "resume"
+    "remote-mcp",
+    "resume",
+    "resume-tailoring",
+    "vscode",
+    "windsurf"
   ],
   "author": "GetMattered <ava@getmattered.com>",
   "license": "MIT",
