@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "getmattered",
   "display_name": "GetMattered",
-  "version": "1.17.0",
+  "version": "1.17.1",
   "description": "Auto-Apply That Ends on an Interview. Your matched jobs, applications on the employer's own hiring system, a review queue, employer receipts and interview preparation.",
   "long_description": "GetMattered finds jobs matched to your resume, tailors the resume and cover letter for each role, and submits the application on the employer's own hiring system across 30+ hiring systems. Each application is sent automatically or held for your approval. The extension runs the getmattered-mcp bridge, which relays every message to the hosted server at https://mcp.getmattered.com/mcp. On the first tool call without a stored sign-in, it opens your browser once to sign in.",
   "author": {

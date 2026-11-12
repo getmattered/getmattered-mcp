@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.17.1
+
+40 tools with the same names. get_account's description is back to its approved wording.
+
 ## 1.17.0
 
 40 tools with the same names. Tool descriptions now lead with the words people search with: job search, job application tracker, tailoring a resume to a job description, recruiter emails and job alerts. get_matches, get_applications and get_account explain what they return.
