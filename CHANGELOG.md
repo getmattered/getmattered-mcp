@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.16.0
+
+40 tools with the same names. A job board link, such as Y Combinator, now goes to the employer's own application form when one exists. When GetMattered cannot apply to a job, it keeps the job on the user's GetMattered board and tells the user once it can send it. The title and place filters of get_matches now say that they narrow the user's matches and do not search for new jobs.
+
 ## 1.15.4
 
 40 tools with the same names. When GetMattered cannot apply to a job, the answer says why and offers the closest job from the user's GetMattered matches. Two skills say the same.
