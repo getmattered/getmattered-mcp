@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.19.0
+
+41 tools. A new account's first answer asks for the resume. The first matches answer offers the best 3 jobs under one yes. getmattered_apply answers within seconds on every client, and a job still starting shows in getmattered_get_applications. Approving an application that is already counted never uses another free application.
+
 ## 1.18.0
 
 41 tools. New: getmattered_search_jobs searches every job GetMattered can apply to, by words, place, seniority and visa, and keeps the saved search as it is. getmattered_apply takes up to 10 jobs under one yes. A Y Combinator job behind a Work at a Startup account stays on the board, and the answer says why. Adding a role or a city keeps the saved ones.
