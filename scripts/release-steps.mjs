@@ -18,7 +18,7 @@
  *                                                          prints the "vX: human steps" issue body, or nothing
  *   node scripts/release-steps.mjs lobehub <generated> <out> writes lhm.plugin.json with the live tools, for `lhm plugin update`
  *
- * Surfaces: card (the hosted server card), npm, registry.
+ * Surfaces: card (the hosted server card), npm, registry, lobehub.
  */
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -32,6 +32,9 @@ const REGISTRY = 'https://registry.modelcontextprotocol.io/v0.1/servers/com.getm
 
 export const SURFACE_URLS = {
   card: () => 'https://mcp.getmattered.com/.well-known/mcp/server-card.json',
+  // ?version=<V> answers 404 (uncached) until LobeHub has V; the bare object is a
+  // Cloudflare cache hit for up to 4 h and served 1.17.1 after 1.18.0 landed (13 Nov 2026).
+  lobehub: version => `https://market.lobehub.com/api/v1/plugins/getmattered-getmattered-mcp?version=${version}`,
   npm: version => `https://registry.npmjs.org/getmattered-mcp/${version}`,
   registry: version => `${REGISTRY}/${version}`,
 };
@@ -81,7 +84,16 @@ export function surfaceHas(surface, version, reading) {
   if (surface === 'card') return reading.body.serverInfo?.version === version;
   if (surface === 'npm') return reading.body.version === version;
   if (surface === 'registry') return reading.body.server?.version === version;
+  if (surface === 'lobehub') return reading.body.version === version;
   throw new Error(`unknown surface ${surface}`);
+}
+
+/** What a surface showed on its last read, for the error when a wait runs out. */
+export function readingText(surface, reading) {
+  const body = reading?.body;
+  const shown = surface === 'registry' ? body?.server?.version : surface === 'card' ? body?.serverInfo?.version : body?.version;
+  const npmPin = surface === 'lobehub' && body?.artifacts?.npm?.version ? `, npm artifact ${body.artifacts.npm.version}` : '';
+  return `HTTP ${reading?.status ?? 0}${shown ? `, version ${shown}` : ''}${npmPin}`;
 }
 
 /** The final read-back: npm `latest` and the registry's latest entry both are V, and the registry marks it latest. */
@@ -202,27 +214,38 @@ function openaiEntriesAt(ref) {
  * (or an on-demand `ab` job on Ava's Mac) every release. A value that could not
  * be read is null, and its step says UNOBSERVED instead of guessing.
  */
+/**
+ * Every Claude connector line ends with this. The mirror cannot read the review
+ * state, and Sync or Save on a submission in review edits a listing that is in
+ * review, which the owner forbids. GetMattered's hourly watch holds the line while
+ * MCP_REVIEW_SURFACES records the review.
+ */
+export const CLAUDE_REVIEW_WAIT = 'WAIT while claude.ai/directory/manage shows the submission in review: leave this unticked and do it once the review has ended.';
+
+/** The ChatGPT package line names the open draft it replaces, so an older draft is never submitted. */
+const replaceDraft = version => `If an older package sits there as a draft, replace that draft with getmattered-${version}-openai.zip; never submit the older draft.`;
+
 export function reminderSteps({ version, toolsBefore, toolsNow, hashBefore, hashNow, carried = null }) {
   const steps = [];
   if (!toolsNow) {
-    steps.push('Claude connector listing: the server card was unreadable, so the tool names are UNOBSERVED. Compare them by hand; if they changed, press "Sync from server", then "Save and update submission" in claude.ai/directory/manage.');
+    steps.push(`Claude connector listing: the server card was unreadable, so the tool names are UNOBSERVED. Compare them by hand; if they changed, press "Sync from server", then "Save and update submission" in claude.ai/directory/manage. ${CLAUDE_REVIEW_WAIT}`);
   } else if (!toolsBefore) {
-    steps.push('Claude connector listing: the previous release recorded no tool names (UNOBSERVED). Compare them by hand once; if they changed, press "Sync from server", then "Save and update submission" in claude.ai/directory/manage.');
+    steps.push(`Claude connector listing: the previous release recorded no tool names (UNOBSERVED). Compare them by hand once; if they changed, press "Sync from server", then "Save and update submission" in claude.ai/directory/manage. ${CLAUDE_REVIEW_WAIT}`);
   } else {
     const added = toolsNow.filter(name => !toolsBefore.includes(name));
     const removed = toolsBefore.filter(name => !toolsNow.includes(name));
     if (added.length > 0 || removed.length > 0) {
       const what = [added.length > 0 ? `added ${added.join(', ')}` : null, removed.length > 0 ? `removed ${removed.join(', ')}` : null].filter(Boolean).join('; ');
-      steps.push(`Claude connector listing: tool names changed (${what}). In claude.ai/directory/manage press "Sync from server", then "Save and update submission".`);
+      steps.push(`Claude connector listing: tool names changed (${what}). In claude.ai/directory/manage press "Sync from server", then "Save and update submission". ${CLAUDE_REVIEW_WAIT}`);
     }
   }
   // An upload the previous release asked for and nobody ticked: compare with what was there before it.
   const before = carried?.hashBefore ?? hashBefore;
   if (!hashNow || !before) {
-    steps.push(`ChatGPT package: the content hash is UNOBSERVED. Compare skills, metadata and assets by hand; if they changed, upload getmattered-${version}-openai.zip at platform.openai.com/plugins. Never while a review is open.`);
+    steps.push(`ChatGPT package: the content hash is UNOBSERVED. Compare skills, metadata and assets by hand; if they changed, upload getmattered-${version}-openai.zip at platform.openai.com/plugins. ${replaceDraft(version)} Never while a review is open.`);
   } else if (hashNow !== before) {
     const why = carried ? `skills, metadata or assets changed, and the upload ${carried.from} asked for is still unticked` : 'skills, metadata or assets changed';
-    steps.push(`ChatGPT package: ${why} (${before} to ${hashNow}). Upload getmattered-${version}-openai.zip from this release at platform.openai.com/plugins. Never while a review is open.`);
+    steps.push(`ChatGPT package: ${why} (${before} to ${hashNow}). Upload getmattered-${version}-openai.zip from this release at platform.openai.com/plugins. ${replaceDraft(version)} Never while a review is open.`);
   }
   steps.push(`Glama: in the server admin for getmattered/getmattered-mcp press "Sync Server", then "Make Release" ${version}. It has no API; an on-demand ab job on Ava's Mac can do it.`);
   return steps;
@@ -234,13 +257,22 @@ export function remindersBody(version, steps) {
   return [`Release ${version} needs these steps. Tick each one when it is done.`, '', ...steps.map(step => `- [ ] ${step}`), ''].join('\n');
 }
 
+export const LOBEHUB_PLUGIN_URL = 'https://market.lobehub.com/api/v1/plugins/getmattered-getmattered-mcp';
+
 /**
  * lhm.plugin.json for `lhm plugin update`: the committed fields (identifier,
  * name, version, description, links) over what `lhm plugin init --url` read
  * from the live server (tools, prompts, resources).
+ *
+ * `artifacts.npm` always names this release. Without it LobeHub kept the npm
+ * artifact of its first listing: every version up to 1.18.0 advertised
+ * getmattered-mcp@1.15.4 (read 13 Nov 2026). Other artifacts the listing already
+ * has (the docker runtime) are kept from `live`, the current LobeHub reading.
  */
-export function lobehubManifest(committed, generated) {
-  return { ...committed, prompts: generated.prompts ?? [], resources: generated.resources ?? [], tools: generated.tools ?? [] };
+export function lobehubManifest(committed, generated, { live = null, packageName } = {}) {
+  if (!packageName) throw new Error('lobehubManifest needs the npm package name');
+  const artifacts = { ...live?.artifacts, ...generated.artifacts, ...committed.artifacts, npm: { packageName, version: committed.version } };
+  return { ...committed, artifacts, prompts: generated.prompts ?? [], resources: generated.resources ?? [], tools: generated.tools ?? [] };
 }
 
 async function read(url) {
@@ -277,7 +309,9 @@ async function main() {
     exit(surfaceHas(first, second, await read(SURFACE_URLS[first](second))) ? 0 : 1);
   }
   if (command === 'wait') {
-    if (!(await waitFor(first, second, { seconds: Number(argv[5] ?? 900) }))) throw new Error(`${first} did not report ${second} in time`);
+    if (!(await waitFor(first, second, { seconds: Number(argv[5] ?? 900) }))) {
+      throw new Error(`${first} did not report ${second} in time; last read ${SURFACE_URLS[first](second)}: ${readingText(first, await read(SURFACE_URLS[first](second)))}`);
+    }
     return;
   }
   if (command === 'newer') {
@@ -352,11 +386,14 @@ async function main() {
   }
   if (command === 'lobehub') {
     const out = second;
-    const merged = lobehubManifest(JSON.parse(readFileSync('lhm.plugin.json', 'utf8')), JSON.parse(readFileSync(first, 'utf8')));
+    const committed = JSON.parse(readFileSync('lhm.plugin.json', 'utf8'));
+    if (committed.version !== pkg.version) throw new Error(`lhm.plugin.json is ${committed.version}, package.json is ${pkg.version}`);
+    const live = await read(LOBEHUB_PLUGIN_URL);
+    const merged = lobehubManifest(committed, JSON.parse(readFileSync(first, 'utf8')), { live: live.body, packageName: pkg.name });
     if (merged.tools.length === 0) throw new Error('lhm plugin init read no tools from the live server');
     mkdirSync(dirname(out), { recursive: true });
     writeFileSync(out, `${JSON.stringify(merged, null, 2)}\n`);
-    stdout.write(`lhm.plugin.json ${merged.identifier}@${merged.version}: ${merged.tools.length} tools\n`);
+    stdout.write(`lhm.plugin.json ${merged.identifier}@${merged.version}: ${merged.tools.length} tools, npm artifact ${merged.artifacts.npm.packageName}@${merged.artifacts.npm.version}\n`);
     return;
   }
   throw new Error(`unknown command ${command}`);

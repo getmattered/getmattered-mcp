@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { behindSince, gateFailures, LISTING_PAGES, LISTING_PRS, listingVerdict, newestShown, PLATFORMS, prVerdict, readDrift, REFERENCE_URLS, renderIssue, rowVerdict, runFailures, thresholdHours } from '../scripts/platform-drift.mjs';
+import { behindSince, exitCode, gateFailures, LISTING_PAGES, LISTING_PRS, listingVerdict, newestShown, PLATFORMS, prVerdict, readDrift, readUrl, REFERENCE_URLS, renderIssue, rowVerdict, runFailures, thresholdHours, WAITING, withFixWaits } from '../scripts/platform-drift.mjs';
 
 const now = new Date('2026-11-10T12:00:00Z');
 const releases = [
@@ -26,11 +26,35 @@ test('the GitHub gallery is read through /v0.1, which honours the server name', 
   assert.match(row('github-gallery').url, /^https:\/\/api\.mcp\.github\.com\/v0\.1\/servers\/com\.getmattered%2Fgetmattered\//);
 });
 
-test('Gemini is a submission, not a follower, and reads not listed when absent', () => {
-  assert.equal(row('gemini').cls, 'submission');
-  const verdict = rowVerdict(row('gemini'), ok([{ id: '@obra/superpowers' }]), context);
-  assert.equal(verdict.verdict, 'not listed');
+test('Gemini crawls the mirror: a gallery file not rebuilt for days reads HELD, never "needs a submission"', () => {
+  assert.equal(row('gemini').cls, 'follower');
+  // geminicli.com/extensions.json read 13 Nov 2026: last-modified 16 Oct, 2198 entries, none of them us.
+  const frozen = { ...ok([{ id: '@obra/superpowers' }]), lastModified: 'Fri, 16 Oct 2026 02:36:07 GMT' };
+  const held = rowVerdict(row('gemini'), frozen, { ...context, now: new Date('2026-11-13T14:30:00Z') });
+  assert.equal(held.verdict, 'HELD');
+  assert.equal(held.detail, 'gallery not rebuilt since 2026-10-16; its daily crawl is stalled, nothing to submit');
+  assert.doesNotMatch(held.detail, /submission/);
+  const fresh = { ...ok([{ id: '@obra/superpowers' }]), lastModified: 'Tue, 10 Nov 2026 02:00:00 GMT' };
+  assert.equal(rowVerdict(row('gemini'), fresh, context).verdict, 'not listed');
   assert.equal(rowVerdict(row('gemini'), ok([{ fullName: 'getmattered/getmattered-mcp' }]), context).verdict, 'current');
+});
+
+test('LobeHub is read at ?version=<newest>, past its 4 h cache, and falls back to the bare object on 404', async () => {
+  assert.equal(rowVerdict(row('lobehub'), ok({ version: '1.15.2' }), context).url, 'https://market.lobehub.com/api/v1/plugins/getmattered-getmattered-mcp?version=1.15.2');
+  const urls = [];
+  const fetchReading = async (url) => {
+    urls.push(url);
+    if (url === REFERENCE_URLS.mainPackage) return ok({ version: '1.15.2' });
+    if (url === REFERENCE_URLS.releases) return ok({ time: { '1.15.1': '2026-11-09T12:00:00Z', '1.15.2': '2026-11-10T09:00:00Z' } });
+    if (url.endsWith('?version=1.15.2')) return { json: { message: 'not found' }, status: 404, text: '' };
+    if (url === row('lobehub').fallbackUrl) return ok({ version: '1.15.1' });
+    return { json: null, status: 403, text: '' };
+  };
+  const { rows } = await readDrift({ fetchReading, now });
+  const lobehub = rows.find(entry => entry.key === 'lobehub');
+  assert.equal(lobehub.shown, '1.15.1');
+  assert.equal(lobehub.verdict, 'lagging');
+  assert.ok(urls.indexOf(row('lobehub').fallbackUrl) > urls.findIndex(url => url.endsWith('?version=1.15.2')));
 });
 
 test('a blocked, unanswered or unparsed read is UNOBSERVED, never a pass', () => {
@@ -44,6 +68,9 @@ test('behind inside the threshold is lagging, past it is drift, from when the fi
   assert.equal(rowVerdict(row('github-gallery'), ok({ server: { version: '1.15.1' } }), context).verdict, 'lagging');
   assert.equal(rowVerdict(row('github-gallery'), ok({ server: { version: '1.15.0' } }), context).verdict, 'lagging');
   assert.equal(rowVerdict(row('github-gallery'), ok({ server: { version: '1.13.0' } }), context).verdict, 'drift');
+  const pinned = rowVerdict(row('lobehub'), ok({ artifacts: { npm: { packageName: 'getmattered-mcp', version: '1.15.4' } }, version: '1.18.0' }), context);
+  assert.equal(pinned.verdict, 'drift');
+  assert.match(pinned.detail, /npm artifact is 1\.15\.4/);
   const lobehub = rowVerdict(row('lobehub'), ok({ version: '1.13.0' }), context);
   assert.equal(lobehub.verdict, 'lagging');
   assert.match(lobehub.detail, /for 3 days/);
@@ -70,7 +97,7 @@ test('pages are parsed by what each one shows', () => {
   assert.equal(newestShown('nothing here', '1.15.2'), null);
 });
 
-test('only gate rows fail the run; followers, manual and submission rows print', () => {
+test('only gate rows fail the run; follower and manual rows print', () => {
   const rows = [
     rowVerdict(row('npm'), ok({ version: '1.15.2' }), context),
     rowVerdict(row('mcprush'), { json: null, status: 403, text: '' }, context),
@@ -144,4 +171,57 @@ test('every open listing PR the release board names has a PR-state row', () => {
   const names = LISTING_PRS.map(entry => entry.name);
   for (const ref of ['punkpeye/awesome-remote-mcp-servers#2806', 'arthurspk/guiadoconhecimento#2', 'docker/mcp-registry#6054', 'cline/marketplace#230', 'xai-org/plugin-marketplace#1238', 'Kamalnrf/claude-plugins#130', 'khalyomede/korru.app#1']) assert.ok(names.includes(ref), ref);
   for (const entry of LISTING_PRS) assert.match(entry.url, /^https:\/\/api\.github\.com\/repos\/[^/]+\/[^/]+\/issues\/\d+$/);
+});
+
+test('the old name on a listing whose fix PR is open prints as waiting, as drift read it on 13 Nov 2026', () => {
+  const remote = listingVerdict(listingPage, page('- [AI Applyd](https://aiapplyd.com/mcps)\n'), context);
+  const guia = listingVerdict(LISTING_PAGES.find(entry => entry.key === 'guiadoconhecimento'), page('| AI Applyd | x |\n'), context);
+  const openPr = ref => ({ key: `pr:${ref}`, openDays: 20, shown: 'open', verdict: 'open' });
+  const rows = withFixWaits([remote, guia, openPr('punkpeye/awesome-remote-mcp-servers#2806'), openPr('arthurspk/guiadoconhecimento#2')]);
+  assert.deepEqual(rows.slice(0, 2).map(entry => entry.verdict), [WAITING, WAITING]);
+  assert.match(rows[0].detail, /fix PR punkpeye\/awesome-remote-mcp-servers#2806 open 20 days, waits on the maintainer/);
+  assert.deepEqual(runFailures(rows), []);
+  assert.equal(exitCode(rows), 0);
+  assert.match(renderIssue(rows, { now, reference: '1.15.2' }), /Old name, waiting on someone else: punkpeye/);
+});
+
+test('a fix PR that closed, merged or went unread leaves the old name failing, with the listing exit code', () => {
+  const remote = listingVerdict(listingPage, page('- [AI Applyd](https://aiapplyd.com/mcps)\n'), context);
+  for (const pr of [{ shown: 'closed', verdict: 'closed' }, { shown: 'merged', verdict: 'merged' }, { shown: '', verdict: 'UNOBSERVED' }, null]) {
+    const rows = withFixWaits(pr ? [remote, { key: 'pr:punkpeye/awesome-remote-mcp-servers#2806', ...pr }] : [remote]);
+    assert.equal(rows[0].verdict, 'old name');
+    assert.equal(exitCode(rows), 3);
+  }
+  const card = rowVerdict(row('server-card'), { json: null, status: 503, text: '' }, context);
+  assert.equal(exitCode([remote, card]), 1);
+});
+
+test('a page whose fix only the site can make prints as waiting, and HTML pages skip the version check', () => {
+  const muse = LISTING_PAGES.find(entry => entry.key === 'musedirectory');
+  assert.equal(muse.url, 'https://musedirectory.ai/connector/ai-applyd');
+  const html = '<html><a href="https://aiapplyd.com/mcps">GetMattered</a> Found in the official MCP Registry (com.aiapplyd/aiapplyd)</html>';
+  const [verdict] = withFixWaits([listingVerdict(muse, page(html), context)]);
+  assert.equal(verdict.verdict, WAITING);
+  assert.match(verdict.detail, /old name: .*aiapplyd\.com\/mcps/);
+  assert.match(verdict.detail, /waits on the site/);
+  const mcpSo = LISTING_PAGES.find(entry => entry.key === 'mcp-so');
+  assert.equal(listingVerdict(mcpSo, page('<div>GetMattered 1.10.2 react 0.9.1 node 1.0.4</div>'), context).verdict, 'current');
+  assert.ok(LISTING_PAGES.some(entry => entry.url === 'https://cursor.directory/plugins/getmattered-mcp'));
+});
+
+test('a 403 to the token is read again without it, and the row says which path answered', async () => {
+  const calls = [];
+  const fetcher = async (_url, headers) => {
+    calls.push(Boolean(headers.Authorization));
+    return headers.Authorization ? { json: { message: 'Resource not accessible by integration' }, status: 403, text: '' } : ok({ body: '', created_at: '2026-10-24T14:00:00Z', state: 'open', title: 'Add GetMattered' });
+  };
+  const xai = LISTING_PRS.find(entry => entry.name === 'xai-org/plugin-marketplace#1238');
+  const reading = await readUrl(xai.url, { fetcher, token: 't' });
+  assert.deepEqual(calls, [true, false]);
+  const verdict = prVerdict(xai, reading, context);
+  assert.equal(verdict.verdict, 'open');
+  assert.match(verdict.detail, /\(read without the token, which got 403\)$/);
+  calls.length = 0;
+  await readUrl('https://mcp.so/servers/getmattered-mcp', { fetcher, token: 't' });
+  assert.deepEqual(calls, [false]);
 });

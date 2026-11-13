@@ -4,17 +4,20 @@
 # The rows, classes and thresholds live in scripts/platform-drift.mjs (mirrored
 # from tools/mcp-bridge in GetMattered's monorepo, like the rest of this repo):
 #   gate        hosted server, npm, MCP Registry, GitHub release. Behind past 6 h,
-#               or unreadable, fails this run.
-#   follower    registry, npm and GitHub followers. 48 h for the GitHub MCP gallery
-#               (read through /v0.1), 7 days for the rest. Prints only.
+#               or unreadable, fails this run (exit 1).
+#   follower    registry, npm and GitHub followers, LobeHub and the Gemini CLI
+#               gallery. 48 h for the GitHub MCP gallery (read through /v0.1),
+#               7 days for the rest. Prints only.
 #   manual      Glama (Sync Server, Make Release). Prints only.
-#   submission  Gemini CLI gallery: not listed. Prints only.
-#   listing     merged list entries (awesome lists, toolsdk, Raycast), read as text.
+#   listing     merged list entries (awesome lists, toolsdk, Raycast) and directory
+#               pages (mcp.so, cursor.directory, musedirectory.ai), read as text.
 #               The old name (/ai ?applyd/i) or a version older than main's on our
-#               line fails this run.
+#               line fails this run (exit 3), unless its fix waits on a maintainer
+#               (our fix PR is open) or the site: then it prints "old name, waiting".
 #   pr          our open listing pull requests and issues, read through
-#               api.github.com with this run's token. The old name in our own title
-#               or body fails this run; open, merged and closed only print.
+#               api.github.com with this run's token (again without it on a 403).
+#               The old name in our own title or body fails this run (exit 3);
+#               open, merged and closed only print.
 # A blocked read prints UNOBSERVED, never a pass. Several sites block Actions IPs.
 #
 # It runs daily, and release.yml starts it after every release (its `drift` job).
@@ -94,4 +97,11 @@ jobs:
         if: steps.read.outputs.status != 'skip'
         env:
           STATUS: ${{ steps.read.outputs.status }}
-        run: exit "$STATUS"
+        run: |
+          case "$STATUS" in
+            0) echo "every gate row current; no old name we can fix" ;;
+            1) echo "::error::a core surface (server card, npm, MCP Registry or GitHub release) is behind or unread: see the issue table" ;;
+            3) echo "::error::core surfaces are current; a listing or our own PR text shows the old name or an old version that we can fix: see the issue table" ;;
+            *) echo "::error::the drift reader stopped (exit $STATUS)" ;;
+          esac
+          exit "$STATUS"

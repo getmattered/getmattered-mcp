@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
 
-import { changedFiles, FORKS, listingFiles, pinIconRef, pinnedCatalog, readPin } from '../scripts/listing-prs.mjs';
+import { changedFiles, FORKS, listingFiles, pinnedCatalog, readPin } from '../scripts/listing-prs.mjs';
 
 const OLD = 'a20371f54c014eda770ef17e6646c0c53d67a1ea';
 const NEW = '649ab9415c3ab66e79e0aac464aab19272dff84a';
@@ -43,12 +43,19 @@ test('Docker gets metadata only and Cline text only, with no counts that go stal
   for (const [, text] of listingFiles(root, 'cline')) JSON.parse(text);
 });
 
-test('the Docker icon points at the release tag the listings job runs for', () => {
+test('the Docker files carry no release tag, so a release that changed no listing text pushes nothing', () => {
   const root = fileURLToPath(new URL('..', import.meta.url));
-  const server = listingFiles(root, 'docker', { iconRef: 'v1.17.1' }).find(([path]) => path.endsWith('server.yaml'))[1];
-  assert.match(server, /^ {2}icon: https:\/\/raw\.githubusercontent\.com\/getmattered\/getmattered-mcp\/v1\.17\.1\/plugins\/getmattered\/assets\/logo\.png$/m);
-  assert.equal(pinIconRef('see https://getmattered.com/mcps', 'v1.17.1'), 'see https://getmattered.com/mcps');
-  assert.throws(() => pinIconRef(server, 'main'), /not a release tag/);
+  const files = listingFiles(root, 'docker');
+  const server = files.find(([path]) => path.endsWith('server.yaml'))[1];
+  assert.match(server, /^ {2}icon: https:\/\/raw\.githubusercontent\.com\/getmattered\/getmattered-mcp\/main\/plugins\/getmattered\/assets\/logo\.png$/m);
+  for (const [path, text] of files) assert.doesNotMatch(text, /getmattered-mcp\/v\d+\.\d+\.\d+\//, path);
+  // The fork branch as the listings job leaves it: the same files twice is a no-op, whatever the tag.
+  const checkout = mkdtempSync(join(tmpdir(), 'docker-'));
+  for (const [path, text] of files) {
+    mkdirSync(join(checkout, path, '..'), { recursive: true });
+    writeFileSync(join(checkout, path), text);
+  }
+  assert.deepEqual(changedFiles(listingFiles(root, 'docker'), checkout), []);
 });
 
 test('only files that differ from the fork branch count as a change, so a matching branch is a no-op', () => {

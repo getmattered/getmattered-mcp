@@ -11,18 +11,25 @@
  *               unreadable, fails the run (exit 1).
  *   follower    follows npm, the registry or the repo on its own clock. Prints only.
  *   manual      moves only when a person acts (Glama Make Release). Prints only.
- *   submission  we are not listed; it needs a submission. Prints only.
- *   listing     a merged list entry (LISTING_PAGES), read as text. The old name
- *               (/ai ?applyd/i) anywhere on the page, or a version older than the
- *               newest release on a line that names GetMattered, fails the run.
+ *   listing     a merged list entry or directory page (LISTING_PAGES), read as
+ *               text. The old name (/ai ?applyd/i) anywhere on the page, or a
+ *               version older than the newest release on a line that names
+ *               GetMattered, fails the run. The old name on a page whose fix
+ *               waits on someone else (our fix PR is open, or `waitsOn` names
+ *               the site's own step) reads "old name, waiting" and only prints.
  *   pr          one of OUR open listing pull requests or issues (LISTING_PRS),
  *               read through api.github.com. The old name in its title or body
  *               (our own text) fails the run; open, merged and closed only print.
  *
  * Verdicts: current, lagging (behind, inside its threshold), drift (behind past
- * it), not listed, UNOBSERVED (blocked, unanswered or unparsed). A blocked read
- * is never a pass. Several sites block datacenter IPs, so from Actions their
- * rows read UNOBSERVED every day; those rows are not coverage.
+ * it), HELD (the platform itself is stalled, nothing for us to do), not listed,
+ * UNOBSERVED (blocked, unanswered or unparsed). A blocked read is never a pass.
+ * Several sites block datacenter IPs, so from Actions their rows read
+ * UNOBSERVED every day; those rows are not coverage.
+ *
+ * Exit codes: 1 when a gate row fails (a core surface is behind or unread), 3
+ * when only listing or PR rows fail (our own text or a listing we can fix), 2
+ * when the reader itself stopped.
  *
  * Thresholds: 6 h for gate rows, 48 h for the GitHub MCP gallery, 7 days for
  * everyone else. The clock starts when the first release newer than the
@@ -30,6 +37,8 @@
  *
  * Plain fetch only: no credentials, except GITHUB_TOKEN for api.github.com (the
  * pull request rows, about fifteen reads, well inside the token's hourly limit).
+ * A 403 to the token is read again without it: xai-org refused the Actions token
+ * on every run since 13 Nov 2026 while the same URL answered 200 to no token.
  */
 import { writeFileSync } from 'node:fs';
 import { argv, env, exit, stdout } from 'node:process';
@@ -44,6 +53,8 @@ export const REFERENCE_URLS = {
 };
 
 const HOUR = 3_600_000;
+const DAY = 24 * HOUR;
+const LOBEHUB = 'https://market.lobehub.com/api/v1/plugins/getmattered-getmattered-mcp';
 const SEMVER = /^\d+\.\d+\.\d+$/;
 
 export function compareVersions(a, b) {
@@ -71,9 +82,11 @@ export function newestShown(text, reference) {
 const field = (pattern, text) => String(text).match(pattern)?.[1] ?? null;
 
 /**
- * One row per platform. `parse({ text, json, reference })` answers
- * { version } or { listed: false } or { listed: true } (no version shown), plus
- * an optional `problem` that makes a gate row drift; null means unparsed.
+ * One row per platform. `parse({ text, json, reference, lastModified, now })`
+ * answers { version } or { listed: false } or { listed: true } (no version
+ * shown), plus an optional `problem` that makes a gate row drift, or `held`
+ * (why the platform itself is stalled); null means unparsed. `url` may be a
+ * function of the newest release; `fallbackUrl` is read when `url` answers 404.
  */
 export const PLATFORMS = [
   {
@@ -179,12 +192,22 @@ export const PLATFORMS = [
     url: 'https://mcpservers.org/servers/getmattered/getmattered-mcp',
   },
   {
-    // The release pushes it with `lhm plugin update` once LOBEHUB_CREDENTIALS exists.
+    // The release pushes it with `lhm plugin update`. The bare URL is a Cloudflare
+    // cache hit for up to 4 h (max-age=14400): on 13 Nov 2026 it served 1.17.1 for
+    // 38 minutes after LobeHub took 1.18.0. ?version=<V> is its own cache key and a
+    // missing version answers 404 uncached, so it reads exactly whether V is there.
     cls: 'follower',
+    fallbackUrl: LOBEHUB,
     key: 'lobehub',
     name: 'LobeHub (pushed by the release)',
-    parse: ({ json }) => (json?.version ? { version: json.version } : null),
-    url: 'https://market.lobehub.com/api/v1/plugins/getmattered-getmattered-mcp',
+    // The npm install artifact must name the listed version too: on 13 Nov 2026 the
+    // 1.18.0 listing still advertised getmattered-mcp@1.15.4.
+    parse: ({ json }) => {
+      if (!json?.version) return null;
+      const artifact = json.artifacts?.npm?.version;
+      return artifact && artifact !== json.version ? { problem: `npm artifact is ${artifact}, the listing is ${json.version}`, version: json.version } : { version: json.version };
+    },
+    url: reference => `${LOBEHUB}?version=${reference}`,
   },
   {
     cls: 'manual',
@@ -197,13 +220,20 @@ export const PLATFORMS = [
     url: 'https://glama.ai/mcp/servers/getmattered/getmattered-mcp',
   },
   {
-    // Not listed: the repo has gemini-extension.json and the topic, but the gallery never picked it up.
-    cls: 'submission',
+    // No submission exists: geminicli.com/docs/extensions/releasing says the gallery
+    // crawls public repos with the gemini-cli-extension topic and a root
+    // gemini-extension.json daily, and the mirror has both. The file itself stopped
+    // being rebuilt on 16 Oct 2026 (google-gemini/gemini-cli#29957), so a stale file
+    // without us reads HELD, never "needs a submission".
+    cls: 'follower',
     key: 'gemini',
-    name: 'Gemini CLI extensions gallery',
-    parse: ({ json }) => {
+    name: 'Gemini CLI extensions gallery (crawls the mirror)',
+    parse: ({ json, lastModified, now }) => {
       if (!Array.isArray(json)) return null;
-      return json.some(entry => /getmattered/i.test(JSON.stringify(entry))) ? { listed: true } : { listed: false };
+      if (json.some(entry => /getmattered/i.test(JSON.stringify(entry)))) return { listed: true };
+      const built = Date.parse(lastModified ?? '');
+      if (!Number.isNaN(built) && now.getTime() - built > 2 * DAY) return { held: `gallery not rebuilt since ${new Date(built).toISOString().slice(0, 10)}; its daily crawl is stalled, nothing to submit` };
+      return { listed: false };
     },
     url: 'https://geminicli.com/extensions.json',
   },
@@ -221,16 +251,27 @@ export const OLD_NAME = /ai ?applyd/i;
 
 const raw = (repo, path) => `https://raw.githubusercontent.com/${repo}/main/${path}`;
 
-/** Merged list entries, read as text: where each list keeps our line. */
+/**
+ * Merged list entries and directory pages, read as text: where each keeps our
+ * line. `fixPr` is our open pull request that removes the old name; `waitsOn`
+ * names a fix only the site can make (no PR, no edit path). Either makes the old
+ * name print instead of fail, while it waits. `versions: false` skips the
+ * version check on an HTML page, whose lines carry unrelated version numbers.
+ */
 export const LISTING_PAGES = [
-  { key: 'awesome-remote-punkpeye', name: 'punkpeye/awesome-remote-mcp-servers (fix PR #2806)', page: 'https://github.com/punkpeye/awesome-remote-mcp-servers', url: raw('punkpeye/awesome-remote-mcp-servers', 'README.md') },
-  { key: 'guiadoconhecimento', name: 'arthurspk/guiadoconhecimento (fix PR #2)', page: 'https://github.com/arthurspk/guiadoconhecimento/blob/main/areas/carreira/carreira-vagas.md', url: raw('arthurspk/guiadoconhecimento', 'areas/carreira/carreira-vagas.md') },
+  { fixPr: 'punkpeye/awesome-remote-mcp-servers#2806', key: 'awesome-remote-punkpeye', name: 'punkpeye/awesome-remote-mcp-servers (fix PR #2806)', page: 'https://github.com/punkpeye/awesome-remote-mcp-servers', url: raw('punkpeye/awesome-remote-mcp-servers', 'README.md') },
+  { fixPr: 'arthurspk/guiadoconhecimento#2', key: 'guiadoconhecimento', name: 'arthurspk/guiadoconhecimento (fix PR #2)', page: 'https://github.com/arthurspk/guiadoconhecimento/blob/main/areas/carreira/carreira-vagas.md', url: raw('arthurspk/guiadoconhecimento', 'areas/carreira/carreira-vagas.md') },
   { key: 'awesome-job-boards', name: 'emredurukn/awesome-job-boards', page: 'https://github.com/emredurukn/awesome-job-boards', url: raw('emredurukn/awesome-job-boards', 'README.md') },
   { key: 'aianytime', name: 'AIAnytime/Awesome-MCP-Servers', page: 'https://github.com/AIAnytime/Awesome-MCP-Servers', url: raw('AIAnytime/Awesome-MCP-Servers', 'README.md') },
   { key: 'collabnix', name: 'collabnix/awesome-mcp-lists', page: 'https://github.com/collabnix/awesome-mcp-lists', url: raw('collabnix/awesome-mcp-lists', 'README.md') },
   { key: 'tensorblock', name: 'TensorBlock/awesome-mcp-servers', page: 'https://github.com/TensorBlock/awesome-mcp-servers/blob/main/docs/utilities--helpers.md', url: raw('TensorBlock/awesome-mcp-servers', 'docs/utilities--helpers.md') },
   { key: 'toolsdk', name: 'toolsdk-ai/toolsdk-mcp-registry', page: 'https://github.com/toolsdk-ai/toolsdk-mcp-registry/blob/main/packages/other-tools-and-integrations/getmattered-mcp.json', url: raw('toolsdk-ai/toolsdk-mcp-registry', 'packages/other-tools-and-integrations/getmattered-mcp.json') },
   { key: 'raycast', name: 'raycast/extensions (MCP Registry extension)', page: 'https://github.com/raycast/extensions/tree/main/extensions/model-context-protocol-registry', url: raw('raycast/extensions', 'extensions/model-context-protocol-registry/src/registries/builtin/entries.ts') },
+  { key: 'mcp-so', name: 'mcp.so (listed 9 Nov 2026)', page: 'https://mcp.so/servers/getmattered-mcp', url: 'https://mcp.so/servers/getmattered-mcp', versions: false },
+  { key: 'cursor-directory', name: 'cursor.directory (edits by hand, no API)', page: 'https://cursor.directory/plugins/getmattered-mcp', url: 'https://cursor.directory/plugins/getmattered-mcp', versions: false },
+  // Claimed 28 Oct 2026 and verified, but the site has no owner login, slug edit or delete (10 Nov), and
+  // our one email went on 31 Oct (docs/rename/contact-ledger-2026-11-02.md). It still links aiapplyd.com/mcps.
+  { key: 'musedirectory', name: 'musedirectory.ai', page: 'https://musedirectory.ai/connector/ai-applyd', url: 'https://musedirectory.ai/connector/ai-applyd', versions: false, waitsOn: 'the site: claimed and verified, no edit path; asked hello@musedirectory.ai 31 Oct' },
 ];
 
 /**
@@ -260,15 +301,22 @@ export const LISTING_PRS = [
 
 const clip = text => (text.length > 100 ? `${text.slice(0, 97)}...` : text);
 
+/** The text around the first old-name match, so a one-line HTML page still shows where it is. */
+function oldNameContext(line) {
+  const at = line.search(OLD_NAME);
+  return clip(line.slice(Math.max(0, at - 30), at + 60).trim());
+}
+
 /** A merged list entry from its text: old name, old version, listed or not. */
 export function listingVerdict(page, reading, { reference }) {
   const base = { cls: 'listing', key: page.key, name: page.name, shown: '', threshold: null, url: page.page };
   if (reading.status !== 200) return { ...base, detail: reading.status ? `HTTP ${reading.status}` : 'no answer', verdict: 'UNOBSERVED' };
   const lines = String(reading.text).split('\n');
   const old = lines.find(line => OLD_NAME.test(line));
-  if (old) return { ...base, detail: `old name: ${clip(old.trim())}`, shown: 'old name', verdict: 'old name' };
+  if (old) return { ...base, detail: `old name: ${oldNameContext(old)}`, shown: 'old name', verdict: 'old name' };
   const ours = lines.filter(line => /getmattered/i.test(line));
   if (ours.length === 0) return { ...base, detail: 'GetMattered is not on the page', verdict: 'not listed' };
+  if (page.versions === false) return { ...base, detail: '', shown: 'listed', verdict: 'current' };
   const versions = ours.flatMap(line => [...line.matchAll(/(?<![\d.])v?(\d{1,2}\.\d{1,3}\.\d{1,3})(?![\d.])/g)].map(match => match[1]));
   const older = versions.filter(version => compareVersions(version, '1.0.0') >= 0 && compareVersions(version, reference) < 0).sort(compareVersions);
   if (older.length > 0) return { ...base, detail: `shows ${older[0]}, the newest release is ${reference}`, shown: older[0], verdict: 'drift' };
@@ -280,13 +328,35 @@ export function prVerdict(pr, reading, { now }) {
   const base = { cls: 'pr', key: pr.key, name: pr.name, shown: '', threshold: null, url: reading.json?.html_url ?? pr.page };
   if (reading.status !== 200 || !reading.json?.state) return { ...base, detail: reading.status ? `HTTP ${reading.status}` : 'no answer', verdict: 'UNOBSERVED' };
   const { body, created_at: createdAt, pull_request: pull, state, title } = reading.json;
-  if (OLD_NAME.test(`${title ?? ''}\n${body ?? ''}`)) return { ...base, detail: 'the old name is in our own title or body: edit it (gh pr edit, no comment)', shown: state, verdict: 'old name' };
+  const via = reading.via ? ` (read ${reading.via})` : '';
+  if (OLD_NAME.test(`${title ?? ''}\n${body ?? ''}`)) return { ...base, detail: `the old name is in our own title or body: edit it (gh pr edit, no comment)${via}`, shown: state, verdict: 'old name' };
   if (state === 'open') {
-    const days = createdAt ? Math.floor((now.getTime() - new Date(createdAt).getTime()) / (24 * HOUR)) : null;
-    return { ...base, detail: days === null ? 'waits on the maintainer' : `open ${days} days, waits on the maintainer`, shown: 'open', verdict: 'open' };
+    const days = createdAt ? Math.floor((now.getTime() - new Date(createdAt).getTime()) / DAY) : null;
+    return { ...base, detail: `${days === null ? 'waits on the maintainer' : `open ${days} days, waits on the maintainer`}${via}`, openDays: days, shown: 'open', verdict: 'open' };
   }
-  if (pull?.merged_at) return { ...base, detail: `merged ${pull.merged_at.slice(0, 10)}: move it to LISTING_PAGES`, shown: 'merged', verdict: 'merged' };
-  return { ...base, detail: 'closed without a merge: we are not listed there', shown: 'closed', verdict: 'closed' };
+  if (pull?.merged_at) return { ...base, detail: `merged ${pull.merged_at.slice(0, 10)}: move it to LISTING_PAGES${via}`, shown: 'merged', verdict: 'merged' };
+  return { ...base, detail: `closed without a merge: we are not listed there${via}`, shown: 'closed', verdict: 'closed' };
+}
+
+/** The verdict of a listing that shows the old name while its fix waits on someone else. */
+export const WAITING = 'old name, waiting';
+
+/**
+ * A listing that shows the old name only prints while its fix waits on someone
+ * else: our fix PR is open (its own text may still need our edit, which its PR
+ * row fails on), or the page names `waitsOn`. A fix PR that merged or closed, or
+ * an unread one, leaves the listing failing.
+ */
+export function withFixWaits(rows, pages = LISTING_PAGES) {
+  return rows.map((row) => {
+    const page = row.cls === 'listing' && row.verdict === 'old name' ? pages.find(entry => entry.key === row.key) : null;
+    if (!page) return row;
+    if (page.waitsOn) return { ...row, detail: `${row.detail}; waits on ${page.waitsOn}`, verdict: WAITING };
+    const pr = page.fixPr ? rows.find(entry => entry.key === `pr:${page.fixPr}`) : null;
+    if (pr?.shown !== 'open') return row;
+    const days = pr.openDays === null || pr.openDays === undefined ? '' : ` ${pr.openDays} days`;
+    return { ...row, detail: `${row.detail}; fix PR ${page.fixPr} open${days}, waits on the maintainer`, verdict: WAITING };
+  });
 }
 
 export const thresholdHours = row => row.thresholdHours ?? (row.cls === 'gate' ? 6 : 7 * 24);
@@ -305,16 +375,17 @@ export function behindSince(shown, releases, reference, referenceAt) {
 
 /** One row's verdict from its reading ({ status, text, json }). */
 export function rowVerdict(row, reading, { reference, releases, referenceAt, now }) {
-  const base = { cls: row.cls, key: row.key, name: row.name, shown: '', threshold: thresholdHours(row), url: row.url };
+  const base = { cls: row.cls, key: row.key, name: row.name, shown: '', threshold: thresholdHours(row), url: typeof row.url === 'function' ? row.url(reference) : row.url };
   if (reading.status !== 200) return { ...base, detail: reading.status ? `HTTP ${reading.status}` : 'no answer', verdict: 'UNOBSERVED' };
   let parsed;
   try {
-    parsed = row.parse({ json: reading.json, reference, text: reading.text });
+    parsed = row.parse({ json: reading.json, lastModified: reading.lastModified ?? null, now, reference, text: reading.text });
   } catch {
     parsed = null;
   }
   if (!parsed) return { ...base, detail: 'page read, version not found', verdict: 'UNOBSERVED' };
-  if (parsed.listed === false) return { ...base, detail: row.cls === 'submission' ? 'needs a submission; why it is missing is UNOBSERVED' : 'not on the page', verdict: 'not listed' };
+  if (parsed.held) return { ...base, detail: parsed.held, verdict: 'HELD' };
+  if (parsed.listed === false) return { ...base, detail: 'not on the page', verdict: 'not listed' };
   if (!parsed.version) return { ...base, detail: 'listed, no version shown', shown: 'listed', verdict: 'current' };
   const shown = parsed.version;
   if (parsed.problem) return { ...base, detail: parsed.problem, shown, verdict: 'drift' };
@@ -332,8 +403,13 @@ export const gateFailures = rows => rows.filter(row => row.cls === 'gate' && row
 /** The old name on a listing or in our own PR text, or an old version on a listing line, also fails it. */
 export const listingFailures = rows => rows.filter(row => row.verdict === 'old name' || (row.cls === 'listing' && row.verdict === 'drift'));
 
-/** Every row that fails the run. Follower, manual, submission and PR-state rows only print. */
+/** Every row that fails the run. Follower, manual, waiting-listing and PR-state rows only print. */
 export const runFailures = rows => [...gateFailures(rows), ...listingFailures(rows)];
+
+const waiting = (rows) => {
+  const names = rows.filter(row => row.verdict === WAITING).map(row => row.name);
+  return names.length > 0 ? ['', `Old name, waiting on someone else: ${names.join(', ')}.`] : [];
+};
 
 const hoursText = hours => (hours === null ? '-' : hours % 24 === 0 ? `${hours / 24} d` : `${hours} h`);
 
@@ -346,9 +422,10 @@ export function renderIssue(rows, { reference, now }) {
     '',
     failed.length > 0 ? `**Core surfaces behind or unread:** ${failed.map(row => row.name).join(', ')}.` : 'Core surfaces: all current.',
     '',
-    listed.length > 0 ? `**Old name or old version on a listing:** ${listed.map(row => row.name).join(', ')}.` : 'Listings and our pull requests: no old name, no old version.',
+    listed.length > 0 ? `**Old name or old version on a listing:** ${listed.map(row => row.name).join(', ')}.` : 'Listings and our pull requests: no old name or old version that we can fix.',
+    ...waiting(rows),
     '',
-    'Gate rows fail the run, and so does the old name or an old version on a listing or in our own pull request text. Other rows only print. UNOBSERVED means the read was blocked or unparsed; it is never a pass.',
+    'Gate rows fail the run (exit 1). The old name or an old version on a listing, or the old name in our own pull request text, fails it too (exit 3), unless the listing\'s fix waits on its maintainer or site ("old name, waiting"). Other rows only print. UNOBSERVED means the read was blocked or unparsed; it is never a pass.',
     '',
     '| Platform | Class | Shows | Verdict | Threshold | Detail |',
     '|---|---|---|---|---|---|',
@@ -360,10 +437,7 @@ export function renderIssue(rows, { reference, now }) {
   return lines.join('\n');
 }
 
-async function readUrl(url) {
-  const headers = { Accept: 'application/json, text/html;q=0.9', 'User-Agent': 'getmattered-mcp-drift' };
-  const token = env.GITHUB_TOKEN ?? env.GH_TOKEN;
-  if (token && url.startsWith('https://api.github.com/')) headers.Authorization = `Bearer ${token}`;
+async function fetchOnce(url, headers) {
   try {
     const response = await fetch(url, { headers, redirect: 'follow', signal: AbortSignal.timeout(30_000) });
     const text = await response.text();
@@ -373,10 +447,24 @@ async function readUrl(url) {
     } catch {
       json = null;
     }
-    return { json, status: response.status, text };
+    return { json, lastModified: response.headers.get('last-modified'), status: response.status, text };
   } catch {
-    return { json: null, status: 0, text: '' };
+    return { json: null, lastModified: null, status: 0, text: '' };
   }
+}
+
+/**
+ * One GET. api.github.com gets the run's token; a 403 to the token is read once
+ * more without it, and the reading says so (`via`), so a row shows which path
+ * answered.
+ */
+export async function readUrl(url, { fetcher = fetchOnce, token = env.GITHUB_TOKEN ?? env.GH_TOKEN } = {}) {
+  const headers = { Accept: 'application/json, text/html;q=0.9', 'User-Agent': 'getmattered-mcp-drift' };
+  if (!token || !url.startsWith('https://api.github.com/')) return fetcher(url, headers);
+  const first = await fetcher(url, { ...headers, Authorization: `Bearer ${token}` });
+  if (first.status !== 403) return first;
+  const second = await fetcher(url, headers);
+  return second.status === 200 ? { ...second, via: 'without the token, which got 403' } : first;
 }
 
 export async function readDrift({ fetchReading = readUrl, now = new Date() } = {}) {
@@ -390,11 +478,19 @@ export async function readDrift({ fetchReading = readUrl, now = new Date() } = {
   let referenceAt = releases.find(release => release.version === reference)?.at ?? null;
   if (!referenceAt) referenceAt = (await fetchReading(REFERENCE_URLS.mainCommit)).json?.commit?.committer?.date ?? null;
   const rows = [];
-  for (const row of PLATFORMS) rows.push(rowVerdict(row, await fetchReading(row.url), { now, reference, referenceAt, releases }));
+  for (const row of PLATFORMS) {
+    const url = typeof row.url === 'function' ? row.url(reference) : row.url;
+    let reading = await fetchReading(url);
+    if (reading.status === 404 && row.fallbackUrl) reading = await fetchReading(row.fallbackUrl);
+    rows.push(rowVerdict(row, reading, { now, reference, referenceAt, releases }));
+  }
   for (const page of LISTING_PAGES) rows.push(listingVerdict(page, await fetchReading(page.url), { reference }));
   for (const pr of LISTING_PRS) rows.push(prVerdict(pr, await fetchReading(pr.url), { now }));
-  return { reference, rows };
+  return { reference, rows: withFixWaits(rows) };
 }
+
+/** 1 when a core surface fails, 3 when only listing or PR rows fail, 0 otherwise. */
+export const exitCode = rows => (gateFailures(rows).length > 0 ? 1 : listingFailures(rows).length > 0 ? 3 : 0);
 
 async function main() {
   const now = new Date();
@@ -403,11 +499,11 @@ async function main() {
   const body = renderIssue(rows, { now, reference });
   if (outIndex !== -1) writeFileSync(argv[outIndex + 1], body);
   stdout.write(body);
-  const failed = runFailures(rows);
-  if (failed.length > 0) {
-    console.error(`platform-drift: behind, unread or showing the old name: ${failed.map(row => `${row.key} ${row.verdict}`).join(', ')}`);
-    exit(1);
-  }
+  const gate = gateFailures(rows);
+  const listed = listingFailures(rows);
+  if (gate.length > 0) console.error(`platform-drift: core surface behind or unread: ${gate.map(row => `${row.key} ${row.verdict}`).join(', ')}`);
+  if (listed.length > 0) console.error(`platform-drift: old name or old version we can fix: ${listed.map(row => `${row.key} ${row.verdict}`).join(', ')}`);
+  exit(exitCode(rows));
 }
 
 if (argv[1] && import.meta.url === pathToFileURL(argv[1]).href) {

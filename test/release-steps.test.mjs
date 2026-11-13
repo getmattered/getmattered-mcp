@@ -5,6 +5,7 @@ import { test } from 'node:test';
 import {
   assetProblem,
   changelogSection,
+  CLAUDE_REVIEW_WAIT,
   DRAFT_MARKER,
   GALLERY_URL,
   galleryLine,
@@ -15,6 +16,7 @@ import {
   packageMarker,
   previousTag,
   readbackProblems,
+  readingText,
   releaseAssets,
   reminderSteps,
   remindersBody,
@@ -166,11 +168,50 @@ test('the LobeHub manifest keeps the committed fields and takes the live tools',
   const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
   assert.equal(committed.identifier, 'getmattered-getmattered-mcp');
   assert.equal(committed.version, pkg.version);
-  const merged = lobehubManifest(committed, { identifier: 'other', name: 'other', tools: [{ name: 't' }], version: '0.0.1' });
+  const merged = lobehubManifest(committed, { identifier: 'other', name: 'other', tools: [{ name: 't' }], version: '0.0.1' }, { packageName: pkg.name });
   assert.equal(merged.identifier, 'getmattered-getmattered-mcp');
   assert.equal(merged.version, pkg.version);
   assert.deepEqual(merged.tools, [{ name: 't' }]);
   assert.deepEqual(merged.prompts, []);
+  // LobeHub kept artifacts.npm.version 1.15.4 through 1.18.0 (read 13 Nov 2026): the pin follows each release.
+  assert.deepEqual(merged.artifacts.npm, { packageName: 'getmattered-mcp', version: pkg.version });
+});
+
+test('LobeHub is read back at ?version=<V>, past the bare object\'s 4 h cache, and a timeout names the reading', () => {
+  assert.equal(SURFACE_URLS.lobehub('1.18.0'), 'https://market.lobehub.com/api/v1/plugins/getmattered-getmattered-mcp?version=1.18.0');
+  assert.equal(surfaceHas('lobehub', '1.18.0', { body: { version: '1.18.0' }, status: 200 }), true);
+  assert.equal(surfaceHas('lobehub', '1.18.0', { body: null, status: 404 }), false);
+  assert.equal(surfaceHas('lobehub', '1.18.0', { body: { version: '1.17.1' }, status: 200 }), false);
+  assert.equal(readingText('lobehub', { body: { artifacts: { npm: { version: '1.15.4' } }, version: '1.17.1' }, status: 200 }), 'HTTP 200, version 1.17.1, npm artifact 1.15.4');
+  assert.equal(readingText('lobehub', { body: null, status: 404 }), 'HTTP 404');
+  assert.equal(readingText('registry', { body: { server: { version: '1.18.0' } }, status: 200 }), 'HTTP 200, version 1.18.0');
+});
+
+test('every Claude connector line says to wait while the review is open; the ChatGPT line replaces an older draft', () => {
+  const variants = [
+    reminderSteps({ hashBefore: 'h', hashNow: 'h', toolsBefore: ['a'], toolsNow: ['a', 'getmattered_search_jobs'], version: '1.18.0' }),
+    reminderSteps({ hashBefore: 'h', hashNow: 'h', toolsBefore: null, toolsNow: ['a'], version: '1.18.0' }),
+    reminderSteps({ hashBefore: 'h', hashNow: 'h', toolsBefore: ['a'], toolsNow: null, version: '1.18.0' }),
+  ];
+  for (const steps of variants) {
+    const claude = steps.find(step => step.startsWith('Claude connector listing:'));
+    assert.ok(claude.endsWith(CLAUDE_REVIEW_WAIT), claude);
+  }
+  assert.match(CLAUDE_REVIEW_WAIT, /^WAIT while claude\.ai\/directory\/manage shows the submission in review/);
+  const chatgpt = reminderSteps({ hashBefore: 'ccc249b8a6fa2b47', hashNow: '3211851e5a512d3f', toolsBefore: ['a'], toolsNow: ['a'], version: '1.18.0' })[0];
+  assert.match(chatgpt, /replace that draft with getmattered-1\.18\.0-openai\.zip; never submit the older draft\. Never while a review is open\.$/);
+  assert.deepEqual(unuploadedPackage(`- [ ] ${chatgpt}`), { hashAsked: '3211851e5a512d3f', hashBefore: 'ccc249b8a6fa2b47' });
+});
+
+test('the LobeHub manifest names this release as its npm artifact and keeps the docker one', () => {
+  // 13 Nov 2026: LobeHub listed 1.18.0 with artifacts.npm 1.15.4, because no manifest set it.
+  const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+  const live = { artifacts: { docker: { imageName: 'node', tag: '22-alpine' }, npm: { packageName: 'getmattered-mcp', version: '1.15.4' } }, version: '1.18.0' };
+  const merged = lobehubManifest({ identifier: 'getmattered-getmattered-mcp', version: '1.19.0' }, { tools: [{ name: 't' }] }, { live, packageName: pkg.name });
+  assert.deepEqual(merged.artifacts.npm, { packageName: 'getmattered-mcp', version: '1.19.0' });
+  assert.deepEqual(merged.artifacts.docker, { imageName: 'node', tag: '22-alpine' });
+  assert.equal(pkg.name, 'getmattered-mcp');
+  assert.throws(() => lobehubManifest({ version: '1.19.0' }, {}, {}), /package name/);
 });
 
 test('the Claude Desktop manifest is mcpb 0.3, runs the bridge and signs in on first use', () => {

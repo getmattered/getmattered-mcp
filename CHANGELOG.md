@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.19.1
+
+41 tools with the same names. Fixed: Point the Docker icon at main so a release pushes nothing to the waiting PR.
+
 ## 1.19.0
 
 41 tools. A new account's first answer asks for the resume. The first matches answer offers the best 3 jobs under one yes. getmattered_apply answers within seconds on every client, and a job still starting shows in getmattered_get_applications. Approving an application that is already counted never uses another free application.

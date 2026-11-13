@@ -420,18 +420,23 @@ jobs:
           node-version: '22'
 
       # lhm reads ~/.lobehub-market/user-credentials.json. It may rotate the refresh
-      # token; the step warns when the file changed, so the secret can be replaced.
+      # token. The job runs after publish, so a failure here never blocks npm or the
+      # registry, but it fails (exit 1) on a missing secret, a failed update or a
+      # rotated sign-in, so GetMattered's hourly watch pages within the hour instead
+      # of 24 h later as "behind". Re-save a rotated LOBEHUB_CREDENTIALS from the
+      # keychain with `gh secret set LOBEHUB_CREDENTIALS --repo getmattered/getmattered-mcp`.
       - name: Push the version to LobeHub
         env:
           LOBEHUB_CREDENTIALS: ${{ secrets.LOBEHUB_CREDENTIALS }}
           LHM_VERSION: '0.0.46'
         run: |
           if [ -z "$LOBEHUB_CREDENTIALS" ]; then
-            echo "LobeHub: SKIPPED (no LOBEHUB_CREDENTIALS secret)"
-            echo "- LobeHub: SKIPPED, no LOBEHUB_CREDENTIALS secret" >> "$GITHUB_STEP_SUMMARY"
-            exit 0
+            echo "::error::LobeHub: no LOBEHUB_CREDENTIALS secret, so LobeHub stays on the old version. Save it from the keychain with gh secret set."
+            echo "- LobeHub: FAILED, no LOBEHUB_CREDENTIALS secret" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
           fi
           creds="$HOME/.lobehub-market/user-credentials.json"
+          rotated="$RUNNER_TEMP/lhm-rotated"
           set +e
           (
             set -e
@@ -445,19 +450,33 @@ jobs:
             "$lhm" plugin init --url https://mcp.getmattered.com/mcp --dir "$RUNNER_TEMP/lhm-init" --force
             node scripts/release-steps.mjs lobehub "$RUNNER_TEMP/lhm-init/lhm.plugin.json" "$RUNNER_TEMP/lhm-update/lhm.plugin.json"
             "$lhm" plugin update --dir "$RUNNER_TEMP/lhm-update"
-            if [ "$before" != "$(sha256sum "$creds" | cut -d' ' -f1)" ]; then
-              echo "::warning::LobeHub rotated its sign-in. Save a fresh user-credentials.json as LOBEHUB_CREDENTIALS before the next release."
-            fi
+            if [ "$before" != "$(sha256sum "$creds" | cut -d' ' -f1)" ]; then touch "$rotated"; fi
           )
           status=$?
           rm -rf "$HOME/.lobehub-market"
           if [ "$status" -ne 0 ]; then
-            echo "::warning::LobeHub update failed (exit $status). The release itself is published."
+            echo "::error::LobeHub update failed (exit $status). The release itself is published."
             echo "- LobeHub: FAILED (exit $status); the release itself is published" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "- LobeHub: updated to ${TAG#v}" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
           fi
-          exit 0
+          if [ -f "$rotated" ]; then
+            echo "::error::LobeHub took ${TAG#v} but rotated its sign-in: the stored LOBEHUB_CREDENTIALS no longer works. Save a fresh user-credentials.json as LOBEHUB_CREDENTIALS before the next release."
+            echo "- LobeHub: pushed ${TAG#v}, but the sign-in rotated; re-save LOBEHUB_CREDENTIALS" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo "- LobeHub: lhm reported ${TAG#v}; read-back follows" >> "$GITHUB_STEP_SUMMARY"
+
+      # lhm's own success line is not proof: on 13 Nov 2026 it printed "Updated
+      # (1.17.1 -> 1.18.0)" while the cached listing still served 1.17.1. Read
+      # ?version=<V> (its own cache key; 404 until V exists) until it answers.
+      - name: Read LobeHub back
+        run: |
+          version="${TAG#v}"
+          if ! node scripts/release-steps.mjs wait lobehub "$version" 300; then
+            echo "- LobeHub: lhm reported $version, but the market API did not serve it within 5 minutes (see the log for the last reading)" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo "- LobeHub: market API serves $version" >> "$GITHUB_STEP_SUMMARY"
 
   # xai-org/plugin-marketplace #1238: repin to the release commit and regenerate
   # their index, as their CONTRIBUTING says. Only when plugins/getmattered changed.
@@ -656,14 +675,14 @@ jobs:
           echo "$FORK:$BRANCH now at $(git -C "$WORK" rev-parse "$SRC")"
 
       # docker/mcp-registry #6054: metadata only (server.yaml, readme.md). The icon
-      # URL points at this release's tag.
+      # URL points at main, so only a listing text change pushes to the PR.
       - name: Docker, prepare
         id: docker
         if: ${{ !cancelled() }}
         run: |
           work="$RUNNER_TEMP/docker"
           git clone --quiet --depth 20 --branch add-getmattered --single-branch https://github.com/whateverneveranywhere/mcp-registry.git "$work"
-          changed="$(node scripts/listing-prs.mjs copy docker "$work" --icon-ref "$TAG")"
+          changed="$(node scripts/listing-prs.mjs copy docker "$work")"
           if [ -z "$changed" ]; then
             echo "Docker: the branch already matches listings/docker"
             exit 0
