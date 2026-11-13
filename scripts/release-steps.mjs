@@ -12,7 +12,9 @@
  *   node scripts/release-steps.mjs previous <tag>          prints the newest v* tag below <tag>, or nothing
  *   node scripts/release-steps.mjs assets <version> <names> exit 1 unless the release has exactly the expected files
  *   node scripts/release-steps.mjs tool-marker             prints the release-notes line that records the tool names
- *   node scripts/release-steps.mjs reminders <version> <previous tag> <previous notes file>
+ *   node scripts/release-steps.mjs package-hash [ref]      prints the OpenAI package content hash at ref (default HEAD)
+ *   node scripts/release-steps.mjs package-marker          prints the release-notes line that records that hash at HEAD
+ *   node scripts/release-steps.mjs reminders <version> <previous tag> <previous notes file> [<previous issue body file>]
  *                                                          prints the "vX: human steps" issue body, or nothing
  *   node scripts/release-steps.mjs lobehub <generated> <out> writes lhm.plugin.json with the live tools, for `lhm plugin update`
  *
@@ -157,10 +159,41 @@ export function openaiContentHash(entries) {
   return hash.digest('hex').slice(0, 16);
 }
 
-/** The OpenAI package files at a git ref, as [path, bytes] pairs. */
+const PACKAGE_MARKER = /<!-- getmattered-openai-package: ([0-9a-f]{16}) -->/;
+
+/**
+ * The hidden line the release notes carry with the OpenAI package hash. GetMattered's
+ * hourly release watch reads it to compare the live package with the one ChatGPT
+ * publishes (packages/shared/src/lib/mcp-release-facts.ts packageMarker, same format).
+ */
+export const packageMarker = hash => `<!-- getmattered-openai-package: ${hash} -->`;
+
+/** The OpenAI package hash a release's notes recorded, or null. */
+export function packageHashFromNotes(notes) {
+  return String(notes ?? '').match(PACKAGE_MARKER)?.[1] ?? null;
+}
+
+const UNUPLOADED_PACKAGE = /^- \[ \] ChatGPT package:.*\(([0-9a-f]+) to ([0-9a-f]+)\)/m;
+
+/**
+ * The package step a previous "vX: human steps" issue left unticked, or null: the
+ * hash before that release's change and the hash it asked to upload. The newer
+ * release carries the step on, so an upload that never happened is never lost
+ * because the next release changed nothing.
+ */
+export function unuploadedPackage(issueBody) {
+  const match = String(issueBody ?? '').match(UNUPLOADED_PACKAGE);
+  return match ? { hashBefore: match[1], hashAsked: match[2] } : null;
+}
+
+/**
+ * The OpenAI package files at a git ref, as [path, bytes] pairs. Paths are relative
+ * to the current folder, so this runs at the mirror's root and in tools/mcp-bridge
+ * of GetMattered's monorepo alike.
+ */
 function openaiEntriesAt(ref) {
   const listed = execFileSync('git', ['ls-tree', '-r', '--name-only', ref, '--', 'plugins/getmattered'], { encoding: 'utf8' });
-  return listed.split('\n').filter(path => OPENAI_FILES.test(path)).map(path => [path, execFileSync('git', ['show', `${ref}:${path}`], { maxBuffer: 64 * 1024 * 1024 })]);
+  return listed.split('\n').filter(path => OPENAI_FILES.test(path)).map(path => [path, execFileSync('git', ['show', `${ref}:./${path}`], { maxBuffer: 64 * 1024 * 1024 })]);
 }
 
 /**
@@ -169,7 +202,7 @@ function openaiEntriesAt(ref) {
  * (or an on-demand `ab` job on Ava's Mac) every release. A value that could not
  * be read is null, and its step says UNOBSERVED instead of guessing.
  */
-export function reminderSteps({ version, toolsBefore, toolsNow, hashBefore, hashNow }) {
+export function reminderSteps({ version, toolsBefore, toolsNow, hashBefore, hashNow, carried = null }) {
   const steps = [];
   if (!toolsNow) {
     steps.push('Claude connector listing: the server card was unreadable, so the tool names are UNOBSERVED. Compare them by hand; if they changed, press "Sync from server", then "Save and update submission" in claude.ai/directory/manage.');
@@ -183,10 +216,13 @@ export function reminderSteps({ version, toolsBefore, toolsNow, hashBefore, hash
       steps.push(`Claude connector listing: tool names changed (${what}). In claude.ai/directory/manage press "Sync from server", then "Save and update submission".`);
     }
   }
-  if (!hashNow || !hashBefore) {
+  // An upload the previous release asked for and nobody ticked: compare with what was there before it.
+  const before = carried?.hashBefore ?? hashBefore;
+  if (!hashNow || !before) {
     steps.push(`ChatGPT package: the content hash is UNOBSERVED. Compare skills, metadata and assets by hand; if they changed, upload getmattered-${version}-openai.zip at platform.openai.com/plugins. Never while a review is open.`);
-  } else if (hashNow !== hashBefore) {
-    steps.push(`ChatGPT package: skills, metadata or assets changed (${hashBefore} to ${hashNow}). Upload getmattered-${version}-openai.zip from this release at platform.openai.com/plugins. Never while a review is open.`);
+  } else if (hashNow !== before) {
+    const why = carried ? `skills, metadata or assets changed, and the upload ${carried.from} asked for is still unticked` : 'skills, metadata or assets changed';
+    steps.push(`ChatGPT package: ${why} (${before} to ${hashNow}). Upload getmattered-${version}-openai.zip from this release at platform.openai.com/plugins. Never while a review is open.`);
   }
   steps.push(`Glama: in the server admin for getmattered/getmattered-mcp press "Sync Server", then "Make Release" ${version}. It has no API; an on-demand ab job on Ava's Mac can do it.`);
   return steps;
@@ -276,15 +312,25 @@ async function main() {
     stdout.write(`${toolMarker(names)}\n`);
     return;
   }
+  if (command === 'package-hash') {
+    stdout.write(`${openaiContentHash(openaiEntriesAt(first ?? 'HEAD'))}\n`);
+    return;
+  }
+  if (command === 'package-marker') {
+    stdout.write(`${packageMarker(openaiContentHash(openaiEntriesAt('HEAD')))}\n`);
+    return;
+  }
   if (command === 'reminders') {
     const previous = second;
-    const notesFile = argv[5];
-    let notes = null;
-    try {
-      notes = notesFile ? readFileSync(notesFile, 'utf8') : null;
-    } catch {
-      notes = null;
-    }
+    const readOptional = (file) => {
+      try {
+        return file ? readFileSync(file, 'utf8') : null;
+      } catch {
+        return null;
+      }
+    };
+    const notes = readOptional(argv[5]);
+    const left = unuploadedPackage(readOptional(argv[6]));
     const card = await read(SURFACE_URLS.card());
     const live = (card.body?.tools ?? []).map(tool => tool?.name).filter(Boolean).sort();
     let hashBefore = null;
@@ -294,6 +340,7 @@ async function main() {
       hashBefore = null;
     }
     const steps = reminderSteps({
+      carried: left && previous ? { from: previous, hashBefore: left.hashBefore } : null,
       hashBefore,
       hashNow: openaiContentHash(openaiEntriesAt('HEAD')),
       toolsBefore: toolNamesFromNotes(notes),

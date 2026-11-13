@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { behindSince, gateFailures, newestShown, PLATFORMS, readDrift, REFERENCE_URLS, renderIssue, rowVerdict, thresholdHours } from '../scripts/platform-drift.mjs';
+import { behindSince, gateFailures, LISTING_PAGES, LISTING_PRS, listingVerdict, newestShown, PLATFORMS, prVerdict, readDrift, REFERENCE_URLS, renderIssue, rowVerdict, runFailures, thresholdHours } from '../scripts/platform-drift.mjs';
 
 const now = new Date('2026-11-10T12:00:00Z');
 const releases = [
@@ -100,7 +100,48 @@ test('readDrift reads main for the newest version, dates releases from npm, then
   };
   const { reference, rows } = await readDrift({ fetchReading, now });
   assert.equal(reference, '1.15.2');
-  assert.equal(rows.length, PLATFORMS.length);
+  assert.equal(rows.length, PLATFORMS.length + LISTING_PAGES.length + LISTING_PRS.length);
+  assert.equal(new Set(urls).size, urls.length);
   assert.equal(urls.filter(url => url === REFERENCE_URLS.mainCommit).length, 0);
   await assert.rejects(readDrift({ fetchReading: async () => ({ json: null, status: 503, text: '' }), now }), /UNOBSERVED/);
+});
+
+const listingPage = LISTING_PAGES.find(entry => entry.key === 'awesome-remote-punkpeye');
+const pr = LISTING_PRS.find(entry => entry.name === 'punkpeye/awesome-remote-mcp-servers#2806');
+
+test('a listing that still shows the old name fails the run, as punkpeye showed it on 13 Nov 2026', () => {
+  const text = '- [Acme](https://acme.example) `https://mcp.acme.example`\n- [AI Applyd](https://aiapplyd.com/mcps) `https://mcp.aiapplyd.com/mcp`\n';
+  const verdict = listingVerdict(listingPage, page(text), context);
+  assert.equal(verdict.verdict, 'old name');
+  assert.match(verdict.detail, /^old name: - \[AI Applyd\]/);
+  assert.deepEqual(runFailures([verdict]).map(failed => failed.key), ['awesome-remote-punkpeye']);
+  assert.equal(listingVerdict(listingPage, page('see aiapplyd.com'), context).verdict, 'old name');
+});
+
+test('a listing line that names GetMattered with an older version fails; other lines and a clean line pass', () => {
+  assert.equal(listingVerdict(listingPage, page('- [GetMattered](https://getmattered.com/) 1.13.0\n- [Other](x) 0.9.1 2.4.0\n'), context).verdict, 'drift');
+  const clean = listingVerdict(listingPage, page('- [GetMattered](https://github.com/getmattered/getmattered-mcp) 1.15.2\n- [Other](x) 1.0.3\n'), context);
+  assert.equal(clean.verdict, 'current');
+  assert.deepEqual(runFailures([clean]), []);
+  assert.equal(listingVerdict(listingPage, page('- [Other](x)\n'), context).verdict, 'not listed');
+  assert.equal(listingVerdict(listingPage, { json: null, status: 429, text: '' }, context).verdict, 'UNOBSERVED');
+});
+
+test('our pull requests print their state, and only the old name in our own text fails the run', () => {
+  const issue = fields => ok({ body: 'Adds GetMattered.', created_at: '2026-10-24T14:00:00Z', html_url: 'https://github.com/punkpeye/awesome-remote-mcp-servers/pull/2806', state: 'open', title: 'Update listing to GetMattered', ...fields });
+  const open = prVerdict(pr, issue({}), context);
+  assert.equal(open.verdict, 'open');
+  assert.match(open.detail, /open 16 days/);
+  assert.equal(prVerdict(pr, issue({ pull_request: { merged_at: '2026-11-11T09:00:00Z' }, state: 'closed' }), context).verdict, 'merged');
+  assert.equal(prVerdict(pr, issue({ pull_request: { merged_at: null }, state: 'closed' }), context).verdict, 'closed');
+  const oldTitle = prVerdict(pr, issue({ title: 'Rename AI Applyd to GetMattered' }), context);
+  assert.equal(oldTitle.verdict, 'old name');
+  assert.deepEqual(runFailures([open, oldTitle]).map(failed => failed.verdict), ['old name']);
+  assert.equal(prVerdict(pr, { json: { message: 'API rate limit exceeded' }, status: 403, text: '' }, context).verdict, 'UNOBSERVED');
+});
+
+test('every open listing PR the release board names has a PR-state row', () => {
+  const names = LISTING_PRS.map(entry => entry.name);
+  for (const ref of ['punkpeye/awesome-remote-mcp-servers#2806', 'arthurspk/guiadoconhecimento#2', 'docker/mcp-registry#6054', 'cline/marketplace#230', 'xai-org/plugin-marketplace#1238', 'Kamalnrf/claude-plugins#130', 'khalyomede/korru.app#1']) assert.ok(names.includes(ref), ref);
+  for (const entry of LISTING_PRS) assert.match(entry.url, /^https:\/\/api\.github\.com\/repos\/[^/]+\/[^/]+\/issues\/\d+$/);
 });

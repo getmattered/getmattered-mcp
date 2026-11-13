@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.18.0
+
+41 tools. New: getmattered_search_jobs searches every job GetMattered can apply to, by words, place, seniority and visa, and keeps the saved search as it is. getmattered_apply takes up to 10 jobs under one yes. A Y Combinator job behind a Work at a Startup account stays on the board, and the answer says why. Adding a role or a city keeps the saved ones.
+
 ## 1.17.1
 
 40 tools with the same names. get_account's description is back to its approved wording.

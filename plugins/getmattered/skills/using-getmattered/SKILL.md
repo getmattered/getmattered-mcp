@@ -21,6 +21,10 @@ Each tool does one operation, and its description says how to call it. Follow th
 
 Start with `getmattered_get_account`. Set a resume before you match or apply. Then find, act and track.
 
+## Stay inside the GetMattered tools
+
+Do every GetMattered step with these tools. Do not open the GetMattered website, a browser or computer use to apply, approve or change settings. Every one of those actions has a tool here. If a tool cannot do it, tell the user what the tool returned.
+
 ## Actions that need the user's yes
 
 Say what will happen and wait for a clear yes:

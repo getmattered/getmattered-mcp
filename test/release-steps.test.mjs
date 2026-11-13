@@ -11,6 +11,8 @@ import {
   lobehubManifest,
   newerTag,
   openaiContentHash,
+  packageHashFromNotes,
+  packageMarker,
   previousTag,
   readbackProblems,
   releaseAssets,
@@ -21,6 +23,7 @@ import {
   tagMatches,
   toolMarker,
   toolNamesFromNotes,
+  unuploadedPackage,
   waitFor,
 } from '../scripts/release-steps.mjs';
 
@@ -132,6 +135,23 @@ test('reminders list a step only when the release changed what it shows; Glama i
   const unread = reminderSteps({ hashBefore: null, hashNow: 'h2', toolsBefore: null, toolsNow: ['a'], version: '1.15.3' });
   assert.equal(unread.filter(step => step.includes('UNOBSERVED')).length, 2);
   assert.match(reminderSteps({ hashBefore: 'h', hashNow: 'h', toolsBefore: ['a'], toolsNow: null, version: '1.15.3' })[0], /UNOBSERVED/);
+});
+
+test('an upload the previous release asked for and nobody ticked is carried into the next issue', () => {
+  const previous = remindersBody('1.15.4', reminderSteps({ hashBefore: 'aaaa', hashNow: 'bbbb', toolsBefore: ['a'], toolsNow: ['a'], version: '1.15.4' }));
+  const left = unuploadedPackage(previous);
+  assert.deepEqual(left, { hashAsked: 'bbbb', hashBefore: 'aaaa' });
+  const carried = reminderSteps({ carried: { from: 'v1.15.4', hashBefore: left.hashBefore }, hashBefore: 'bbbb', hashNow: 'bbbb', toolsBefore: ['a'], toolsNow: ['a'], version: '1.16.0' });
+  assert.match(carried[0], /^ChatGPT package: .*v1\.15\.4 asked for is still unticked \(aaaa to bbbb\)\. Upload getmattered-1\.16\.0-openai\.zip/);
+  const back = reminderSteps({ carried: { from: 'v1.15.4', hashBefore: 'aaaa' }, hashBefore: 'bbbb', hashNow: 'aaaa', toolsBefore: ['a'], toolsNow: ['a'], version: '1.16.0' });
+  assert.equal(back.some(step => step.startsWith('ChatGPT package')), false);
+  assert.equal(unuploadedPackage(previous.replace('- [ ] ChatGPT', '- [x] ChatGPT')), null);
+});
+
+test('the release notes record the OpenAI package hash in a hidden line', () => {
+  const notes = `Fixes.\n\n${toolMarker(['a'])}\n${packageMarker('ccc249b8a6fa2b47')}\n`;
+  assert.equal(packageHashFromNotes(notes), 'ccc249b8a6fa2b47');
+  assert.equal(packageHashFromNotes('Fixes.'), null);
 });
 
 test('the reminder issue body is a checklist, and empty when there is nothing to do', () => {

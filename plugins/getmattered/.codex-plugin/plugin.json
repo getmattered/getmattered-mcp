@@ -1,6 +1,6 @@
 {
   "name": "getmattered",
-  "version": "1.17.1",
+  "version": "1.18.0",
   "description": "Auto-Apply That Ends on an Interview. Get matched jobs, apply on 30+ hiring systems automatically or after your approval, review and track every application, and tailor your resume and cover letter per role.",
   "author": {
     "name": "GetMattered",
@@ -147,7 +147,7 @@
         "commerce_description": "The plugin does not sell products or take payments. Paid GetMattered plans are bought on getmattered.com."
       },
       "publication": {
-        "release_notes": "1.17.1: 40 tools with the same names. get_account's description is back to its approved wording."
+        "release_notes": "1.18.0: 41 tools. New: getmattered_search_jobs searches every job GetMattered can apply to, by words, place, seniority and visa, and keeps the saved search as it is. getmattered_apply takes up to 10 jobs under one yes. A Y Combinator job behind a Work at a Startup account stays on the board, and the answer says why. Adding a role or a city keeps the saved ones."
       },
       "onboardingSkill": "./skills/setup-job-search/SKILL.md"
     }

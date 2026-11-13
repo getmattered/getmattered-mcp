@@ -11,7 +11,9 @@
  *           Runs only when plugins/getmattered changed between the pinned commit
  *           and the release commit. After #1238 merges, xAI's own bump bot repins.
  *   docker  docker/mcp-registry #6054, head whateverneveranywhere/mcp-registry:add-getmattered.
- *           Metadata only: server.yaml and readme.md from listings/docker.
+ *           Metadata only: server.yaml and readme.md from listings/docker. The icon
+ *           URL in server.yaml points at the release tag (--icon-ref), so it shows
+ *           the logo that release ships.
  *   cline   cline/marketplace #230, head whateverneveranywhere/marketplace:add-aiapplyd.
  *           Text only: the two entry.json files from listings/cline.
  *
@@ -19,7 +21,7 @@
  *       prints the sha our xAI entry pins
  *   node scripts/listing-prs.mjs xai <branch marketplace.json> <upstream marketplace.json> <sha> <out>
  *       writes upstream's catalog with our entry, pinned to <sha>
- *   node scripts/listing-prs.mjs copy <docker|cline> <fork checkout> [--dry-run]
+ *   node scripts/listing-prs.mjs copy <docker|cline> <fork checkout> [--icon-ref <tag>] [--dry-run]
  *       copies listings/<fork> over the checkout; prints each file that differs
  *
  * The branch names still read add-aiapplyd. Renaming a PR head closes the PR,
@@ -83,10 +85,25 @@ const walk = (root, dir = '') => readdirSync(join(root, dir), { withFileTypes: t
   return entry.isDirectory() ? walk(root, path) : [path];
 });
 
-/** The listing files for a fork, as [path in the fork, text]. */
-export function listingFiles(bridgeRoot, fork) {
+const ICON_URL = /(raw\.githubusercontent\.com\/getmattered\/getmattered-mcp\/)[^/\s]+(\/)/g;
+const TAG = /^v\d+\.\d+\.\d+$/;
+
+/** Every raw.githubusercontent.com link into our repo, pointed at `ref` (a release tag). */
+export function pinIconRef(text, ref) {
+  if (!TAG.test(ref)) throw new Error(`"${ref}" is not a release tag like v1.2.3`);
+  return text.replace(ICON_URL, `$1${ref}$2`);
+}
+
+/**
+ * The listing files for a fork, as [path in the fork, text]. With `iconRef`, the
+ * links into our repo point at that release tag.
+ */
+export function listingFiles(bridgeRoot, fork, { iconRef = null } = {}) {
   const base = join(bridgeRoot, 'listings', fork);
-  return walk(base).sort().map(path => [path, readFileSync(join(base, path), 'utf8')]);
+  return walk(base).sort().map((path) => {
+    const text = readFileSync(join(base, path), 'utf8');
+    return [path, iconRef ? pinIconRef(text, iconRef) : text];
+  });
 }
 
 /** The listing files whose text differs from the fork checkout. */
@@ -112,7 +129,8 @@ function main() {
   }
   if (command === 'copy') {
     if (!['cline', 'docker'].includes(first)) throw new Error(`copy takes docker or cline, not ${first}`);
-    const files = listingFiles('.', first);
+    const at = argv.indexOf('--icon-ref');
+    const files = listingFiles('.', first, { iconRef: at === -1 ? null : argv[at + 1] });
     const changed = changedFiles(files, second);
     if (!argv.includes('--dry-run')) {
       for (const [path, text] of files.filter(([path]) => changed.includes(path))) {

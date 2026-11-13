@@ -39,7 +39,7 @@ import { createLoginGate } from './login-gate.js';
 import { resolveToolName } from './tool-names.js';
 
 const DEFAULT_ENDPOINT = 'https://mcp.getmattered.com/mcp';
-const VERSION = '1.17.1';
+const VERSION = '1.18.0';
 const FLUSH_GRACE_MS = 1500;
 // How long tool calls wait for the browser sign-in, from the moment it opens, before
 // they go out unauthenticated. Under the MCP SDK's 60 s default request timeout, so

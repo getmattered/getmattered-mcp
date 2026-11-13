@@ -19,7 +19,8 @@
 #   Every job after publish skips a run that a newer tag replaced.
 #   reminders  after publish, `issues: write` only: opens one "vX: human steps"
 #              issue when this release changed something a person must carry over
-#              (Claude listing tool names, the ChatGPT package, Glama).
+#              (Claude listing tool names, the ChatGPT package, Glama). A package
+#              upload the previous issue left unticked carries into the new one.
 #   lobehub    after publish, the `release` environment for LOBEHUB_CREDENTIALS only,
 #              no id-token: `lhm plugin update`. No secret prints SKIPPED; a failure
 #              warns and never fails the release, which is already out.
@@ -33,6 +34,13 @@
 #              push step. It never opens a PR, never comments, and a branch that
 #              already matches is left alone. The three forks are independent: a
 #              failed xAI step does not stop Docker or Cline (the job still fails).
+#   skills-repo  after publish, the `release-forks` environment: rewrites
+#              getmattered/getmattered-skills with this release's plugin skills
+#              (scripts/skills-repo.mjs) and pushes with that repo's own deploy key,
+#              only when a file changed. Nothing there is edited by hand.
+#   drift      last, `actions: write` only: starts drift.yml on main, so the
+#              pinned "Platform drift" issue reads the new version within minutes
+#              instead of at the next daily run.
 #
 # Listings only, for a tag that is already published (publishes nothing). A re-run
 # or a dispatch on the tag uses the tag's own copy of this file, so dispatch from
@@ -59,6 +67,17 @@
 #             environment secrets of `release-forks`: SSH deploy keys with write
 #             access to one fork each. Backed up in the macOS keychain
 #             (mattered-fork-key-<xai|docker|cline>).
+#   skills    SKILLS_REPO_DEPLOY_KEY, an environment secret of `release-forks`: an
+#             SSH deploy key with write access to getmattered/getmattered-skills
+#             only. Backed up in the keychain as mattered-fork-key-skills. Without
+#             it the job FAILS (the skills repo would drift silently, and LobeHub's
+#             SKIPPED job went unseen for weeks), so the hourly release watch pages.
+#             One-time setup, in a scratch folder:
+#               ssh-keygen -t ed25519 -N '' -C getmattered-skills-release -f key
+#               gh repo deploy-key add key.pub --repo getmattered/getmattered-skills --allow-write --title release-sync
+#               gh secret set SKILLS_REPO_DEPLOY_KEY --env release-forks --repo getmattered/getmattered-mcp < key
+#               security add-generic-password -U -s mattered-fork-key-skills -a getmattered -w "$(cat key)"
+#               rm key key.pub
 #   Repository variable LISTINGS_DRY_RUN=1 makes the listings job print its diff
 #   and push nothing.
 #
@@ -257,8 +276,10 @@ jobs:
           # The registry checks the npm package and its mcpName before it accepts server.json.
           node scripts/release-steps.mjs wait npm "$VERSION" 600
 
-      # The notes end with a hidden line of the live tool names, so the next
-      # release's reminders can tell whether the Claude listing needs a sync.
+      # The notes end with two hidden lines: the live tool names, so the next
+      # release's reminders can tell whether the Claude listing needs a sync, and
+      # the OpenAI package hash, which GetMattered's hourly release watch compares
+      # with the package ChatGPT publishes.
       - name: Publish the GitHub release with the OpenAI package and the .mcpb
         if: steps.newer.outputs.superseded_by == ''
         env:
@@ -274,6 +295,11 @@ jobs:
               printf '\n%s\n' "$marker" >> "$NOTES"
             else
               echo "::warning::tool names unread; the next release's reminders will say UNOBSERVED"
+            fi
+            if package_marker="$(node scripts/release-steps.mjs package-marker)"; then
+              printf '%s\n' "$package_marker" >> "$NOTES"
+            else
+              echo "::warning::package hash unread; the hourly watch falls back to the human-steps issue"
             fi
             gh release create "$TAG" "$OPENAI_ZIP" "$MCPB" --repo "$GITHUB_REPOSITORY" --verify-tag --latest \
               --title "GetMattered MCP $VERSION" --notes-file "$NOTES"
@@ -349,8 +375,18 @@ jobs:
           if [ -n "$previous" ]; then
             gh release view "$previous" --repo "$GITHUB_REPOSITORY" --json body --jq .body > "$notes" || : > "$notes"
           fi
+          # An unticked package line on the previous issue carries into this one.
+          previous_issue="$RUNNER_TEMP/previous-issue.md"
+          : > "$previous_issue"
+          if [ -n "$previous" ]; then
+            previous_title="$previous: human steps"
+            previous_number="$(gh issue list --repo "$GITHUB_REPOSITORY" --state all --search "\"$previous_title\" in:title" --json number,title --jq "[.[] | select(.title == \"$previous_title\")][0].number // empty")" || previous_number=""
+            if [ -n "$previous_number" ]; then
+              gh issue view "$previous_number" --repo "$GITHUB_REPOSITORY" --json body --jq .body > "$previous_issue" || : > "$previous_issue"
+            fi
+          fi
           body="$RUNNER_TEMP/reminders.md"
-          node scripts/release-steps.mjs reminders "$VERSION" "$previous" "$notes" > "$body"
+          node scripts/release-steps.mjs reminders "$VERSION" "$previous" "$notes" "$previous_issue" > "$body"
           if [ ! -s "$body" ]; then
             echo "$TAG needs no human steps"
             exit 0
@@ -619,14 +655,15 @@ jobs:
             push "git@github.com:$FORK.git" "$SRC:refs/heads/$BRANCH"
           echo "$FORK:$BRANCH now at $(git -C "$WORK" rev-parse "$SRC")"
 
-      # docker/mcp-registry #6054: metadata only (server.yaml, readme.md).
+      # docker/mcp-registry #6054: metadata only (server.yaml, readme.md). The icon
+      # URL points at this release's tag.
       - name: Docker, prepare
         id: docker
         if: ${{ !cancelled() }}
         run: |
           work="$RUNNER_TEMP/docker"
           git clone --quiet --depth 20 --branch add-getmattered --single-branch https://github.com/whateverneveranywhere/mcp-registry.git "$work"
-          changed="$(node scripts/listing-prs.mjs copy docker "$work")"
+          changed="$(node scripts/listing-prs.mjs copy docker "$work" --icon-ref "$TAG")"
           if [ -z "$changed" ]; then
             echo "Docker: the branch already matches listings/docker"
             exit 0
@@ -694,3 +731,86 @@ jobs:
             git -C "$WORK" -c core.hooksPath=/dev/null -c protocol.allow=never -c protocol.ssh.allow=always \
             push "git@github.com:$FORK.git" "$SRC:refs/heads/$BRANCH"
           echo "$FORK:$BRANCH now at $(git -C "$WORK" rev-parse "$SRC")"
+
+  # getmattered/getmattered-skills: this release's plugin skills, a manifest at the
+  # version and a README, written by scripts/skills-repo.mjs. It runs no third-party
+  # code. A listings-only dispatch resyncs it too.
+  skills-repo:
+    needs: [publish, listings-tag]
+    if: ${{ !cancelled() && ((needs.publish.result == 'success' && needs.publish.outputs.superseded_by == '') || needs.listings-tag.result == 'success') }}
+    runs-on: ubuntu-24.04
+    environment: release-forks
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ inputs.listings_tag || github.ref_name }}
+      DRY_RUN: ${{ vars.LISTINGS_DRY_RUN }}
+      GIT_CONFIG_NOSYSTEM: '1'
+      GITHUB_HOST_KEY: 'github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: refs/tags/${{ env.TAG }}
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+
+      - name: Skills repo, prepare
+        id: skills
+        run: |
+          work="$RUNNER_TEMP/skills"
+          git clone --quiet --depth 20 --branch main --single-branch https://github.com/getmattered/getmattered-skills.git "$work"
+          node scripts/skills-repo.mjs sync "$work" "${TAG#v}"
+          git -C "$work" add -A
+          if git -C "$work" diff --cached --quiet; then
+            echo "getmattered-skills already matches $TAG"
+            echo "- getmattered-skills: already matches $TAG" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git -C "$work" diff --cached --stat
+          git -C "$work" -c user.name=GetMattered -c user.email=ava@getmattered.com -c commit.gpgsign=false \
+            commit --quiet -m "Sync the skills of getmattered-mcp $TAG"
+          echo "push=1" >> "$GITHUB_OUTPUT"
+
+      - name: Skills repo, push
+        if: ${{ steps.skills.outputs.push == '1' && env.DRY_RUN != '1' }}
+        env:
+          DEPLOY_KEY: ${{ secrets.SKILLS_REPO_DEPLOY_KEY }}
+          WORK: ${{ runner.temp }}/skills
+          REPO: getmattered/getmattered-skills
+        run: |
+          if [ -z "$DEPLOY_KEY" ]; then
+            echo "::error::$REPO is not synced to $TAG: no SKILLS_REPO_DEPLOY_KEY secret in release-forks (one-time setup in this file's header)"
+            echo "- getmattered-skills: NOT SYNCED, no SKILLS_REPO_DEPLOY_KEY secret" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          home="$(mktemp -d)"
+          trap 'rm -rf "$home"' EXIT
+          install -m 600 /dev/null "$home/deploy_key"
+          printf '%s\n' "$DEPLOY_KEY" > "$home/deploy_key"
+          printf '%s\n' "$GITHUB_HOST_KEY" > "$home/known_hosts"
+          HOME="$home" GIT_SSH_COMMAND="ssh -F /dev/null -i $home/deploy_key -o IdentitiesOnly=yes -o UserKnownHostsFile=$home/known_hosts -o StrictHostKeyChecking=yes" \
+            git -C "$WORK" -c core.hooksPath=/dev/null -c protocol.allow=never -c protocol.ssh.allow=always \
+            push "git@github.com:$REPO.git" HEAD:refs/heads/main
+          echo "$REPO:main now at $(git -C "$WORK" rev-parse HEAD)"
+          echo "- getmattered-skills: synced to $TAG" >> "$GITHUB_STEP_SUMMARY"
+
+  # Starts the daily drift read now, so the pinned "Platform drift" issue shows this
+  # release within minutes. workflow_dispatch from GITHUB_TOKEN does start a run.
+  drift:
+    needs: [publish, listings-tag, reminders, lobehub, listings, skills-repo]
+    if: ${{ !cancelled() && ((needs.publish.result == 'success' && needs.publish.outputs.superseded_by == '') || needs.listings-tag.result == 'success') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: write
+    steps:
+      - name: Start drift.yml on main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run drift.yml --repo "$GITHUB_REPOSITORY" --ref main
+          echo "- drift.yml started on main" >> "$GITHUB_STEP_SUMMARY"

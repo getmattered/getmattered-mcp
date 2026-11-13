@@ -9,8 +9,15 @@
 #               (read through /v0.1), 7 days for the rest. Prints only.
 #   manual      Glama (Sync Server, Make Release). Prints only.
 #   submission  Gemini CLI gallery: not listed. Prints only.
+#   listing     merged list entries (awesome lists, toolsdk, Raycast), read as text.
+#               The old name (/ai ?applyd/i) or a version older than main's on our
+#               line fails this run.
+#   pr          our open listing pull requests and issues, read through
+#               api.github.com with this run's token. The old name in our own title
+#               or body fails this run; open, merged and closed only print.
 # A blocked read prints UNOBSERVED, never a pass. Several sites block Actions IPs.
 #
+# It runs daily, and release.yml starts it after every release (its `drift` job).
 #   gh workflow run drift.yml --repo getmattered/getmattered-mcp
 name: drift
 
@@ -83,7 +90,7 @@ jobs:
             gh issue pin "$number" --repo "$GITHUB_REPOSITORY" || echo "::warning::could not pin #$number"
           fi
 
-      - name: Core surfaces gate the run
+      - name: Core surfaces and the old name gate the run
         if: steps.read.outputs.status != 'skip'
         env:
           STATUS: ${{ steps.read.outputs.status }}

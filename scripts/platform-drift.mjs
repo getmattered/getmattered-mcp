@@ -12,6 +12,12 @@
  *   follower    follows npm, the registry or the repo on its own clock. Prints only.
  *   manual      moves only when a person acts (Glama Make Release). Prints only.
  *   submission  we are not listed; it needs a submission. Prints only.
+ *   listing     a merged list entry (LISTING_PAGES), read as text. The old name
+ *               (/ai ?applyd/i) anywhere on the page, or a version older than the
+ *               newest release on a line that names GetMattered, fails the run.
+ *   pr          one of OUR open listing pull requests or issues (LISTING_PRS),
+ *               read through api.github.com. The old name in its title or body
+ *               (our own text) fails the run; open, merged and closed only print.
  *
  * Verdicts: current, lagging (behind, inside its threshold), drift (behind past
  * it), not listed, UNOBSERVED (blocked, unanswered or unparsed). A blocked read
@@ -22,7 +28,8 @@
  * everyone else. The clock starts when the first release newer than the
  * version a platform shows came out.
  *
- * Plain fetch only: no credentials, except GITHUB_TOKEN for api.github.com.
+ * Plain fetch only: no credentials, except GITHUB_TOKEN for api.github.com (the
+ * pull request rows, about fifteen reads, well inside the token's hourly limit).
  */
 import { writeFileSync } from 'node:fs';
 import { argv, env, exit, stdout } from 'node:process';
@@ -209,6 +216,79 @@ export const PLATFORMS = [
   },
 ];
 
+/** The name GetMattered had before 24 Oct 2026; its domain changes owner on 19 Nov 2026. */
+export const OLD_NAME = /ai ?applyd/i;
+
+const raw = (repo, path) => `https://raw.githubusercontent.com/${repo}/main/${path}`;
+
+/** Merged list entries, read as text: where each list keeps our line. */
+export const LISTING_PAGES = [
+  { key: 'awesome-remote-punkpeye', name: 'punkpeye/awesome-remote-mcp-servers (fix PR #2806)', page: 'https://github.com/punkpeye/awesome-remote-mcp-servers', url: raw('punkpeye/awesome-remote-mcp-servers', 'README.md') },
+  { key: 'guiadoconhecimento', name: 'arthurspk/guiadoconhecimento (fix PR #2)', page: 'https://github.com/arthurspk/guiadoconhecimento/blob/main/areas/carreira/carreira-vagas.md', url: raw('arthurspk/guiadoconhecimento', 'areas/carreira/carreira-vagas.md') },
+  { key: 'awesome-job-boards', name: 'emredurukn/awesome-job-boards', page: 'https://github.com/emredurukn/awesome-job-boards', url: raw('emredurukn/awesome-job-boards', 'README.md') },
+  { key: 'aianytime', name: 'AIAnytime/Awesome-MCP-Servers', page: 'https://github.com/AIAnytime/Awesome-MCP-Servers', url: raw('AIAnytime/Awesome-MCP-Servers', 'README.md') },
+  { key: 'collabnix', name: 'collabnix/awesome-mcp-lists', page: 'https://github.com/collabnix/awesome-mcp-lists', url: raw('collabnix/awesome-mcp-lists', 'README.md') },
+  { key: 'tensorblock', name: 'TensorBlock/awesome-mcp-servers', page: 'https://github.com/TensorBlock/awesome-mcp-servers/blob/main/docs/utilities--helpers.md', url: raw('TensorBlock/awesome-mcp-servers', 'docs/utilities--helpers.md') },
+  { key: 'toolsdk', name: 'toolsdk-ai/toolsdk-mcp-registry', page: 'https://github.com/toolsdk-ai/toolsdk-mcp-registry/blob/main/packages/other-tools-and-integrations/getmattered-mcp.json', url: raw('toolsdk-ai/toolsdk-mcp-registry', 'packages/other-tools-and-integrations/getmattered-mcp.json') },
+  { key: 'raycast', name: 'raycast/extensions (MCP Registry extension)', page: 'https://github.com/raycast/extensions/tree/main/extensions/model-context-protocol-registry', url: raw('raycast/extensions', 'extensions/model-context-protocol-registry/src/registries/builtin/entries.ts') },
+];
+
+/**
+ * Our open listing pull requests and issues, as owner/repo#number. A merged one
+ * moves to LISTING_PAGES with the file that holds our line.
+ */
+export const LISTING_PRS = [
+  'punkpeye/awesome-remote-mcp-servers#2806',
+  'arthurspk/guiadoconhecimento#2',
+  'punkpeye/awesome-mcp-servers#14789',
+  'apappascs/mcp-servers-hub#36',
+  'sylviangth/awesome-remote-mcp-servers#92',
+  'hireblackout/awesome-mcp-servers#33',
+  'e2b-dev/awesome-ai-agents#1632',
+  'steven2358/awesome-generative-ai#1143',
+  'lukasz-madon/awesome-remote-job#1124',
+  'khalyomede/korru.app#1',
+  'Kamalnrf/claude-plugins#130',
+  'Kilo-Org/kilo-marketplace#374',
+  'xai-org/plugin-marketplace#1238',
+  'docker/mcp-registry#6054',
+  'cline/marketplace#230',
+].map((ref) => {
+  const [repo, number] = ref.split('#');
+  return { key: `pr:${ref}`, name: ref, page: `https://github.com/${repo}/issues/${number}`, url: `https://api.github.com/repos/${repo}/issues/${number}` };
+});
+
+const clip = text => (text.length > 100 ? `${text.slice(0, 97)}...` : text);
+
+/** A merged list entry from its text: old name, old version, listed or not. */
+export function listingVerdict(page, reading, { reference }) {
+  const base = { cls: 'listing', key: page.key, name: page.name, shown: '', threshold: null, url: page.page };
+  if (reading.status !== 200) return { ...base, detail: reading.status ? `HTTP ${reading.status}` : 'no answer', verdict: 'UNOBSERVED' };
+  const lines = String(reading.text).split('\n');
+  const old = lines.find(line => OLD_NAME.test(line));
+  if (old) return { ...base, detail: `old name: ${clip(old.trim())}`, shown: 'old name', verdict: 'old name' };
+  const ours = lines.filter(line => /getmattered/i.test(line));
+  if (ours.length === 0) return { ...base, detail: 'GetMattered is not on the page', verdict: 'not listed' };
+  const versions = ours.flatMap(line => [...line.matchAll(/(?<![\d.])v?(\d{1,2}\.\d{1,3}\.\d{1,3})(?![\d.])/g)].map(match => match[1]));
+  const older = versions.filter(version => compareVersions(version, '1.0.0') >= 0 && compareVersions(version, reference) < 0).sort(compareVersions);
+  if (older.length > 0) return { ...base, detail: `shows ${older[0]}, the newest release is ${reference}`, shown: older[0], verdict: 'drift' };
+  return { ...base, detail: '', shown: 'listed', verdict: 'current' };
+}
+
+/** One of our pull requests or issues from api.github.com: its state, and the old name in our own text. */
+export function prVerdict(pr, reading, { now }) {
+  const base = { cls: 'pr', key: pr.key, name: pr.name, shown: '', threshold: null, url: reading.json?.html_url ?? pr.page };
+  if (reading.status !== 200 || !reading.json?.state) return { ...base, detail: reading.status ? `HTTP ${reading.status}` : 'no answer', verdict: 'UNOBSERVED' };
+  const { body, created_at: createdAt, pull_request: pull, state, title } = reading.json;
+  if (OLD_NAME.test(`${title ?? ''}\n${body ?? ''}`)) return { ...base, detail: 'the old name is in our own title or body: edit it (gh pr edit, no comment)', shown: state, verdict: 'old name' };
+  if (state === 'open') {
+    const days = createdAt ? Math.floor((now.getTime() - new Date(createdAt).getTime()) / (24 * HOUR)) : null;
+    return { ...base, detail: days === null ? 'waits on the maintainer' : `open ${days} days, waits on the maintainer`, shown: 'open', verdict: 'open' };
+  }
+  if (pull?.merged_at) return { ...base, detail: `merged ${pull.merged_at.slice(0, 10)}: move it to LISTING_PAGES`, shown: 'merged', verdict: 'merged' };
+  return { ...base, detail: 'closed without a merge: we are not listed there', shown: 'closed', verdict: 'closed' };
+}
+
 export const thresholdHours = row => row.thresholdHours ?? (row.cls === 'gate' ? 6 : 7 * 24);
 
 /**
@@ -246,20 +326,29 @@ export function rowVerdict(row, reading, { reference, releases, referenceAt, now
   return { ...base, detail: behind, shown, verdict: hours <= base.threshold ? 'lagging' : 'drift' };
 }
 
-/** A gate row fails the run unless it is current or lagging. Other classes never fail it. */
+/** A gate row fails the run unless it is current or lagging. */
 export const gateFailures = rows => rows.filter(row => row.cls === 'gate' && row.verdict !== 'current' && row.verdict !== 'lagging');
 
-const hoursText = hours => (hours % 24 === 0 ? `${hours / 24} d` : `${hours} h`);
+/** The old name on a listing or in our own PR text, or an old version on a listing line, also fails it. */
+export const listingFailures = rows => rows.filter(row => row.verdict === 'old name' || (row.cls === 'listing' && row.verdict === 'drift'));
+
+/** Every row that fails the run. Follower, manual, submission and PR-state rows only print. */
+export const runFailures = rows => [...gateFailures(rows), ...listingFailures(rows)];
+
+const hoursText = hours => (hours === null ? '-' : hours % 24 === 0 ? `${hours / 24} d` : `${hours} h`);
 
 /** The issue body: one table, newest release first. */
 export function renderIssue(rows, { reference, now }) {
   const failed = gateFailures(rows);
+  const listed = listingFailures(rows);
   const lines = [
     `Read ${now.toISOString().slice(0, 16).replace('T', ' ')} UTC by .github/workflows/drift.yml. Newest release: ${reference} (main).`,
     '',
     failed.length > 0 ? `**Core surfaces behind or unread:** ${failed.map(row => row.name).join(', ')}.` : 'Core surfaces: all current.',
     '',
-    'Gate rows fail the run. Follower, manual and submission rows only print. UNOBSERVED means the read was blocked or unparsed; it is never a pass.',
+    listed.length > 0 ? `**Old name or old version on a listing:** ${listed.map(row => row.name).join(', ')}.` : 'Listings and our pull requests: no old name, no old version.',
+    '',
+    'Gate rows fail the run, and so does the old name or an old version on a listing or in our own pull request text. Other rows only print. UNOBSERVED means the read was blocked or unparsed; it is never a pass.',
     '',
     '| Platform | Class | Shows | Verdict | Threshold | Detail |',
     '|---|---|---|---|---|---|',
@@ -302,6 +391,8 @@ export async function readDrift({ fetchReading = readUrl, now = new Date() } = {
   if (!referenceAt) referenceAt = (await fetchReading(REFERENCE_URLS.mainCommit)).json?.commit?.committer?.date ?? null;
   const rows = [];
   for (const row of PLATFORMS) rows.push(rowVerdict(row, await fetchReading(row.url), { now, reference, referenceAt, releases }));
+  for (const page of LISTING_PAGES) rows.push(listingVerdict(page, await fetchReading(page.url), { reference }));
+  for (const pr of LISTING_PRS) rows.push(prVerdict(pr, await fetchReading(pr.url), { now }));
   return { reference, rows };
 }
 
@@ -312,9 +403,9 @@ async function main() {
   const body = renderIssue(rows, { now, reference });
   if (outIndex !== -1) writeFileSync(argv[outIndex + 1], body);
   stdout.write(body);
-  const failed = gateFailures(rows);
+  const failed = runFailures(rows);
   if (failed.length > 0) {
-    console.error(`platform-drift: core surfaces behind or unread: ${failed.map(row => `${row.key} ${row.verdict}`).join(', ')}`);
+    console.error(`platform-drift: behind, unread or showing the old name: ${failed.map(row => `${row.key} ${row.verdict}`).join(', ')}`);
     exit(1);
   }
 }
