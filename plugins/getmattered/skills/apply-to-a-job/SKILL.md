@@ -8,14 +8,14 @@ description: Send a real job application with GetMattered. It tailors the resume
 Start here. Call `getmattered_get_account`. If no resume is on file, ask for it and call `getmattered_set_resume`. If no account is connected, share the sign-up link it gives and stop.
 
 1. Pick the job and the mode for `getmattered_apply`. Leave `mode` out so the user's setting decides. Pass `mode: "review"` only when the user asks to review first, and `mode: "auto"` only when they ask to skip review. The answer says which mode it used.
-2. Check the plan. Call `getmattered_get_account` to see how many applications are left. A free account gets five free applications from an MCP client, and they use its free tokens. If the account says it cannot use them, say so. After that, pass on the tool's message as written and link https://getmattered.com/pricing. Never buy a plan or credits.
+2. Check the plan. Call `getmattered_get_account` to see how many applications are left. A free account gets five free applications in all. The website, the apps and every assistant count the same five. If the account says it cannot use them, say so. After the fifth, pass on the tool's message as written and link https://getmattered.com/pricing. Never buy a plan or tokens.
 3. Confirm once before a send. Name the job, the company and the mode. An application sent in auto mode goes out under the user's name and cannot be withdrawn. One clear yes can cover a list of jobs the user named, but never a job they have not seen.
-4. Call `getmattered_apply`. The server may also ask the user in its own confirmation form. If the user says no there, nothing is sent.
+4. Call `getmattered_apply`. For several jobs under one yes, pass up to 10 in `job_match_ids`: the answer has outcome batch, with one result per job. The server may also ask the user in its own confirmation form. If the user says no there, nothing is sent.
 5. Report only what the tool returned. Never say the application landed until `getmattered_get_applications` marks it employer confirmed. A submit click is not proof.
 6. If it is held for review, use the review-and-send skill.
 7. On a timeout or an error, call `getmattered_get_applications` before you retry, because the application may already have started.
 8. A job board link (LinkedIn, Indeed and others) resolves to the employer's own posting. If the answer says GetMattered already checked the employer's own boards, nothing else is needed for this job now: tell the user what the answer says. If the answer asks for the employer's own posting and you find the job on the employer's own careers page or hiring system, call `getmattered_apply` with that link. A posting link is all GetMattered needs. If you cannot find it, tell the user GetMattered cannot apply to it.
-9. If the answer status is not_applied, nothing was sent. Tell the user the reason and the next step it names.
+9. If the outcome is not_applied, nothing was sent. Tell the user the reason and the next step it names. With a `trackingUrl`, GetMattered keeps the job on the user's board and tells the user once it can send it. A job with reason account_only_board stays on the board unsent.
 
 When GetMattered cannot apply, nothing was sent to the employer. Tell the user why, then offer the closest job GetMattered can apply to from `getmattered_get_matches`. Profile fields are added once, on the profile, not per application.
 

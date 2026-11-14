@@ -19,7 +19,7 @@ Each tool does one operation, and its description says how to call it. Follow th
 | Prepare for an interview | prepare-for-interview |
 | Work on documents | tailor-for-a-job, write-cover-letter, translate-resume, build-resume-document |
 
-Start with `getmattered_get_account`. Set a resume before you match or apply. Then find, act and track.
+Start with `getmattered_get_account`. On a new account the resume comes first: the user pastes or attaches it, and `getmattered_set_resume` saves it. Then find, act and track. A free account gets five free applications in all, counted the same on the website, the apps and every assistant. After that a plan sends more.
 
 ## Stay inside the GetMattered tools
 
@@ -35,11 +35,11 @@ Say what will happen and wait for a clear yes:
 - `getmattered_update_automatic_apply_settings` when it turns Auto Apply on.
 - `getmattered_share_resume_pdf` and `getmattered_delete_saved_search`.
 
-Also get approval before any call that uses AI credits. A no in the server's own confirmation form means nothing happened. Never buy a plan or credits.
+Also get approval before any call that uses tokens. A no in the server's own confirmation form means nothing happened. Never buy a plan or tokens.
 
 ## When GetMattered cannot apply
 
-GetMattered applies on the employer's own hiring system. When it cannot apply, nothing is sent: tell the user the reason, then offer the closest job GetMattered can apply to from `getmattered_get_matches`. Profile fields are added once, on the profile, not per application.
+GetMattered applies on the employer's own hiring system. When it cannot apply, nothing is sent: tell the user the reason, then offer the closest job GetMattered can apply to from `getmattered_get_matches`. With a `trackingUrl`, the job stays on the user's board, and GetMattered tells the user once it can send it. Profile fields are added once, on the profile, not per application.
 
 ## After each result
 

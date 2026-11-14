@@ -1,6 +1,6 @@
 {
   "name": "getmattered",
-  "version": "1.19.1",
+  "version": "1.19.2",
   "description": "Auto-Apply That Ends on an Interview. Get matched jobs, apply on 30+ hiring systems automatically or after your approval, review and track every application, and tailor your resume and cover letter per role.",
   "author": {
     "name": "GetMattered",
@@ -147,7 +147,7 @@
         "commerce_description": "The plugin does not sell products or take payments. Paid GetMattered plans are bought on getmattered.com."
       },
       "publication": {
-        "release_notes": "1.19.1: 41 tools with the same names. Fixed: Point the Docker icon at main so a release pushes nothing to the waiting PR."
+        "release_notes": "1.19.2: 41 tools with the same names. Improved: The skills name the five free applications on every surface and batch apply of 10."
       },
       "onboardingSkill": "./skills/setup-job-search/SKILL.md"
     }

@@ -5,7 +5,7 @@ description: Score and tailor the user's resume to one job posting with GetMatte
 
 # Tailor for a job
 
-These tools use AI credits. Get approval for the calls the user asked for, and run only those. Do not buy credits or upgrade a plan.
+These tools use tokens. Get approval for the calls the user asked for, and run only those. Do not buy tokens or upgrade a plan.
 
 1. Get the full job description and the resume text.
 2. Keywords and requirements: `getmattered_analyze_job_description`.

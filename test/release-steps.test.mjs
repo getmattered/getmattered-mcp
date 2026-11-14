@@ -139,6 +139,17 @@ test('reminders list a step only when the release changed what it shows; Glama i
   assert.match(reminderSteps({ hashBefore: 'h', hashNow: 'h', toolsBefore: ['a'], toolsNow: null, version: '1.15.3' })[0], /UNOBSERVED/);
 });
 
+// developers.openai.com/plugins/deploy/submission, read 14 Nov 2026: hosted tool updates
+// publish after the daily scan; metadata, assets and skills need a new ZIP.
+test('a tool-only change asks ChatGPT for nothing; a package change names the portal steps', () => {
+  const toolsOnly = reminderSteps({ hashBefore: 'h1', hashNow: 'h1', toolsBefore: ['a'], toolsNow: ['a', 'b'], version: '1.19.2' });
+  assert.equal(toolsOnly.some(step => step.startsWith('ChatGPT')), false);
+  const upload = reminderSteps({ hashBefore: 'h1', hashNow: 'h2', toolsBefore: ['a'], toolsNow: ['a'], version: '1.19.2' })[0];
+  assert.match(upload, /^ChatGPT package: skills, metadata or assets changed \(h1 to h2\)\. Upload getmattered-1\.19\.2-openai\.zip from this release/);
+  assert.match(upload, /"Upload plugin to make changes", wait for the Metadata & Skills checks/);
+  assert.match(upload, /then Submit for review and Publish\./);
+});
+
 test('an upload the previous release asked for and nobody ticked is carried into the next issue', () => {
   const previous = remindersBody('1.15.4', reminderSteps({ hashBefore: 'aaaa', hashNow: 'bbbb', toolsBefore: ['a'], toolsNow: ['a'], version: '1.15.4' }));
   const left = unuploadedPackage(previous);

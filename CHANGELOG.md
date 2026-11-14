@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.19.2
+
+41 tools with the same names. Improved: The skills name the five free applications on every surface and batch apply of 10.
+
 ## 1.19.1
 
 41 tools with the same names. Fixed: Point the Docker icon at main so a release pushes nothing to the waiting PR.

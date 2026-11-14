@@ -1,6 +1,6 @@
 {
   "name": "getmattered-mcp",
-  "version": "1.19.1",
+  "version": "1.19.2",
   "description": "Job search and auto apply MCP server for ChatGPT, Claude, Cursor and any MCP client. Auto-Apply That Ends on an Interview: matched jobs, applications sent on the employer's own site, tailored resumes, cover letters, interview prep and an application tracker.",
   "type": "module",
   "bin": {

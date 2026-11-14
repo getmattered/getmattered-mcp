@@ -1,6 +1,6 @@
 ---
 name: track-applications
-description: Check where the user's job applications stand with GetMattered, which employers confirmed them, and how many applications and credits the user has left. Use this skill whenever the user asks "did it go through", "what did I apply to", for an application status, a receipt or a confirmation, their plan, their balance, or how many applications they have left.
+description: Check where the user's job applications stand with GetMattered, which employers confirmed them, and how many applications and tokens the user has left. Use this skill whenever the user asks "did it go through", "what did I apply to", for an application status, a receipt or a confirmation, their plan, their balance, or how many applications they have left.
 ---
 
 # Track applications

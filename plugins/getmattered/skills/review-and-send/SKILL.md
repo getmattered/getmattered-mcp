@@ -6,7 +6,7 @@ description: Review the applications GetMattered prepared, change them, and send
 # Review and send
 
 1. Call `getmattered_get_applications` with `status: "waiting_for_review"`. Show the job, the company and the tracking link. Pass `application_id` to read one in full.
-2. Wait for a clear decision on each one. Never approve on your own judgment. Rewrites and new preparations use AI credits, so get approval first. Do not buy credits or upgrade the plan.
+2. Wait for a clear decision on each one. Never approve on your own judgment. Rewrites and new preparations use tokens, so get approval first. Do not buy tokens or upgrade the plan.
 3. Each decision is its own tool:
    - `getmattered_approve_applications` submits to the employer under the user's name. It cannot be undone.
    - `getmattered_reject_applications` declines it. Nothing is sent, and the preparation stays charged.

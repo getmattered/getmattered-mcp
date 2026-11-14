@@ -225,6 +225,14 @@ export const CLAUDE_REVIEW_WAIT = 'WAIT while claude.ai/directory/manage shows t
 /** The ChatGPT package line names the open draft it replaces, so an older draft is never submitted. */
 const replaceDraft = version => `If an older package sits there as a draft, replace that draft with getmattered-${version}-openai.zip; never submit the older draft.`;
 
+/**
+ * The portal steps for a new package (developers.openai.com/plugins/deploy/submission,
+ * "Updating the plugin package", read 14 Nov 2026). A tool change never asks for
+ * this: OpenAI scans the hosted server daily and publishes the tool updates that
+ * pass its checks, so no ChatGPT line is written for tools.
+ */
+const uploadSteps = 'Press "Upload plugin to make changes", wait for the Metadata & Skills checks (a skill scan can take up to 2 h), fix any finding in the repo and ship a new release, then Submit for review and Publish.';
+
 export function reminderSteps({ version, toolsBefore, toolsNow, hashBefore, hashNow, carried = null }) {
   const steps = [];
   if (!toolsNow) {
@@ -242,10 +250,10 @@ export function reminderSteps({ version, toolsBefore, toolsNow, hashBefore, hash
   // An upload the previous release asked for and nobody ticked: compare with what was there before it.
   const before = carried?.hashBefore ?? hashBefore;
   if (!hashNow || !before) {
-    steps.push(`ChatGPT package: the content hash is UNOBSERVED. Compare skills, metadata and assets by hand; if they changed, upload getmattered-${version}-openai.zip at platform.openai.com/plugins. ${replaceDraft(version)} Never while a review is open.`);
+    steps.push(`ChatGPT package: the content hash is UNOBSERVED. Compare skills, metadata and assets by hand; if they changed, upload getmattered-${version}-openai.zip at platform.openai.com/plugins. ${uploadSteps} ${replaceDraft(version)} Never while a review is open.`);
   } else if (hashNow !== before) {
     const why = carried ? `skills, metadata or assets changed, and the upload ${carried.from} asked for is still unticked` : 'skills, metadata or assets changed';
-    steps.push(`ChatGPT package: ${why} (${before} to ${hashNow}). Upload getmattered-${version}-openai.zip from this release at platform.openai.com/plugins. ${replaceDraft(version)} Never while a review is open.`);
+    steps.push(`ChatGPT package: ${why} (${before} to ${hashNow}). Upload getmattered-${version}-openai.zip from this release at platform.openai.com/plugins. ${uploadSteps} ${replaceDraft(version)} Never while a review is open.`);
   }
   steps.push(`Glama: in the server admin for getmattered/getmattered-mcp press "Sync Server", then "Make Release" ${version}. It has no API; an on-demand ab job on Ava's Mac can do it.`);
   return steps;
