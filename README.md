@@ -84,6 +84,8 @@ Your resume and profile stay on your GetMattered account. Tools read and write t
 - Status: [getmattered.com/status](https://getmattered.com/status)
 - Issues: [github.com/getmattered/getmattered-mcp/issues](https://github.com/getmattered/getmattered-mcp/issues)
 - Email: support@getmattered.com
+- Security: security@getmattered.com (see [SECURITY.md](SECURITY.md))
+- Contributing: [CONTRIBUTING.md](.github/CONTRIBUTING.md) and the [code of conduct](.github/CODE_OF_CONDUCT.md)
 
 ## About this repository
 

@@ -1,0 +1,55 @@
+name: Bug report
+description: Something in GetMattered MCP does not work as it says.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For a security problem, email security@getmattered.com instead.
+        Never post account data, tokens or a resume here.
+  - type: input
+    id: client
+    attributes:
+      label: App
+      description: The app you use GetMattered in.
+      placeholder: Claude Desktop, ChatGPT, Cursor, Claude Code
+    validations:
+      required: true
+  - type: dropdown
+    id: connection
+    attributes:
+      label: How it is connected
+      options:
+        - Remote server address (mcp.getmattered.com/mcp)
+        - npm bridge (npx getmattered-mcp)
+        - Claude Desktop extension (.mcpb)
+        - Plugin or skills
+        - Not sure
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The output of `npx getmattered-mcp --version`, or the plugin version. Leave it empty for the remote address.
+  - type: input
+    id: tool
+    attributes:
+      label: Tool
+      placeholder: getmattered_get_matches
+  - type: textarea
+    id: happened
+    attributes:
+      label: What happened
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce

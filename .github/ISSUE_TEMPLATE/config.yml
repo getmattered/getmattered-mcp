@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security problem
+    url: https://getmattered.com/legal/security
+    about: Email security@getmattered.com. Please do not open a public issue.
+  - name: Account or billing help
+    url: https://getmattered.com/support
+    about: Questions about your GetMattered account go to support.

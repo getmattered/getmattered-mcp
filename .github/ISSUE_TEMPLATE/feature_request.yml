@@ -1,0 +1,20 @@
+name: Feature request
+description: An idea for GetMattered MCP.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What you want to do
+      description: The job-search step you want help with, and what is in the way today.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea
+  - type: input
+    id: client
+    attributes:
+      label: App
+      placeholder: Claude Desktop, ChatGPT, Cursor, Claude Code

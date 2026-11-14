@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.20.0
+
+41 tools with the same names. Changed: Fuller text for the six B-graded tools, less repeated argument text. Fixed: restore_matches says a closed posting's id fails. Declare no token in server.json or the Docker image.
+
 ## 1.19.2
 
 41 tools with the same names. Improved: The skills name the five free applications on every surface and batch apply of 10.

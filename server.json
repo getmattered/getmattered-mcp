@@ -3,7 +3,7 @@
   "name": "com.getmattered/getmattered",
   "title": "GetMattered",
   "description": "Auto-Apply That Ends on an Interview. AI job search, tailored resumes, job application tracker.",
-  "version": "1.19.2",
+  "version": "1.20.0",
   "websiteUrl": "https://getmattered.com/mcps",
   "icons": [
     {
@@ -32,18 +32,10 @@
     {
       "registryType": "npm",
       "identifier": "getmattered-mcp",
-      "version": "1.19.2",
+      "version": "1.20.0",
       "transport": {
         "type": "stdio"
-      },
-      "environmentVariables": [
-        {
-          "name": "GETMATTERED_TOKEN",
-          "description": "Optional bearer token. When it is unset, the bridge uses the sign-in that `npx getmattered-mcp login` saved.",
-          "isRequired": false,
-          "isSecret": true
-        }
-      ]
+      }
     }
   ]
 }

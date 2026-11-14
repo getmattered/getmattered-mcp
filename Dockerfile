@@ -19,9 +19,8 @@ COPY package.json package-lock.json* ./
 RUN npm install --omit=dev --no-audit --no-fund && npm cache clean --force
 COPY --from=build /app/dist ./dist
 
-# Optional. Without it the server still starts and answers introspection
-# (initialize, tools/list, prompts/list, resources/list); tool CALLS return 401
-# until the user connects a GetMattered account.
-ENV GETMATTERED_TOKEN=""
+# No key or token. The server starts and answers initialize and tools/list with
+# no sign-in. Tool calls need the user's GetMattered account, connected once
+# through the browser sign-in (OAuth): `getmattered-mcp login`.
 
 ENTRYPOINT ["node", "dist/index.js"]
