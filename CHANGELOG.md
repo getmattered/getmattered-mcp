@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.20.2
+
+41 tools with the same names. Fixed: A stored sign-in goes only to the server that issued it, and the sign-in file is private to its owner from the moment it is written.
+
 ## 1.20.1
 
 41 tools with the same names. Fixed: getmattered_update_application_profile keeps its published wording.

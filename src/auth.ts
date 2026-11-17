@@ -12,11 +12,12 @@
  */
 import { createHash, randomBytes } from 'node:crypto';
 import { spawn } from 'node:child_process';
-import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
+export const DEFAULT_ENDPOINT = 'https://mcp.getmattered.com/mcp';
 const CALLBACK_PORT = 33418;
 const REDIRECT_URI = `http://127.0.0.1:${CALLBACK_PORT}/callback`;
 const LOGIN_TIMEOUT_MS = 10 * 60 * 1000;
@@ -27,7 +28,8 @@ type Credentials = {
   refresh_token?: string;
   expires_at?: number;
   client_id: string;
-  issuer: string;
+  // Missing in files written by older versions, all minted by DEFAULT_ENDPOINT.
+  issuer?: string;
 };
 
 export function credentialsPath() {
@@ -45,11 +47,28 @@ function readCredentials(): Credentials | null {
   }
 }
 
+/**
+ * The file is created at mode 600 in the same folder, then renamed over the old
+ * one, so no reader ever sees the token in a wider file, and a symlink planted at
+ * the path is replaced, not followed. Windows ignores the modes.
+ */
 function writeCredentials(credentials: Credentials) {
   const path = credentialsPath();
   mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
-  writeFileSync(path, JSON.stringify(credentials, null, 2));
-  chmodSync(path, 0o600);
+  const temp = `${path}.${process.pid}.${randomBytes(6).toString('hex')}.tmp`;
+  const fd = openSync(temp, 'wx', 0o600);
+  try {
+    try {
+      writeFileSync(fd, JSON.stringify(credentials, null, 2));
+      fsyncSync(fd);
+    } finally {
+      closeSync(fd);
+    }
+    renameSync(temp, path);
+  } catch (error) {
+    rmSync(temp, { force: true });
+    throw error;
+  }
 }
 
 export function logout() {
@@ -61,6 +80,15 @@ export function logout() {
 /** The OAuth issuer is the MCP endpoint's origin (https://mcp.getmattered.com). */
 export function issuerFor(endpoint: string) {
   return new URL(endpoint).origin;
+}
+
+/** The origin that minted the stored token, or null when the stored value is not a URL. */
+function storedIssuer(stored: Credentials) {
+  try {
+    return issuerFor(stored.issuer || DEFAULT_ENDPOINT);
+  } catch {
+    return null;
+  }
 }
 
 const b64url = (buffer: Buffer) =>
@@ -177,11 +205,21 @@ export async function getAccessToken(endpoint: string, log: (line: string) => vo
 
   const stored = readCredentials();
   if (!stored) return undefined;
+  // The token goes only to the server that minted it: same scheme, host and port.
+  const issuer = storedIssuer(stored);
+  const target = issuerFor(endpoint);
+  if (issuer !== target) {
+    log(
+      `the stored sign-in belongs to ${issuer ?? 'an unknown server'}, not ${target}, so it was not sent. `
+      + `To use ${target}, run: GETMATTERED_MCP_URL=${endpoint} getmattered-mcp login`,
+    );
+    return undefined;
+  }
   const fresh = !stored.expires_at || stored.expires_at - Date.now() > REFRESH_MARGIN_MS;
   if (fresh || !stored.refresh_token) return stored.access_token;
 
   try {
-    const token = await tokenRequest(stored.issuer || issuerFor(endpoint), {
+    const token = await tokenRequest(issuer, {
       grant_type: 'refresh_token',
       refresh_token: stored.refresh_token,
       client_id: stored.client_id,
