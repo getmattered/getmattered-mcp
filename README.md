@@ -45,6 +45,26 @@ https://mcp.getmattered.com/mcp
 
 Five free applications from ChatGPT, Claude or any MCP client. Upgrade any time for more.
 
+## Set up every app at once
+
+```bash
+npx getmattered-mcp init     # add GetMattered to the AI apps on this computer
+npx getmattered-mcp link     # sign in, or show the account already signed in
+```
+
+`init` finds Claude Code, Codex, Claude Desktop and Cursor, asks which ones to set up, and adds the hosted server to each:
+
+| App | Config file (macOS and Linux, then Windows) | Entry |
+|---|---|---|
+| Claude Code | `~/.claude.json`, `%USERPROFILE%\.claude.json` (or `$CLAUDE_CONFIG_DIR/.claude.json`) | `type: http`, the address above |
+| Codex | `~/.codex/config.toml`, `%USERPROFILE%\.codex\config.toml` (or `$CODEX_HOME`) | `[mcp_servers.getmattered]` with `url` |
+| Claude Desktop | `~/Library/Application Support/Claude/` on macOS, `~/.config/Claude/` on Linux, `%APPDATA%\Claude\`, file `claude_desktop_config.json` | the stdio bridge, `npx -y getmattered-mcp@latest` |
+| Cursor | `~/.cursor/mcp.json`, `%USERPROFILE%\.cursor\mcp.json` | `url`, the address above |
+
+It changes only the `getmattered` entry and keeps every other server. Before it changes a file, it copies it to `<file>.getmattered-backup-<time>`. A second run changes nothing. A file it cannot read stays as it is, with a message. It also offers the fourteen skills: `~/.claude/skills` for Claude Code, `~/.agents/skills` for Codex and Cursor. Close the apps first, so none of them rewrites its config at the same time.
+
+For scripts: `init --yes` sets up every app it found, `init --clients codex,cursor` sets up the ones named, and `--no-skills` skips the skills. `link` keeps a sign-in the server still accepts, so a second run only shows the account.
+
 ## Skills
 
 This repository is also a plugin marketplace and a Gemini CLI extension, with fourteen job-search skills in `plugins/getmattered/skills`.

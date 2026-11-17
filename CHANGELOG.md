@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.21.0
+
+41 tools with the same names. New: npx getmattered-mcp init adds GetMattered to Claude Code, Codex, Claude Desktop and Cursor. It keeps every other server and backs up each file it changes. npx getmattered-mcp link signs you in, or shows the account already signed in.
+
 ## 1.20.2
 
 41 tools with the same names. Fixed: A stored sign-in goes only to the server that issued it, and the sign-in file is private to its owner from the moment it is written.

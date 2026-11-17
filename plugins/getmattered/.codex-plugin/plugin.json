@@ -1,6 +1,6 @@
 {
   "name": "getmattered",
-  "version": "1.20.2",
+  "version": "1.21.0",
   "description": "Auto-Apply That Ends on an Interview. Get matched jobs, apply on 30+ hiring systems automatically or after your approval, review and track every application, and tailor your resume and cover letter per role.",
   "author": {
     "name": "GetMattered",
@@ -147,7 +147,7 @@
         "commerce_description": "The plugin does not sell products or take payments. Paid GetMattered plans are bought on getmattered.com."
       },
       "publication": {
-        "release_notes": "1.20.2: 41 tools with the same names. Fixed: A stored sign-in goes only to the server that issued it, and the sign-in file is private to its owner from the moment it is written."
+        "release_notes": "1.21.0: 41 tools with the same names. New: npx getmattered-mcp init adds GetMattered to Claude Code, Codex, Claude Desktop and Cursor. It keeps every other server and backs up each file it changes. npx getmattered-mcp link signs you in, or shows the account already signed in."
       },
       "onboardingSkill": "./skills/setup-job-search/SKILL.md"
     }

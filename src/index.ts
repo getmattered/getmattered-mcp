@@ -14,6 +14,8 @@
  * It is also a small CLI, so a script or a chat bot can drive the whole job
  * search without an MCP client:
  *
+ *   getmattered-mcp init                        add GetMattered to Claude Code, Codex, Claude Desktop, Cursor
+ *   getmattered-mcp link                        sign in to the cloud, or show the account already linked
  *   getmattered-mcp login                       sign in once in the browser
  *   getmattered-mcp tools                       list the tools
  *   getmattered-mcp call <tool> '<json args>'   run one tool, print its result
@@ -24,7 +26,7 @@
  * opens the browser sign-in on the first tool call when no sign-in is stored.
  */
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
+import { StreamableHTTPClientTransport, StreamableHTTPError } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import {
   CancelledNotificationSchema,
@@ -34,11 +36,16 @@ import {
   type JSONRPCMessage,
 } from '@modelcontextprotocol/sdk/types.js';
 
-import { DEFAULT_ENDPOINT, getAccessToken, login, logout } from './auth.js';
+import { createInterface } from 'node:readline/promises';
+import { fileURLToPath } from 'node:url';
+
+import { credentialsPath, DEFAULT_ENDPOINT, getAccessToken, login, logout } from './auth.js';
+import { processEnv, runInit } from './init.js';
+import { type Account, link } from './link.js';
 import { createLoginGate } from './login-gate.js';
 import { resolveToolName } from './tool-names.js';
 
-const VERSION = '1.20.2';
+const VERSION = '1.21.0';
 const FLUSH_GRACE_MS = 1500;
 // How long tool calls wait for the browser sign-in, from the moment it opens, before
 // they go out unauthenticated. Under the MCP SDK's 60 s default request timeout, so
@@ -111,6 +118,56 @@ async function callTool(name: string | undefined, rawArgs: string | undefined) {
   }
   await client.close();
   if (result.isError) process.exit(1);
+}
+
+/** The account `token` signs in as (the profile tool), or null when the server refuses the token. */
+async function readAccount(url: string, token: string): Promise<Account | null> {
+  const client = new Client({ name: 'getmattered-mcp-cli', version: VERSION });
+  try {
+    await client.connect(new StreamableHTTPClientTransport(new URL(url), {
+      requestInit: { headers: { 'user-agent': 'getmattered-mcp-cli', authorization: `Bearer ${token}` } },
+    }));
+    const result = await client.callTool({ name: 'getmattered_get_profile', arguments: {} });
+    const profile = new Map(Object.entries(result.structuredContent ?? {}));
+    const text = (key: string) => {
+      const value = profile.get(key);
+      return typeof value === 'string' && value.trim() ? value : undefined;
+    };
+    const id = text('id');
+    if (result.isError || !id) return null;
+    return { id, email: text('email'), name: text('name') };
+  } catch (error) {
+    if (error instanceof StreamableHTTPError && error.code === 401) return null;
+    throw error;
+  } finally {
+    await client.close().catch(() => undefined);
+  }
+}
+
+async function linkCommand() {
+  const { alreadyLinked, account } = await link(endpoint, { getAccessToken, login, readAccount, log });
+  const who = account.email ? `${account.name ? `${account.name} ` : ''}<${account.email}>` : `account ${account.id}`;
+  process.stdout.write(`${alreadyLinked ? 'Already linked' : 'Linked'} to GetMattered as ${who}. Sign-in saved in ${credentialsPath()}\n`);
+}
+
+async function initCommand(args: string[]) {
+  const terminal = process.stdin.isTTY && process.stdout.isTTY;
+  const ask = async (question: string) => {
+    const prompt = createInterface({ input: process.stdin, output: process.stdout });
+    try {
+      return await prompt.question(question);
+    } finally {
+      prompt.close();
+    }
+  };
+  const code = await runInit({
+    args,
+    env: processEnv(),
+    skillsSource: fileURLToPath(new URL('../plugins/getmattered/skills', import.meta.url)),
+    ask: terminal ? ask : undefined,
+    log: line => process.stdout.write(`${line}\n`),
+  });
+  process.stdout.write('', () => process.exit(code));
 }
 
 async function bridge() {
@@ -245,6 +302,10 @@ async function bridge() {
 async function main() {
   const [command, ...rest] = process.argv.slice(2);
   switch (command) {
+    case 'init':
+      return initCommand(rest);
+    case 'link':
+      return linkCommand();
     case 'login': {
       const path = await login(endpoint, log);
       log(`signed in. Credentials saved to ${path}`);
@@ -267,6 +328,8 @@ async function main() {
       process.stdout.write([
         'getmattered-mcp: GetMattered from your terminal or any MCP client.',
         '',
+        '  getmattered-mcp init                        add GetMattered to Claude Code, Codex, Claude Desktop, Cursor',
+        '  getmattered-mcp link                        sign in to the cloud, or show the account already linked',
         '  getmattered-mcp login                       sign in once in the browser',
         '  getmattered-mcp tools                       list the tools',
         "  getmattered-mcp call <tool> '<json args>'   run one tool, print its result",
