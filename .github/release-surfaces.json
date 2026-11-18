@@ -1,0 +1,200 @@
+[
+  {
+    "fix": "A merge to main deploys it through Workers Builds. If no build fired: `bun run check:builds-fired`, then `bun apps/api/scripts/fire-builds.mjs --env prod`",
+    "id": "server-card",
+    "name": "Hosted MCP server card",
+    "owner": "mcp",
+    "product": "mcp",
+    "read": "GET https://mcp.getmattered.com/.well-known/mcp/server-card.json, serverInfo.version",
+    "stage": "release"
+  },
+  {
+    "fix": "`gh workflow run release.yml --repo getmattered/getmattered-mcp --ref v<V>` (each step skips what is already published)",
+    "id": "npm",
+    "name": "npm getmattered-mcp",
+    "owner": "mcp",
+    "product": "mcp",
+    "read": "GET https://registry.npmjs.org/getmattered-mcp/latest, version",
+    "stage": "release"
+  },
+  {
+    "fix": "`gh workflow run release.yml --repo getmattered/getmattered-mcp --ref v<V>`",
+    "id": "mcp-registry",
+    "name": "Official MCP Registry",
+    "owner": "mcp",
+    "product": "mcp",
+    "read": "GET registry.modelcontextprotocol.io/v0.1/servers/com.getmattered%2Fgetmattered/versions/latest, server.version and isLatest",
+    "stage": "release"
+  },
+  {
+    "fix": "`gh workflow run release.yml --repo getmattered/getmattered-mcp --ref v<V>` (it attaches getmattered-<V>-openai.zip and the .mcpb)",
+    "id": "github-release",
+    "name": "GitHub release with the OpenAI ZIP",
+    "owner": "mcp",
+    "product": "mcp",
+    "read": "GET api.github.com/repos/getmattered/getmattered-mcp/releases/tags/v<V> (the public assets page when rate limited): published, the OpenAI ZIP attached",
+    "stage": "release"
+  },
+  {
+    "fix": "The prod MCP build mirrors main and tags v<V> (packages/mcp-server/scripts/mirror-public.mjs). Re-fire it: `bun apps/api/scripts/fire-builds.mjs --env prod`",
+    "id": "mirror-main",
+    "name": "Public mirror main",
+    "owner": "mcp",
+    "product": "mcp",
+    "read": "GET raw.githubusercontent.com/getmattered/getmattered-mcp/main/package.json, version",
+    "stage": "release"
+  },
+  {
+    "fix": "The web build publishes it from apps/web/src/lib/data/mcp-changelog.ts. Re-fire it: `bun apps/api/scripts/fire-builds.mjs --env prod`",
+    "id": "web-mcps",
+    "name": "Web /mcps version text",
+    "owner": "web",
+    "product": "mcp",
+    "read": "GET https://getmattered.com/mcps/changelog.json, latestVersion and a release link that resolves",
+    "stage": "release"
+  },
+  {
+    "fix": "`bun run mcp:release-steps`, Glama step: \"Build & Release\" on the Glama admin Dockerfile page in an ab session (Glama has no API)",
+    "id": "glama",
+    "name": "Glama",
+    "owner": "mcp",
+    "product": "mcp",
+    "read": "GET glama.ai/mcp/servers/getmattered/getmattered-mcp.data, the latest release label, against our GitHub release time",
+    "stage": "hand"
+  },
+  {
+    "fix": "Re-run the release (its lobehub job runs `lhm plugin update`): `gh workflow run release.yml --repo getmattered/getmattered-mcp --ref v<V>`. A missing or rotated sign-in: `gh secret set LOBEHUB_CREDENTIALS --env release --repo getmattered/getmattered-mcp`",
+    "id": "lobehub",
+    "name": "LobeHub",
+    "owner": "mcp",
+    "product": "mcp",
+    "read": "GET market.lobehub.com/api/v1/plugins/getmattered-getmattered-mcp?version=<V>, version and the npm install pin",
+    "stage": "release"
+  },
+  {
+    "fix": "Hand step, no API: sign in at mcp.so as the GetMattered owner and re-sync mcp.so/servers/getmattered-mcp",
+    "id": "mcp-so",
+    "name": "mcp.so",
+    "owner": "mcp",
+    "product": "mcp",
+    "read": "GET https://mcp.so/servers/getmattered-mcp, \"Last updated\" (it shows no version) against our GitHub release day",
+    "stage": "hand"
+  },
+  {
+    "fix": "Hand step: mcprush.com/studio > Releases > Add new release (free; its publisher API needs a key we do not hold)",
+    "id": "mcprush",
+    "name": "MCPRush",
+    "owner": "mcp",
+    "product": "mcp",
+    "read": "GET https://mcprush.com/api/servers/getmattered-mcp (keyless), version.latest and version.effective",
+    "stage": "hand"
+  },
+  {
+    "fix": "`bun run mcp:release-steps`, ChatGPT package step: upload getmattered-<V>-openai.zip at platform.openai.com/plugins, submit, publish, then record `package` on the ChatGPT row of MCP_REVIEW_SURFACES",
+    "id": "chatgpt-package",
+    "name": "ChatGPT app package label",
+    "owner": "mcp",
+    "product": "mcp",
+    "read": "OpenAI has no read API: the published package recorded on the ChatGPT row of MCP_REVIEW_SURFACES (packages/shared/src/constants/mcp-distribution.ts)",
+    "stage": "hand"
+  },
+  {
+    "fix": "Wait for Anthropic's review; never withdraw or resubmit. Once it ends: `bun run mcp:release-steps`, Claude step (Sync from server, Save and update submission)",
+    "id": "claude-connector",
+    "name": "Claude connector",
+    "owner": "mcp",
+    "product": "mcp",
+    "read": "GET https://claude.com/marketplace/connectors/getmattered (404 while in review), with the review record in MCP_REVIEW_SURFACES",
+    "stage": "review"
+  },
+  {
+    "fix": "After each release whose plugin scan passes, press Publish on the plugin page (ab, ava@getmattered.com, GetMattered Team). Publish only records the request; it never restarts the review. Never press Withdraw submission. Page: claude.ai/directory/manage/plugins/b1162368-df72-40c8-a2c5-8e12cd9d79a0. Then record publishRequestVersion <V> on the claude-code-plugin row of MCP_REVIEW_SURFACES",
+    "id": "claude-code-plugin",
+    "name": "Claude Code plugin",
+    "owner": "mcp",
+    "product": "mcp",
+    "read": "publishRequestVersion on the claude-code-plugin row of MCP_REVIEW_SURFACES (packages/shared/src/constants/mcp-distribution.ts) against <V>, red once <V> is out for 24 h; then GET https://claude.com/marketplace/plugins/getmattered (404 while in review)",
+    "stage": "hand"
+  },
+  {
+    "fix": "None: Smithery closed open listings on 31 Oct 2026",
+    "id": "smithery",
+    "name": "Smithery",
+    "owner": "mcp",
+    "product": "mcp",
+    "read": "GET https://smithery.ai/server/@getmattered/getmattered-mcp (404 since the shutdown)",
+    "stage": "gone"
+  },
+  {
+    "fix": "The release listings job updates the PR branch. The PR body by hand: `gh pr edit 6054 --repo docker/mcp-registry`",
+    "id": "docker-registry-pr",
+    "name": "Docker MCP registry PR #6054",
+    "owner": "mcp",
+    "product": "mcp",
+    "read": "GET api.github.com/repos/docker/mcp-registry/pulls/6054, state and merged_at",
+    "stage": "vendor-queue"
+  },
+  {
+    "fix": "The release listings-xai job pins the release commit. The PR body by hand: `gh pr edit 1238 --repo xai-org/plugin-marketplace`",
+    "id": "xai-marketplace-pr",
+    "name": "xAI plugin marketplace PR #1238",
+    "owner": "mcp",
+    "product": "mcp",
+    "read": "GET api.github.com/repos/xai-org/plugin-marketplace/pulls/1238, state and merged_at",
+    "stage": "vendor-queue"
+  },
+  {
+    "fix": "The release listings job updates the PR branch. The PR body by hand: `gh pr edit 230 --repo cline/marketplace`",
+    "id": "cline-marketplace-pr",
+    "name": "Cline marketplace PR #230",
+    "owner": "mcp",
+    "product": "mcp",
+    "read": "GET api.github.com/repos/cline/marketplace/pulls/230, state and merged_at",
+    "stage": "vendor-queue"
+  },
+  {
+    "fix": "Vendor review; the PR names no version. Nothing to do until Kilo answers",
+    "id": "kilo-marketplace-pr",
+    "name": "Kilo marketplace PR #374",
+    "owner": "mcp",
+    "product": "mcp",
+    "read": "GET api.github.com/repos/Kilo-Org/kilo-marketplace/pulls/374, state and merged_at",
+    "stage": "vendor-queue"
+  },
+  {
+    "fix": "Apple reviews it, then the mattered-prod-mobile-release worker releases it (ACT_PLATFORMS ios:release). A version with no build at Apple: `bun run mobile:release auto --if-needed`, then the mobile trigger build on main",
+    "id": "ios-app-store",
+    "name": "iOS App Store",
+    "owner": "mobile",
+    "product": "mobile",
+    "read": "GET https://itunes.apple.com/lookup?id=6818058045&country=us, results[0].version; the review state from KV mobile-release:v1:state (App Store Connect, read hourly by mattered-prod-mobile-release)",
+    "stage": "release"
+  },
+  {
+    "fix": "The mattered-prod-mobile-release worker promotes internal to production (ACT_PLATFORMS android). A version with no build: the mobile trigger build on main, `bun apps/api/scripts/fire-builds.mjs --env prod`",
+    "id": "google-play",
+    "name": "Google Play production",
+    "owner": "mobile",
+    "product": "mobile",
+    "read": "Google has no public version read: the production track in KV mobile-release:v1:state (Play Developer API, read hourly by mattered-prod-mobile-release)",
+    "stage": "release"
+  },
+  {
+    "fix": "The mobile trigger build on main publishes the OTA update: `bun apps/api/scripts/fire-builds.mjs --env prod`. A native change needs a store build first",
+    "id": "ota-android",
+    "name": "Android OTA runtime",
+    "owner": "mobile",
+    "product": "mobile",
+    "read": "KV release-lag:mobile:ota:android (the newest production OTA update against the newest apps/mobile commit on main, written hourly by mattered-prod-mobile-release)",
+    "stage": "release"
+  },
+  {
+    "fix": "The mobile trigger build on main publishes the OTA update: `bun apps/api/scripts/fire-builds.mjs --env prod`. A native change needs a store build first",
+    "id": "ota-ios",
+    "name": "iOS OTA runtime",
+    "owner": "mobile",
+    "product": "mobile",
+    "read": "KV release-lag:mobile:ota:ios (the newest production OTA update against the newest apps/mobile commit on main, written hourly by mattered-prod-mobile-release)",
+    "stage": "release"
+  }
+]

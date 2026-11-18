@@ -23,7 +23,9 @@
 #              issue when this release changed something a person must carry over
 #              (Claude listing tool names, the ChatGPT package, Glama). A package
 #              upload the previous issue left unticked carries into the new one.
-#   lobehub    after publish, the `release` environment for LOBEHUB_CREDENTIALS only,
+#              The issue ends with "Versions everywhere": every surface the release
+#              must show, its owner and its fix (.github/scripts/versions-everywhere.mjs).
+#   lobehub   after publish, the `release` environment for LOBEHUB_CREDENTIALS only,
 #              no id-token: `lhm plugin update`. No secret prints SKIPPED; a failure
 #              warns and never fails the release, which is already out.
 #   listings-xai  after publish, no environment, no secret: runs xAI's own index
@@ -394,6 +396,11 @@ jobs:
           if [ ! -s "$body" ]; then
             echo "$TAG needs no human steps"
             exit 0
+          fi
+          # Every surface the release must show, from the same list as GetMattered's
+          # hourly watch and verify:ship (.github/release-surfaces.json). No checkboxes.
+          if ! node .github/scripts/versions-everywhere.mjs "$VERSION" >> "$body"; then
+            echo "::warning::the versions-everywhere section could not be written"
           fi
           title="$TAG: human steps"
           number="$(gh issue list --repo "$GITHUB_REPOSITORY" --state all --search "\"$title\" in:title" --json number,title --jq "[.[] | select(.title == \"$title\")][0].number // empty")"
