@@ -27,6 +27,7 @@ import {
   existsSync,
   fchmodSync,
   fsyncSync,
+  lstatSync,
   mkdirSync,
   openSync,
   readdirSync,
@@ -187,9 +188,9 @@ function mergeJson(before: string | null, entry: JsonObject, path: string): Merg
   };
 }
 
-/** The key of a table header line (`[a.b]` or `[[a.b]]`), or null for any other line. */
+/** The key of a table header line (`[a.b]` or `[[a.b]]`, with or without a trailing comment), or null for any other line. */
 function tomlHeader(line: string) {
-  const text = line.trim();
+  const text = (line.split('#')[0] ?? '').trim();
   return text.startsWith('[') && text.endsWith(']') ? text.replace(/^\[+|\]+$/g, '') : null;
 }
 const tomlKey = (raw: string) => raw.split('.').map(part => part.trim().replace(/^["']|["']$/g, '')).join('.');
@@ -286,9 +287,35 @@ export function configureClient(client: Client, now = new Date()): ConfigureResu
   return { status: merged.replaced ? 'updated' : 'added', path, backup };
 }
 
+/** The file init writes into each skill folder it installs: the folder is ours to replace. */
+const SKILL_MARKER = '.getmattered-skill';
+
+/** True when `dest` holds exactly the regular files of `source`, byte for byte. */
+function sameFiles(dest: string, source: string) {
+  const names = (dir: string) => readdirSync(dir).sort();
+  const files = names(source);
+  if (!isDeepStrictEqual(names(dest), files)) return false;
+  return files.every((name) => {
+    const stat = lstatSync(join(dest, name));
+    return stat.isFile() && readFileSync(join(dest, name)).equals(readFileSync(join(source, name)));
+  });
+}
+
 /**
- * Copies the package's skill folders into `target`. A folder of the same name
- * whose SKILL.md does not name GetMattered belongs to someone else and stays.
+ * Whether init may replace the folder at `dest`: a real folder that carries the
+ * marker, or that still matches the shipped skill byte for byte (1.21.0 wrote no
+ * marker). Anything else, a symlink included, belongs to the user.
+ */
+function replaceable(dest: string, source: string) {
+  const stat = lstatSync(dest, { throwIfNoEntry: false });
+  if (!stat) return true;
+  if (!stat.isDirectory()) return false;
+  return lstatSync(join(dest, SKILL_MARKER), { throwIfNoEntry: false })?.isFile() || sameFiles(dest, source);
+}
+
+/**
+ * Copies the package's skill folders into `target`. A folder of the same name that
+ * init did not write (see replaceable) stays as it is.
  */
 export function installSkills(source: string, target: string) {
   const installed: string[] = [];
@@ -296,14 +323,13 @@ export function installSkills(source: string, target: string) {
   const names = readdirSync(source, { withFileTypes: true }).filter(entry => entry.isDirectory()).map(entry => entry.name).sort();
   for (const name of names) {
     const dest = join(target, name);
-    const skill = join(dest, 'SKILL.md');
-    const ours = existsSync(skill) && /getmattered/i.test(readFileSync(skill, 'utf8'));
-    if (existsSync(dest) && !ours) {
+    if (!replaceable(dest, join(source, name))) {
       skipped.push(name);
       continue;
     }
     rmSync(dest, { force: true, recursive: true });
     cpSync(join(source, name), dest, { recursive: true });
+    writeFileSync(join(dest, SKILL_MARKER), 'Written by getmattered-mcp init, which replaces this folder on its next run. Delete this file to keep your own edits.\n');
     installed.push(name);
   }
   return { installed, skipped };

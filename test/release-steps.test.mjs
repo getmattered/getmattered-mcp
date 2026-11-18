@@ -5,6 +5,7 @@ import { test } from 'node:test';
 import {
   assetProblem,
   changelogSection,
+  chatgptUploadCommand,
   CLAUDE_REVIEW_WAIT,
   DRAFT_MARKER,
   GALLERY_URL,
@@ -126,10 +127,11 @@ test('the OpenAI content hash ignores the version and release notes, and sees sk
   assert.notEqual(openaiContentHash([['plugins/getmattered/.codex-plugin/plugin.json', codexManifest('1.15.2', '1.15.2: x')], ['plugins/getmattered/skills/a/SKILL.md', Buffer.from('# B')]]), base);
 });
 
-test('reminders list a step only when the release changed what it shows; Glama is always a person', () => {
+test('reminders list a Claude step only when the tools changed; the ChatGPT package and Glama come every release', () => {
   const same = reminderSteps({ hashBefore: 'h1', hashNow: 'h1', toolsBefore: ['a', 'b'], toolsNow: ['a', 'b'], version: '1.15.3' });
-  assert.equal(same.length, 1);
-  assert.match(same[0], /^Glama: .*Make Release" 1\.15\.3/);
+  assert.equal(same.length, 2);
+  assert.match(same[0], /^ChatGPT package: the content is unchanged \(h1\)/);
+  assert.match(same[1], /^Glama: .*Make Release" 1\.15\.3/);
   const changed = reminderSteps({ hashBefore: 'h1', hashNow: 'h2', toolsBefore: ['a', 'b'], toolsNow: ['a', 'c'], version: '1.15.3' });
   assert.equal(changed.length, 3);
   assert.match(changed[0], /added c; removed b/);
@@ -141,11 +143,17 @@ test('reminders list a step only when the release changed what it shows; Glama i
 
 // developers.openai.com/plugins/deploy/submission, read 14 Nov 2026: hosted tool updates
 // publish after the daily scan; metadata, assets and skills need a new ZIP.
-test('a tool-only change asks ChatGPT for nothing; a package change names the portal steps', () => {
-  const toolsOnly = reminderSteps({ hashBefore: 'h1', hashNow: 'h1', toolsBefore: ['a'], toolsNow: ['a', 'b'], version: '1.19.2' });
-  assert.equal(toolsOnly.some(step => step.startsWith('ChatGPT')), false);
+// 17 Nov 2026: the app label read 1.19.2 while 1.21.0 was live, because an unchanged
+// hash wrote no ChatGPT line for three releases.
+test('every release asks for the ChatGPT package through the one command; a package change names the portal steps', () => {
+  const toolsOnly = reminderSteps({ hashBefore: 'h1', hashNow: 'h1', toolsBefore: ['a'], toolsNow: ['a', 'b'], version: '1.21.0' });
+  const label = toolsOnly.find(step => step.startsWith('ChatGPT package'));
+  assert.match(label, /the app shows the package version and its release notes/);
+  assert.ok(label.includes(`Run \`${chatgptUploadCommand('1.21.0')}\` in the GetMattered monorepo`), label);
+  assert.equal(chatgptUploadCommand('1.21.0'), 'bun scripts/chatgpt-upload.mjs --version 1.21.0');
+  assert.equal(unuploadedPackage(`- [ ] ${label}`), null);
   const upload = reminderSteps({ hashBefore: 'h1', hashNow: 'h2', toolsBefore: ['a'], toolsNow: ['a'], version: '1.19.2' })[0];
-  assert.match(upload, /^ChatGPT package: skills, metadata or assets changed \(h1 to h2\)\. Upload getmattered-1\.19\.2-openai\.zip from this release/);
+  assert.match(upload, /^ChatGPT package: skills, metadata or assets changed \(h1 to h2\)\. Run `bun scripts\/chatgpt-upload\.mjs --version 1\.19\.2`.* upload getmattered-1\.19\.2-openai\.zip from this release/);
   assert.match(upload, /"Upload plugin to make changes", wait for the Metadata & Skills checks/);
   assert.match(upload, /then Submit for review and Publish\./);
 });
@@ -155,9 +163,9 @@ test('an upload the previous release asked for and nobody ticked is carried into
   const left = unuploadedPackage(previous);
   assert.deepEqual(left, { hashAsked: 'bbbb', hashBefore: 'aaaa' });
   const carried = reminderSteps({ carried: { from: 'v1.15.4', hashBefore: left.hashBefore }, hashBefore: 'bbbb', hashNow: 'bbbb', toolsBefore: ['a'], toolsNow: ['a'], version: '1.16.0' });
-  assert.match(carried[0], /^ChatGPT package: .*v1\.15\.4 asked for is still unticked \(aaaa to bbbb\)\. Upload getmattered-1\.16\.0-openai\.zip/);
+  assert.match(carried[0], /^ChatGPT package: .*v1\.15\.4 asked for is still unticked \(aaaa to bbbb\)\. .*upload getmattered-1\.16\.0-openai\.zip/);
   const back = reminderSteps({ carried: { from: 'v1.15.4', hashBefore: 'aaaa' }, hashBefore: 'bbbb', hashNow: 'aaaa', toolsBefore: ['a'], toolsNow: ['a'], version: '1.16.0' });
-  assert.equal(back.some(step => step.startsWith('ChatGPT package')), false);
+  assert.match(back.find(step => step.startsWith('ChatGPT package')), /^ChatGPT package: the content is unchanged \(aaaa\)/);
   assert.equal(unuploadedPackage(previous.replace('- [ ] ChatGPT', '- [x] ChatGPT')), null);
 });
 

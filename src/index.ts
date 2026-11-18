@@ -45,7 +45,7 @@ import { type Account, link } from './link.js';
 import { createLoginGate } from './login-gate.js';
 import { resolveToolName } from './tool-names.js';
 
-const VERSION = '1.21.0';
+const VERSION = '1.21.1';
 const FLUSH_GRACE_MS = 1500;
 // How long tool calls wait for the browser sign-in, from the moment it opens, before
 // they go out unauthenticated. Under the MCP SDK's 60 s default request timeout, so

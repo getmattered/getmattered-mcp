@@ -16,6 +16,8 @@
 #   publish    the `release` environment: downloads those files and publishes them.
 #              It installs only npm itself (pinned, scripts off; trusted publishing
 #              needs npm 11.5.1+) and runs only this repo's own scripts with node.
+#              Before `npm publish` it runs the leak scan (scripts/scan-package.mjs)
+#              on the downloaded tarball itself; a hit fails the job.
 #   Every job after publish skips a run that a newer tag replaced.
 #   reminders  after publish, `issues: write` only: opens one "vX: human steps"
 #              issue when this release changed something a person must carry over
@@ -268,6 +270,8 @@ jobs:
         if: steps.newer.outputs.superseded_by == ''
         run: |
           test -f "$TARBALL"
+          # The leak scan of the exact tarball that npm gets: a hit stops the publish.
+          node scripts/scan-package.mjs --tarball "$TARBALL"
           if node scripts/release-steps.mjs has npm "$VERSION"; then
             echo "npm already has getmattered-mcp@$VERSION"
           else

@@ -227,11 +227,19 @@ const replaceDraft = version => `If an older package sits there as a draft, repl
 
 /**
  * The portal steps for a new package (developers.openai.com/plugins/deploy/submission,
- * "Updating the plugin package", read 14 Nov 2026). A tool change never asks for
- * this: OpenAI scans the hosted server daily and publishes the tool updates that
- * pass its checks, so no ChatGPT line is written for tools.
+ * "Updating the plugin package", read 14 Nov 2026). Tool text needs no upload: OpenAI
+ * scans the hosted server daily and publishes the tool updates that pass its checks.
+ * The package line is written every release anyway, for the version label.
  */
 const uploadSteps = 'Press "Upload plugin to make changes", wait for the Metadata & Skills checks (a skill scan can take up to 2 h), fix any finding in the repo and ship a new release, then Submit for review and Publish.';
+
+/**
+ * The one command that does the whole package update in an agent-browser session on
+ * Ava's Mac (GetMattered monorepo, scripts/chatgpt-upload.mjs): download, upload,
+ * checks, submit, publish, read-back, tick. It exits 3 while a review is open.
+ */
+export const chatgptUploadCommand = version => `bun scripts/chatgpt-upload.mjs --version ${version}`;
+const runIt = version => `Run \`${chatgptUploadCommand(version)}\` in the GetMattered monorepo; it does every step below and ticks this line.`;
 
 export function reminderSteps({ version, toolsBefore, toolsNow, hashBefore, hashNow, carried = null }) {
   const steps = [];
@@ -250,10 +258,15 @@ export function reminderSteps({ version, toolsBefore, toolsNow, hashBefore, hash
   // An upload the previous release asked for and nobody ticked: compare with what was there before it.
   const before = carried?.hashBefore ?? hashBefore;
   if (!hashNow || !before) {
-    steps.push(`ChatGPT package: the content hash is UNOBSERVED. Compare skills, metadata and assets by hand; if they changed, upload getmattered-${version}-openai.zip at platform.openai.com/plugins. ${uploadSteps} ${replaceDraft(version)} Never while a review is open.`);
+    steps.push(`ChatGPT package: the content hash is UNOBSERVED. ${runIt(version)} By hand: upload getmattered-${version}-openai.zip at platform.openai.com/plugins. ${uploadSteps} ${replaceDraft(version)} Never while a review is open.`);
   } else if (hashNow !== before) {
     const why = carried ? `skills, metadata or assets changed, and the upload ${carried.from} asked for is still unticked` : 'skills, metadata or assets changed';
-    steps.push(`ChatGPT package: ${why} (${before} to ${hashNow}). Upload getmattered-${version}-openai.zip from this release at platform.openai.com/plugins. ${uploadSteps} ${replaceDraft(version)} Never while a review is open.`);
+    steps.push(`ChatGPT package: ${why} (${before} to ${hashNow}). ${runIt(version)} By hand: upload getmattered-${version}-openai.zip from this release at platform.openai.com/plugins. ${uploadSteps} ${replaceDraft(version)} Never while a review is open.`);
+  } else {
+    // 17 Nov 2026: the app showed package 1.19.2 while 1.21.0 was live everywhere else,
+    // because an unchanged hash wrote no line. The package carries the version and the
+    // release notes the directory shows, so every release updates it.
+    steps.push(`ChatGPT package: the content is unchanged (${hashNow}), but the app shows the package version and its release notes. ${runIt(version)} By hand: upload getmattered-${version}-openai.zip from this release at platform.openai.com/plugins. ${uploadSteps} ${replaceDraft(version)} Never while a review is open.`);
   }
   steps.push(`Glama: in the server admin for getmattered/getmattered-mcp press "Sync Server", then "Make Release" ${version}. It has no API; an on-demand ab job on Ava's Mac can do it.`);
   return steps;

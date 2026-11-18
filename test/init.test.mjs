@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
+import { lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { test } from 'node:test';
@@ -190,6 +190,13 @@ test('a Codex config without the table gets it appended after one blank line', (
   assert.equal(read(path), `model = "gpt-6"\n\n[mcp_servers.getmattered]\nurl = "${URL_}"\n`);
 });
 
+test('a Codex table header with a trailing comment is still found, so no second table is added', () => {
+  const { home, env } = macHome();
+  const path = write(join(home, '.codex', 'config.toml'), '[mcp_servers.getmattered] # added by hand\ncommand = "npx"\n\n[profiles.fast]\nmodel = "gpt-6-mini"\n');
+  assert.equal(configureClient(client(env, 'codex')).status, 'updated');
+  assert.equal(read(path), `[mcp_servers.getmattered]\nurl = "${URL_}"\n\n[profiles.fast]\nmodel = "gpt-6-mini"\n`);
+});
+
 test('a getmattered server written as a dotted or inline key is left for a person to edit', () => {
   const { home, env } = macHome();
   for (const text of [`mcp_servers.getmattered.url = "${URL_}"\n`, `[mcp_servers]\ngetmattered = { url = "${URL_}" }\n`]) {
@@ -224,13 +231,49 @@ test('skills install into the folder, keep a foreign skill of the same name, and
   const { home } = macHome();
   const target = join(home, '.claude', 'skills');
   write(join(target, 'apply-to-a-job', 'SKILL.md'), '---\nname: apply-to-a-job\n---\nsomeone else\n');
-  write(join(target, 'track-applications', 'SKILL.md'), 'an old GetMattered copy\n');
   const first = installSkills(SKILLS, target);
   assert.deepEqual(first.skipped, ['apply-to-a-job']);
   assert.equal(first.installed.length, SKILL_COUNT - 1);
   assert.equal(read(join(target, 'apply-to-a-job', 'SKILL.md')), '---\nname: apply-to-a-job\n---\nsomeone else\n');
   assert.equal(read(join(target, 'track-applications', 'SKILL.md')), read(join(SKILLS, 'track-applications', 'SKILL.md')));
   assert.deepEqual(installSkills(SKILLS, target), first);
+});
+
+test('a folder that only mentions GetMattered is the user\'s, and init never deletes it', () => {
+  const { home } = macHome();
+  const target = join(home, '.claude', 'skills');
+  const mine = write(join(target, 'track-applications', 'SKILL.md'), '---\nname: track-applications\n---\nMy own notes on GetMattered.\n');
+  write(join(target, 'track-applications', 'notes.md'), 'keep me\n');
+  const result = installSkills(SKILLS, target);
+  assert.ok(result.skipped.includes('track-applications'));
+  assert.equal(read(mine), '---\nname: track-applications\n---\nMy own notes on GetMattered.\n');
+  assert.equal(read(join(target, 'track-applications', 'notes.md')), 'keep me\n');
+});
+
+test('a copy that init wrote, or an unchanged copy from 1.21.0, is updated in place', () => {
+  const { home } = macHome();
+  const target = join(home, '.agents', 'skills');
+  installSkills(SKILLS, target);
+  write(join(target, 'apply-to-a-job', 'SKILL.md'), 'an older GetMattered copy\n');
+  const legacy = join(target, 'track-applications');
+  for (const name of readdirSync(legacy).filter(entry => entry.startsWith('.'))) {
+    rmSync(join(legacy, name));
+  }
+  const again = installSkills(SKILLS, target);
+  assert.deepEqual(again.skipped, []);
+  assert.equal(read(join(target, 'apply-to-a-job', 'SKILL.md')), read(join(SKILLS, 'apply-to-a-job', 'SKILL.md')));
+});
+
+test('a skill folder that is a symlink is left alone and nothing is written through it', { skip: !POSIX }, () => {
+  const { home } = macHome();
+  const target = join(home, '.claude', 'skills');
+  const elsewhere = write(join(home, 'dotfiles', 'apply-to-a-job', 'SKILL.md'), 'GetMattered, my fork\n');
+  mkdirSync(target, { recursive: true });
+  symlinkSync(dirname(elsewhere), join(target, 'apply-to-a-job'));
+  const result = installSkills(SKILLS, target);
+  assert.ok(result.skipped.includes('apply-to-a-job'));
+  assert.equal(lstatSync(join(target, 'apply-to-a-job')).isSymbolicLink(), true);
+  assert.equal(read(elsewhere), 'GetMattered, my fork\n');
 });
 
 test('init --clients configures the named clients, adds skills once per folder, and prints one next step', async () => {

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.21.1
+
+41 tools with the same names. Fixed: The browser sign-in now opens on Windows, and only the sign-in page this terminal opened can finish it. init no longer replaces a skill folder you changed or linked yourself, and it finds a Codex server entry that has a comment.
+
 ## 1.21.0
 
 41 tools with the same names. New: npx getmattered-mcp init adds GetMattered to Claude Code, Codex, Claude Desktop and Cursor. It keeps every other server and backs up each file it changes. npx getmattered-mcp link signs you in, or shows the account already signed in.

@@ -2,6 +2,9 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { readFileSync, readdirSync } from 'node:fs';
 
+import { readDenylist } from './leak-rules.mjs';
+import { formatProblems, scanPackage } from './scan-package.mjs';
+
 const read = path => JSON.parse(readFileSync(path, 'utf8'));
 const pkg = read('package.json');
 const root = 'plugins/getmattered';
@@ -40,4 +43,7 @@ assert.ok(files.has(`${root}/${onboardingSkill.slice(2)}`), 'Missing packaged on
 for (const path of ['plugin.json', '.codex-plugin/plugin.json', '.claude-plugin/plugin.json', '.cursor-plugin/plugin.json', 'mcp.json', '.mcp.json', ui.logo, ui.composerIcon]) {
   assert.ok(files.has(`${root}/${path.replace(/^\.\//, '')}`), `Missing packaged plugin file: ${path}`);
 }
-console.log(`Package ${pkg.version}: ${skills.length} skills, manifests, icons and OpenAI metadata verified.`);
+// The leak scan of exactly what the tarball holds: a hit fails the release before anything is tagged or published.
+const leaks = scanPackage({ dir: '.', files: [...files], literals: readDenylist().literals });
+assert.equal(leaks.length, 0, `the npm tarball must not ship these; nothing may be published:\n${formatProblems(leaks)}`);
+console.log(`Package ${pkg.version}: ${skills.length} skills, manifests, icons and OpenAI metadata verified; ${files.size} packed files pass the leak scan.`);

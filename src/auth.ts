@@ -13,7 +13,7 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
-import { createServer } from 'node:http';
+import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
@@ -94,14 +94,82 @@ function storedIssuer(stored: Credentials) {
 const b64url = (buffer: Buffer) =>
   buffer.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
+/** Text from the network, made safe for a terminal: no control characters, at most 300 of them. */
+const printable = (text: string) => text.replace(/[\u0000-\u001F\u007F-\u009F]/g, ' ').slice(0, 300);
+
+/**
+ * The program and arguments that open `url` in the default browser, or null when
+ * `url` is not a web page. No shell reads the URL: `cmd /c start` would cut it at
+ * the first & and run the rest as commands.
+ */
+export function browserCommand(url: string, platform: NodeJS.Platform = process.platform) {
+  const { protocol } = new URL(url);
+  if (protocol !== 'https:' && protocol !== 'http:') return null;
+  if (platform === 'darwin') return { command: 'open', args: [url] };
+  if (platform === 'win32') return { command: 'rundll32', args: ['url.dll,FileProtocolHandler', url] };
+  return { command: 'xdg-open', args: [url] };
+}
+
 function openInBrowser(url: string) {
-  const command = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'cmd' : 'xdg-open';
-  const args = process.platform === 'win32' ? ['/c', 'start', '', url] : [url];
+  const opener = browserCommand(url);
+  if (!opener) return;
   try {
-    spawn(command, args, { stdio: 'ignore', detached: true }).unref();
+    spawn(opener.command, opener.args, { stdio: 'ignore', detached: true }).unref();
   } catch {
     // The URL is also printed, so a headless machine can open it elsewhere.
   }
+}
+
+/** Sign-in sends the code and its verifier, so only over https, or plain http on this computer. */
+function assertSecureEndpoint(endpoint: string) {
+  const url = new URL(endpoint);
+  const loopback = ['127.0.0.1', '[::1]', 'localhost'].includes(url.hostname);
+  if (url.protocol === 'https:' || (url.protocol === 'http:' && loopback)) return;
+  throw new Error(`refusing to sign in at ${url.protocol}//${url.host}: the endpoint must use https`);
+}
+
+type CallbackOptions = { port: number; timeoutMs: number; onListening: (port: number) => void };
+
+/**
+ * The code from the browser's redirect to 127.0.0.1 that carries `state`. A request
+ * with any other state is refused and the wait goes on, so no other page or local
+ * process can end or steer the sign-in.
+ */
+export function awaitAuthorizationCode(state: string, { port, timeoutMs, onListening }: CallbackOptions) {
+  return new Promise<string>((resolve, reject) => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const server = createServer();
+    const finish = (error: Error | null, code?: string) => {
+      clearTimeout(timer);
+      server.close();
+      if (code) resolve(code);
+      else reject(error ?? new Error('sign-in was not completed'));
+    };
+    server.on('request', (request: IncomingMessage, response: ServerResponse) => {
+      const url = new URL(request.url ?? '/', 'http://127.0.0.1');
+      if (request.method !== 'GET' || url.pathname !== '/callback') {
+        response.writeHead(404).end();
+        return;
+      }
+      const plain = { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' };
+      if (url.searchParams.get('state') !== state) {
+        response.writeHead(400, plain).end('This sign-in link was not opened by this terminal.');
+        return;
+      }
+      const code = url.searchParams.get('code');
+      response.writeHead(code ? 200 : 400, plain);
+      response.end(code ? 'GetMattered is connected. You can close this tab.' : 'Sign-in failed. Run getmattered-mcp login again.');
+      const reason = url.searchParams.get('error_description') ?? url.searchParams.get('error');
+      finish(new Error(reason ? `sign-in failed: ${printable(reason)}` : 'sign-in was not completed'), code ?? undefined);
+    });
+    server.on('error', reject);
+    server.listen(port, '127.0.0.1', () => {
+      const address = server.address();
+      onListening(typeof address === 'object' && address ? address.port : port);
+    });
+    timer = setTimeout(() => finish(new Error('timed out waiting for the browser sign-in')), timeoutMs);
+    timer.unref();
+  });
 }
 
 async function tokenRequest(issuer: string, params: Record<string, string>) {
@@ -112,12 +180,13 @@ async function tokenRequest(issuer: string, params: Record<string, string>) {
   });
   const body = (await response.json().catch(() => ({}))) as Record<string, unknown>;
   if (!response.ok || typeof body.access_token !== 'string') {
-    throw new Error(`token request failed (${response.status}): ${String(body.error_description ?? body.error ?? 'no token')}`);
+    throw new Error(`token request failed (${response.status}): ${printable(String(body.error_description ?? body.error ?? 'no token'))}`);
   }
   return body as { access_token: string; refresh_token?: string; expires_in?: number };
 }
 
 export async function login(endpoint: string, log: (line: string) => void) {
+  assertSecureEndpoint(endpoint);
   const issuer = issuerFor(endpoint);
 
   const registration = await fetch(`${issuer}/register`, {
@@ -149,31 +218,14 @@ export async function login(endpoint: string, log: (line: string) => void) {
     resource: endpoint,
   }).toString();
 
-  const code = await new Promise<string>((resolve, reject) => {
-    const server = createServer((request, response) => {
-      const url = new URL(request.url ?? '/', REDIRECT_URI);
-      if (url.pathname !== '/callback') {
-        response.writeHead(404).end();
-        return;
-      }
-      const returnedCode = url.searchParams.get('code');
-      const ok = url.searchParams.get('state') === state && Boolean(returnedCode);
-      response.writeHead(ok ? 200 : 400, { 'content-type': 'text/plain; charset=utf-8' });
-      response.end(ok ? 'GetMattered is connected. You can close this tab.' : 'Sign-in failed. Run getmattered-mcp login again.');
-      server.close();
-      if (ok && returnedCode) resolve(returnedCode);
-      else reject(new Error(url.searchParams.get('error_description') ?? 'sign-in was not completed'));
-    });
-    server.on('error', reject);
-    server.listen(CALLBACK_PORT, '127.0.0.1', () => {
+  const code = await awaitAuthorizationCode(state, {
+    port: CALLBACK_PORT,
+    timeoutMs: LOGIN_TIMEOUT_MS,
+    onListening: () => {
       log('Opening your browser to sign in. If it does not open, visit:');
       log(authorize.toString());
       openInBrowser(authorize.toString());
-    });
-    setTimeout(() => {
-      server.close();
-      reject(new Error('timed out waiting for the browser sign-in'));
-    }, LOGIN_TIMEOUT_MS).unref();
+    },
   });
 
   const token = await tokenRequest(issuer, {
