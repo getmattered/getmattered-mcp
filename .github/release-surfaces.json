@@ -185,7 +185,7 @@
     "name": "Android OTA runtime",
     "owner": "mobile",
     "product": "mobile",
-    "read": "KV release-lag:mobile:ota:android (the newest production OTA update against the newest apps/mobile commit on main, written hourly by mattered-prod-mobile-release)",
+    "read": "KV release-lag:mobile:ota:android (the newest production OTA update against the newest apps/mobile commit on main, written every 10 minutes by mattered-prod-mobile-release)",
     "stage": "release"
   },
   {
@@ -194,7 +194,7 @@
     "name": "iOS OTA runtime",
     "owner": "mobile",
     "product": "mobile",
-    "read": "KV release-lag:mobile:ota:ios (the newest production OTA update against the newest apps/mobile commit on main, written hourly by mattered-prod-mobile-release)",
+    "read": "KV release-lag:mobile:ota:ios (the newest production OTA update against the newest apps/mobile commit on main, written every 10 minutes by mattered-prod-mobile-release)",
     "stage": "release"
   }
 ]
