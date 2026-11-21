@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.21.2
+
+41 tools with the same names. Fixed: applying to a job the employer has closed now answers job_closed with the next step. Job search retries once when the service is busy for a moment. A plan limit now answers with the plans link and no error.
+
 ## 1.21.1
 
 41 tools with the same names. Fixed: The browser sign-in now opens on Windows, and only the sign-in page this terminal opened can finish it. init no longer replaces a skill folder you changed or linked yourself, and it finds a Codex server entry that has a comment.
