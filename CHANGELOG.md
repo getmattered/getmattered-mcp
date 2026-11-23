@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.21.3
+
+41 tools with the same names. New: getmattered_apply takes optional job_title and company, so a job board page GetMattered cannot read is looked up on the employer's own careers page. Fixed: when a host's links cannot work, the answer says so, so the assistant stops sending more of them. Safer: in an app with no confirmation form, a reply to an email and a public resume link are sent by the user from the GetMattered dashboard, never by the assistant alone.
+
 ## 1.21.2
 
 41 tools with the same names. Fixed: applying to a job the employer has closed now answers job_closed with the next step. Job search retries once when the service is busy for a moment. A plan limit now answers with the plans link and no error.
