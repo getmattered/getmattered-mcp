@@ -1,6 +1,6 @@
 {
   "name": "getmattered",
-  "version": "1.21.3",
+  "version": "1.21.4",
   "description": "Auto-Apply That Ends on an Interview. Get matched jobs, apply on 30+ hiring systems automatically or after your approval, review and track every application, and tailor your resume and cover letter per role.",
   "author": {
     "name": "GetMattered",
@@ -147,7 +147,7 @@
         "commerce_description": "The plugin does not sell products or take payments. Paid GetMattered plans are bought on getmattered.com."
       },
       "publication": {
-        "release_notes": "1.21.3: 41 tools with the same names. New: getmattered_apply takes optional job_title and company, so a job board page GetMattered cannot read is looked up on the employer's own careers page. Fixed: when a host's links cannot work, the answer says so, so the assistant stops sending more of them. Safer: in an app with no confirmation form, a reply to an email and a public resume link are sent by the user from the GetMattered dashboard, never by the assistant alone."
+        "release_notes": "1.21.4: 41 tools with the same names. Fixed: An application that is still starting now comes back as a normal answer. When GetMattered cannot use a job link, the answer now names your top 3 matches, ready to apply to."
       },
       "onboardingSkill": "./skills/setup-job-search/SKILL.md"
     }
