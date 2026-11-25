@@ -40,7 +40,7 @@ for (const skill of skills) assert.ok(files.has(`${root}/skills/${skill.name}/SK
 const onboardingSkill = portable.extensions['com.openai'].onboardingSkill;
 assert.equal(onboardingSkill, './skills/setup-job-search/SKILL.md');
 assert.ok(files.has(`${root}/${onboardingSkill.slice(2)}`), 'Missing packaged onboarding skill');
-for (const path of ['plugin.json', '.codex-plugin/plugin.json', '.claude-plugin/plugin.json', '.cursor-plugin/plugin.json', 'mcp.json', '.mcp.json', ui.logo, ui.composerIcon]) {
+for (const path of ['plugin.json', '.codex-plugin/plugin.json', '.claude-plugin/plugin.json', '.cursor-plugin/plugin.json', 'mcp.json', '.mcp.json', 'mcp_config.json', '.antigravity-plugin/plugin.json', '.antigravity-plugin/README.md', ui.logo, ui.composerIcon]) {
   assert.ok(files.has(`${root}/${path.replace(/^\.\//, '')}`), `Missing packaged plugin file: ${path}`);
 }
 // The leak scan of exactly what the tarball holds: a hit fails the release before anything is tagged or published.

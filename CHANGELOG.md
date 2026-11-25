@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.21.6
+
+41 tools with the same names. Fixed: an assistant asks where you want to work when no place is saved. The Antigravity plugin now carries its connector and a README.
+
 ## 1.21.5
 
 41 tools with the same names. Changed: a preferences save says what it changed, or that nothing did, and names the places it could not read. Interview prep answers in seconds with a link. Turning Auto Apply on from a chat tells you at once and names the daily limit it replaced. An empty first match read waits a few seconds for the first job.

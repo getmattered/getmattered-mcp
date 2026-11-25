@@ -1,6 +1,6 @@
 {
   "name": "getmattered",
-  "version": "1.21.5",
+  "version": "1.21.6",
   "description": "Auto-Apply That Ends on an Interview. Get matched jobs, apply on 30+ hiring systems automatically or after your approval, review and track every application, and tailor your resume and cover letter per role.",
   "author": {
     "name": "GetMattered",
@@ -147,7 +147,7 @@
         "commerce_description": "The plugin does not sell products or take payments. Paid GetMattered plans are bought on getmattered.com."
       },
       "publication": {
-        "release_notes": "1.21.5: 41 tools with the same names. Changed: a preferences save says what it changed, or that nothing did, and names the places it could not read. Interview prep answers in seconds with a link. Turning Auto Apply on from a chat tells you at once and names the daily limit it replaced. An empty first match read waits a few seconds for the first job."
+        "release_notes": "1.21.6: 41 tools with the same names. Fixed: an assistant asks where you want to work when no place is saved. The Antigravity plugin now carries its connector and a README."
       },
       "onboardingSkill": "./skills/setup-job-search/SKILL.md"
     }
