@@ -1,7 +1,7 @@
 {
   "name": "getmattered",
   "displayName": "GetMattered",
-  "version": "1.21.6",
+  "version": "1.21.7",
   "description": "Auto-Apply That Ends on an Interview. Find matching jobs, tailor your resume and cover letter, and apply on the employer's own hiring system.",
   "author": {
     "name": "GetMattered",
@@ -15,6 +15,6 @@
   "keywords": ["jobs", "job-search", "auto-apply", "resume", "cover-letter", "ats", "interview", "career", "mcp"],
   "category": "integrations",
   "tags": ["jobs", "resume", "auto-apply", "mcp"],
-  "mcpServers": "./mcp.json",
+  "mcpServers": "./.mcp.json",
   "skills": "./skills/"
 }

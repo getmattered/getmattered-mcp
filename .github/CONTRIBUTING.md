@@ -16,7 +16,7 @@ You need Node 20 or newer.
 
 ```bash
 npm ci
-npm test                # builds, then runs the tests in test/
+npm test                # builds, then runs the tests in test/ with Bun (bun test)
 npm run verify:package  # checks the versions and the packaged files
 ```
 

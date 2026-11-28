@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.21.7
+
+41 tools with the same names. Fixed: Hermes Agent now loads the GetMattered plugin connector.
+
 ## 1.21.6
 
 41 tools with the same names. Fixed: an assistant asks where you want to work when no place is saved. The Antigravity plugin now carries its connector and a README.

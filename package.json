@@ -1,6 +1,6 @@
 {
   "name": "getmattered-mcp",
-  "version": "1.21.6",
+  "version": "1.21.7",
   "description": "Job search and auto apply MCP server for ChatGPT, Claude, Cursor and any MCP client. Auto-Apply That Ends on an Interview: matched jobs, applications sent on the employer's own site, tailored resumes, cover letters, interview prep and an application tracker.",
   "type": "module",
   "bin": {
@@ -25,7 +25,7 @@
     "prepublishOnly": "npm run build && npm run verify:package",
     "verify:package": "node scripts/verify-package.mjs",
     "package:openai": "node scripts/openai-package.mjs",
-    "test": "npm run build && node --test test/*.test.mjs"
+    "test": "npm run build && bun test test/"
   },
   "keywords": [
     "ai-job-search",
@@ -72,7 +72,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
-    "typescript": "^5.7.2"
+    "typescript": "^7.0.2"
   },
   "mcpName": "com.getmattered/getmattered"
 }

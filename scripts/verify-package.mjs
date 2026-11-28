@@ -43,6 +43,19 @@ assert.ok(files.has(`${root}/${onboardingSkill.slice(2)}`), 'Missing packaged on
 for (const path of ['plugin.json', '.codex-plugin/plugin.json', '.claude-plugin/plugin.json', '.cursor-plugin/plugin.json', 'mcp.json', '.mcp.json', 'mcp_config.json', '.antigravity-plugin/plugin.json', '.antigravity-plugin/README.md', ui.logo, ui.composerIcon]) {
   assert.ok(files.has(`${root}/${path.replace(/^\.\//, '')}`), `Missing packaged plugin file: ${path}`);
 }
+// Root mcp.json is the Agent Plugins file Hermes reads: it refuses type "http" and any other top-level
+// key. Claude Code and Codex read .mcp.json, Cursor is pointed there, so "http" stays only in that file.
+// https://github.com/NousResearch/hermes-agent/blob/main/hermes_cli/agent_plugins.py (read 27 Nov 2026)
+const agentMcp = read(`${root}/mcp.json`);
+assert.deepEqual(Object.keys(agentMcp).sort(), ['$schema', 'mcpServers'], 'mcp.json may hold only $schema and mcpServers');
+assert.equal(agentMcp.$schema, 'https://agent-plugins.org/schemas/1.0.0/mcp.schema.json', 'mcp.json $schema');
+assert.equal(read(`${root}/.cursor-plugin/plugin.json`).mcpServers, './.mcp.json', 'Cursor must read .mcp.json, not mcp.json');
+const urls = config => Object.fromEntries(Object.entries(config.mcpServers).map(([name, server]) => [name, server.url]));
+assert.deepEqual(urls(agentMcp), urls(read(`${root}/.mcp.json`)), 'mcp.json and .mcp.json name different servers');
+for (const [name, server] of Object.entries(agentMcp.mcpServers)) {
+  assert.equal(server.type, 'streamable-http', `mcp.json ${name}: Hermes accepts only "streamable-http"`);
+  assert.equal(portable.extensions['com.nousresearch.hermes']?.servers?.[name]?.trust, 'untrusted', `plugin.json Hermes trust for ${name}`);
+}
 // The leak scan of exactly what the tarball holds: a hit fails the release before anything is tagged or published.
 const leaks = scanPackage({ dir: '.', files: [...files], literals: readDenylist().literals });
 assert.equal(leaks.length, 0, `the npm tarball must not ship these; nothing may be published:\n${formatProblems(leaks)}`);
